@@ -80,14 +80,14 @@ class parseConfig:
             sys.exit(1)
     # vymazavat promenny jmena a projit si az do konce
     def _rekurze(self, data, group, class_, method):
-        #group = group
+        groupLevel = group
         group = False
         class_ = class_
         method = method
         
         
         for i in data:
-            print("hodnoty:",group, class_,method)
+            print("hodnoty:",groupLevel, class_,method)
             #if class_:
             #    print("resetuju class a na zacatku")
             #    self.className = ""
@@ -107,15 +107,16 @@ class parseConfig:
                     continue
                 #try:
                 elif list(i.keys())[0] == "group":
-                        #pridavani jakz takz funguje, jen pri odchodu ze skupiny odebrat nazev, ted to odebiram tady coz je spatne
+    # pridavani jmena grupy dobry, ale odebirani jmena udelat podle posledniho jmena v parametru name, tzn odebrat treba vic levelu najednou jako je u sin:48
+
                     if self.groupName == "":
                         print("nastavuju group 1")
                         self.groupName = i["group"][0]["name"]
                         group = True
-                    elif group:
-                        print("nastavuju group 2")
-                        self.groupName = self.groupName.rsplit(":",1)[0]
-                        self.groupName += ":"+str(i["group"][0]["name"])
+                    #elif group:
+                    #    print("nastavuju group 2")
+                    #    self.groupName = self.groupName.rsplit(":",1)[0]
+                    #    self.groupName += ":"+str(i["group"][0]["name"])
                     else:
                         print("nastavuju group 3")
                         self.groupName += ":"+str(i["group"][0]["name"])
@@ -150,7 +151,7 @@ class parseConfig:
                 #    print(i)
                 #    print("jsem na konci")
                 #    continue
-        print("jdu pryc z foru", group, class_, method)
+        print("jdu pryc z foru", groupLevel, class_, method)
         if class_:
             print("resetuju class a vracim se")
             self.className = ""
@@ -160,52 +161,14 @@ class parseConfig:
             print("resetuju method a vracim se")
             self.methodName = ""
             method = False
-            class_ = True
+            #class_ = True
             return
-            
+        elif groupLevel:
+            tmp = self.groupName.rsplit(":",1)
+            if len(tmp) == 1:
+                self.groupName = ""
+            else:
+                self.groupName = self.groupName.rsplit(":",1)[0]
+            print("menim groupName na:", self.groupName) 
                 
  
-            
-
-#def ref_loop(info):
-#    print(list(info.values())[0])
-#    it = info.values().__iter__()
-#    pom = it.__next__()
-#    print("dalsi kolo:", pom)
-#    return pom
-
-##vrati mi seznam hostu pro danou skupinu
-#def loop(info):
-#    hosts = []
-#    print("jsem v loop")
-#    while(type(list(info.values())[0])) == type(dict()):
-#        info=ref_loop(info)
-#        #print(list(info.values())[0])
-#        #it = info.values().__iter__()
-#        #pom = it.__next__()
-#        #print("dalsi kolo:", pom)
-#        #loop(pom)
-#    #print(list(info.values())[0])
-#    print(list(info.values()))
-#    for szn in list(info.values()):
-#        for sz in szn:
-#            hosts.append(sz)
-#    return hosts 
-
-#def parseDevice(name):
-#    docu = ""
-#    data = ""
-#    try:
-#        with open(name, encoding="utf-8", mode="r") as f:
-#            for i in f:
-#                docu += i
-#        data=(yaml.load(docu))
-#    except Exception as e:
-#        print(e)
-#    vys=[]
-#    for i in data:
-#        vys += loop(i)
-#        print("**********************")
-#        print(vys)
-#    exit(1)
-
