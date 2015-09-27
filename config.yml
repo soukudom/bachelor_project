@@ -1,0 +1,38 @@
+---
+- group: 
+    - name: dejvicka
+    - vlan:
+        - vlan100:
+            description: guest
+        - vlan200:
+            description: admin
+
+        - vlan:
+            number: 10, 50, 10
+            description: user(10,40,10)
+            description50: management 
+            ip50: 192.168.1.1/24
+
+    - group: 
+        - name: 24
+        - interface:
+            - int2:
+                shutdown: yes
+    - group:
+        - name: dalsi
+        - vlan10:
+            description: pokus
+    - interface:
+        - int1:
+            description: label
+            shutdown: no
+            vlan:
+                mode: trunk
+                allowed: 10,50,10  
+            agregate:
+                protocol: lacp
+                channel: 1
+                mode: negotiate
+
+- group:
+    - name: sin:48 
