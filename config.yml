@@ -8,8 +8,9 @@
             description: admin
 
         - vlan:
-            number: 10, 50, 10
-            description: user(10,40,10)
+# udelat si list listu (prioprity) a ten obstarat prioritne - vymazat udaje co se nastavilo, pak projit ten zbytek
+            number: (10, 50, 10)
+            description: user(10,40,10)X(z,v)
             description50: management 
             ip50: 192.168.1.1/24
 
@@ -33,6 +34,23 @@
                 protocol: lacp
                 channel: 1
                 mode: negotiate
+        - default:
+            shutdown: no
+            vlan:
+                mode: access
+                access: 20
+        - mac:
+            address: 11:22:33:44:55:66
+            vlan:
+                mode: trunk
+                allowed: 10, 20
+            agregate:
+                protocol: lacp
+                channel: 1
+                mode: on
+        - int(1,10,2):
+                shutdown: yes
+
 
 - group:
     - name: sin:48 
