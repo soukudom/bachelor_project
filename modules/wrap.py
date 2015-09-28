@@ -35,6 +35,7 @@ class parseDevice:
         return pom
         
 class parseConfig:
+    #nacte konfiguracni soubor, a provede kontrolu formatu yaml
     def __init__(self, filename):
         docu = ""
         self.data = "" 
@@ -45,52 +46,89 @@ class parseConfig:
             self.data=yaml.load(docu)
         except Exception as e:
             print(e)
-
-    def _neco(self):
-        self.groupName = ""
-        self.className = ""
-        self.methodName = ""
-        self.subMethodName = ""
-
+    #parsuje jednotlive casti kofiguracniho souboru, kontroluje syntaxy
+    def _parse(self):
+        self.groupName = "" #nazev skupiny, ve ktere se aktualne nachazim
+        self.className = "" # nazev tridy, kde se aktualne nachazim
+        self.methodName = "" # nazev metody, kde se aktualne nachazim
+        self.subMethodName = "" # nazev submetody, kde se aktualne nachazim
+            
+        # funkce ktere rekurzivne prochazi konfiguracni soubor
         self._rekurze(self.data, False, False, False,False,0,None)
-        sys.exit(1)
+        #sys.exit(1)
 
+    #kotroluje a rozbaluje id hodnotu u jmena metody, cislo je tady aby se odlisilo vice metod najednou
     def _checkId(self,name):
-    # dodelat detekci range u jmena, pac pouze cislo nestaci
-
-        buffer = []
+        ret = [] # vystupni seznam prvku
+        buffer = [] # vystupni seznam prvku
+        # nejprve kontrola cislo na konci nazvu metody
         for i in reversed(name):
             try:
                 int(i)
                 buffer.insert(0,i)
+            # pokud se nejedna o cislo, testuje se pritomnost sekvence
             except Exception as e:
-                print(e)
                 tmp = re.search("\([1-9][0-9]*,[1-9][0-9]*,[1-9][0-9]*\)$",name)
-                print("vysledek z re je", tmp)
                 if tmp is not None:
-                    buffer = tmp.group(0).strip("()").split(",")
-                    return buffer
+                    index = tmp.group(0)
+                    buffer = index.strip("()").split(",")
+                    for i in range(int(buffer[0]),int(buffer[1]),int(buffer[2])):
+                        ret.append(i)        
+                    # nasla se range a vraci se seznam
+                    return ret, name.split("(")[0], index
                 break
-        
+        # jestlize nevyhovuje ani jeden vzor, tak se vraci priznak false 
         if not buffer:
-            return False
+            return False, None, ""
+        # vraci se nalezene cislo na konci nazvu funkce
         else:
-            return int("".join(buffer))
-    def _unpack(self, value):
-        if re.match("\([1-9][0-9]*,[1-9][0-9]*,[1-9][0-9]*\)",value):
-            return value.group(0).strip("()").split(",")
-        elif re.search("\([1-9][0-9]*,[1-9][0-9]*,[1-9][0-9]*\)",value):         
-            buffer = []
-            ret = []
-            tmp = re.split("\(|\)",value)
-            for i in tmp[:-1]:
-                if "," in i:
-                    buffer.append(i.split(","))
-                else:
-                    buffer.append([i])
-            for i in product(*buffer):
-                ret.append(''.join(i))
-            return ret
+            tmp = "".join(buffer)
+            return int(tmp), name.split(tmp)[0], tmp
+
+    # rozbaluje zkracene hodnoty pro nastaveni
+    def _unpack(self, value): #!!! podivat se na reg vyrazi, jestli se jeste nedaj napsat jinak, a hlavne tam dam libovolny pocet bilych znaku
+        ret = [] # navratova hodnota
+
+        #testuje pokud se jedna o sekvenci
+        try:
+            print(value, type(value))
+            if re.match("\([1-9][0-9]*,[1-9][0-9]*,[1-9][0-9]*\)",str(value)):
+                tmp = value.strip(")(").split(",")
+                for i in range(int(tmp[0]),int(tmp[1]),int(tmp[2])):
+                    ret.append(i)
+                print("return True, typ range")
+                return ret, True
+
+            # pokud se jedna o nazev se sekvenci
+            elif re.search("\([1-9][0-9]*,[1-9][0-9]*,[1-9][0-9]*\)",str(value)):         
+                buffer = []
+                #ret = []
+                # reg vyraz pro rozdelini retezce podle vice znaku
+                tmp = re.split("\(|\)",value)
+                for i in tmp[:-1]:
+                    if "," in i:
+                        buffer.append(i.split(","))
+                    else:
+                        buffer.append([i])
+                for i in product(*buffer):
+                    ret.append(''.join(i))
+                print("return True, nazev a range")
+                return ret, True
+
+            #pokud se jedna pouze o sekvenci, tak vraci seznam
+            elif "," in str(value):
+                print("return False, sekvence")
+                return value.split(","), False
+
+            #pokud nevyhovuje ani jeden vzor, tak vrati original
+            else:
+                print("return False, nic")
+                return value, False
+        except AttributeError:
+            print("return False, jinej datovej typ")
+            return value, False
+    
+            
 
     def _rekurze(self, data, group, class_, method, subMethod,groupNum,idNum):
         groupLevel = group # flag, ktery rika jestli mam odpojovat skupinu
@@ -100,7 +138,7 @@ class parseConfig:
         subMethod = subMethod # flag, ktery mi rika jestli vyskakuju z podmetody
         #idNum promena, ktera obsahuje identifikator rozhrani
         #mohl bych ji sem taky pro prehlednost pridat
-        
+        flag = None 
         
         for i in data:
             #print("prvni prvek z foru:", i)
@@ -108,7 +146,6 @@ class parseConfig:
             try:
                 if type(i) == type(str()):
                     #print("dosel jsem ke konci")
-                    print("klic:",i," hodnota:",data[i])
                     if type(data[i]) == type(dict()):
                         if self.subMethodName == "":
                             self.subMethodName = self.methodName+"_"+str(i)
@@ -116,6 +153,14 @@ class parseConfig:
                             self.subMethodName = self.subMethodName+"_"+str(i)
                         print("nasel jse m submethod",self.subMethodName)
                         self._rekurze(data[i],False,False,False,True,groupNumber,None)
+                    data[i], flag2 = self._unpack(data[i])
+                    if flag == None:
+                        flag = flag2
+                    else:
+                        if flag != flag2:
+                            print("Disallowed parameters.")
+                            exit(1)
+                    print("klic:",i," hodnota:",data[i])
                     #for m in data.values():
                     #   print(m,type(m))
                     continue
@@ -150,9 +195,20 @@ class parseConfig:
                         #print("nasel jsem metodu",self.methodName," dalsi kolo:",i[self.methodName])
                         print("nasel jsem metodu",self.methodName)
                         input("stiskni enter")
-                        idNum = self._checkId(self.methodName)
-                        print("checkId vratilo", idNum)
-                        self._rekurze(i[self.methodName],False,False,True,False,groupNumber,idNum)
+                        idNum,name,index = self._checkId(self.methodName)
+                        print("checkId vratilo", idNum, type(idNum))
+                        #kontroluju zda byl nalezen identifikator
+                        #pak ho tam musim zase pridat, aby se nasel spravny klic
+                        if idNum:
+                            #if type(idNum) == type(list()):
+                            #    num = "("+str(idNum[0])+","+str(idNum[1])+","+str(idNum[2])+")"
+                            #else:
+                            #    num = str(idNum)
+                            self.methodName = name
+                            self._rekurze(i[self.methodName+index],False,False,True,False,groupNumber,idNum)
+                        else:
+                            self._rekurze(i[self.methodName],False,False,True,False,groupNumber,idNum)
+                            
             except IndexError:
                 continue
             

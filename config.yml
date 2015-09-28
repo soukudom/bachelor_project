@@ -8,11 +8,10 @@
             description: admin
 
         - vlan:
-# udelat si list listu (prioprity) a ten obstarat prioritne - vymazat udaje co se nastavilo, pak projit ten zbytek
-            number: (10, 50, 10)
-            description: user(10,40,10)X(z,v)
-            description50: management 
-            ip50: 192.168.1.1/24
+            id: (10,50,10)
+            description: user #user(10,40,10)X(z,v)
+            #description50: management 
+            #ip50: 192.168.1.1/24
 
     - group: 
         - name: 24
@@ -21,8 +20,9 @@
                 shutdown: yes
     - group:
         - name: dalsi
-        - vlan10:
-            description: pokus
+        - vlan:
+            - vlan10:
+                description: pokus
     - interface:
         - int1:
             description: label
@@ -48,6 +48,7 @@
                 protocol: lacp
                 channel: 1
                 mode: on
+        # pridat prepinac aby to nerozbalovalo tuty sekvenci //advanced
         - int(1,10,2):
                 shutdown: yes
 
