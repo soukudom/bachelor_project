@@ -9,7 +9,7 @@
 
         - vlan:
             id: (10,50,10)
-            description: user #user(10,40,10)X(z,v)
+            description: user(10,40,10)X(z,v)
             #description50: management 
             #ip50: 192.168.1.1/24
 

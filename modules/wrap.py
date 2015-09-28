@@ -97,7 +97,7 @@ class parseConfig:
                 for i in range(int(tmp[0]),int(tmp[1]),int(tmp[2])):
                     ret.append(i)
                 print("return True, typ range")
-                return ret, True
+                return ret, True #!!!tydle navratovy hodnoty dat pryc, budu predavat vsechno
 
             # pokud se jedna o nazev se sekvenci
             elif re.search("\([1-9][0-9]*,[1-9][0-9]*,[1-9][0-9]*\)",str(value)):         
