@@ -68,7 +68,7 @@ class parseConfig:
                 buffer.insert(0,i)
             # pokud se nejedna o cislo, testuje se pritomnost sekvence
             except Exception as e:
-                tmp = re.search("\([1-9][0-9]*,[1-9][0-9]*,[1-9][0-9]*\)$",name)
+                tmp = re.search("\(\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?\)\s*?$",name)
                 if tmp is not None:
                     index = tmp.group(0)
                     buffer = index.strip("()").split(",")
@@ -91,16 +91,17 @@ class parseConfig:
 
         #testuje pokud se jedna o sekvenci
         try:
+            value = value.strip()
             print(value, type(value))
-            if re.match("\([1-9][0-9]*,[1-9][0-9]*,[1-9][0-9]*\)",str(value)):
+            if re.match("^\(\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?\)$",str(value)):
                 tmp = value.strip(")(").split(",")
                 for i in range(int(tmp[0]),int(tmp[1]),int(tmp[2])):
                     ret.append(i)
                 print("return True, typ range")
-                return ret, True #!!!tydle navratovy hodnoty dat pryc, budu predavat vsechno
+                return ret#, True 
 
             # pokud se jedna o nazev se sekvenci
-            elif re.search("\([1-9][0-9]*,[1-9][0-9]*,[1-9][0-9]*\)",str(value)):         
+            elif re.search("\(\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?\)\s*?$",str(value)):         
                 buffer = []
                 #ret = []
                 # reg vyraz pro rozdelini retezce podle vice znaku
@@ -113,17 +114,17 @@ class parseConfig:
                 for i in product(*buffer):
                     ret.append(''.join(i))
                 print("return True, nazev a range")
-                return ret, True
+                return ret#, True
 
             #pokud se jedna pouze o sekvenci, tak vraci seznam
             elif "," in str(value):
                 print("return False, sekvence")
-                return value.split(","), False
+                return value.split(",")#, False
 
             #pokud nevyhovuje ani jeden vzor, tak vrati original
             else:
                 print("return False, nic")
-                return value, False
+                return value#, False
         except AttributeError:
             print("return False, jinej datovej typ")
             return value, False
@@ -138,7 +139,8 @@ class parseConfig:
         subMethod = subMethod # flag, ktery mi rika jestli vyskakuju z podmetody
         #idNum promena, ktera obsahuje identifikator rozhrani
         #mohl bych ji sem taky pro prehlednost pridat
-        flag = None 
+
+        #flag = None 
         
         for i in data:
             #print("prvni prvek z foru:", i)
@@ -153,13 +155,13 @@ class parseConfig:
                             self.subMethodName = self.subMethodName+"_"+str(i)
                         print("nasel jse m submethod",self.subMethodName)
                         self._rekurze(data[i],False,False,False,True,groupNumber,None)
-                    data[i], flag2 = self._unpack(data[i])
-                    if flag == None:
-                        flag = flag2
-                    else:
-                        if flag != flag2:
-                            print("Disallowed parameters.")
-                            exit(1)
+                    data[i] = self._unpack(data[i])
+                    #if flag == None:
+                    #    flag = flag2
+                    #else:
+                    #    if flag != flag2:
+                    #        print("Disallowed parameters.")
+                    #        exit(1)
                     print("klic:",i," hodnota:",data[i])
                     #for m in data.values():
                     #   print(m,type(m))
