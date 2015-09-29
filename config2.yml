@@ -3,16 +3,16 @@
     - name: dejvicka
     - interface:
         - int1:
-            description: label
-            shutdown: no
+            #description: label
+            #shutdown: no
             vlan:
                 mode: trunk
-                allowed: 10,50,10  
+                allowed: a( 10  ,50  , 10)  
             agregate:
                 protocol: lacp
                 channel: 1
                 mode: negotiate
-        - int(1,10,2):
+        - int (  1, 10 , 2  ):
                 shutdown: yes
 
 

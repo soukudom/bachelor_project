@@ -6,6 +6,7 @@ import sys
 import re
 from itertools import product
 
+
 class parseDevice:
     def __init__(self, filename, group):
         docu = ""
@@ -247,5 +248,6 @@ class parseConfig:
             subMethod = False
             
             
-                
+class orchestrate():
+    pass                 
  
