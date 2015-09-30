@@ -5,8 +5,10 @@ import yaml
 import sys
 import re
 from itertools import product
+from copy import deepcopy
 
-
+#!!! upravit
+#!!!  pridat metodu getManufactor
 class parseDevice:
     def __init__(self, filename, group):
         docu = ""
@@ -47,21 +49,25 @@ class parseConfig:
             self.data=yaml.load(docu)
         except Exception as e:
             print(e)
+
     #parsuje jednotlive casti kofiguracniho souboru, kontroluje syntaxy
     def _parse(self):
         self.groupName = "" #nazev skupiny, ve ktere se aktualne nachazim
         self.className = "" # nazev tridy, kde se aktualne nachazim
         self.methodName = "" # nazev metody, kde se aktualne nachazim
         self.subMethodName = "" # nazev submetody, kde se aktualne nachazim
+        self.methods = [] #metody pro nastaveni
             
         # funkce ktere rekurzivne prochazi konfiguracni soubor
         self._rekurze(self.data, False, False, False,False,0,None)
-        #sys.exit(1)
+        for i in self.methods:
+            print(i)    
 
     #kotroluje a rozbaluje id hodnotu u jmena metody, cislo je tady aby se odlisilo vice metod najednou
     def _checkId(self,name):
         ret = [] # vystupni seznam prvku
         buffer = [] # vystupni seznam prvku
+
         # nejprve kontrola cislo na konci nazvu metody
         for i in reversed(name):
             try:
@@ -87,24 +93,21 @@ class parseConfig:
             return int(tmp), name.split(tmp)[0], tmp
 
     # rozbaluje zkracene hodnoty pro nastaveni
-    def _unpack(self, value): #!!! podivat se na reg vyrazi, jestli se jeste nedaj napsat jinak, a hlavne tam dam libovolny pocet bilych znaku
+    def _unpack(self, value): #!!! doufam ze reg vyrazy, fungujou jeste otestovat
         ret = [] # navratova hodnota
 
         #testuje pokud se jedna o sekvenci
         try:
             value = value.strip()
-            print(value, type(value))
             if re.match("^\(\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?\)$",str(value)):
                 tmp = value.strip(")(").split(",")
                 for i in range(int(tmp[0]),int(tmp[1]),int(tmp[2])):
                     ret.append(i)
-                print("return True, typ range")
                 return ret#, True 
 
             # pokud se jedna o nazev se sekvenci
-            elif re.search("\(\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?\)\s*?$",str(value)):         
+            elif re.search("\(.*?\)",str(value)):
                 buffer = []
-                #ret = []
                 # reg vyraz pro rozdelini retezce podle vice znaku
                 tmp = re.split("\(|\)",value)
                 for i in tmp[:-1]:
@@ -114,21 +117,17 @@ class parseConfig:
                         buffer.append([i])
                 for i in product(*buffer):
                     ret.append(''.join(i))
-                print("return True, nazev a range")
                 return ret#, True
 
             #pokud se jedna pouze o sekvenci, tak vraci seznam
             elif "," in str(value):
-                print("return False, sekvence")
                 return value.split(",")#, False
 
             #pokud nevyhovuje ani jeden vzor, tak vrati original
             else:
-                print("return False, nic")
                 return value#, False
         except AttributeError:
-            print("return False, jinej datovej typ")
-            return value, False
+            return value#, False
     
             
 
@@ -140,73 +139,44 @@ class parseConfig:
         subMethod = subMethod # flag, ktery mi rika jestli vyskakuju z podmetody
         #idNum promena, ktera obsahuje identifikator rozhrani
         #mohl bych ji sem taky pro prehlednost pridat
+        delete = [] # hodnoty, ktere je treba vymazat 
 
-        #flag = None 
-        
         for i in data:
-            #print("prvni prvek z foru:", i)
-            input("stiskni enter")
             try:
+                # vetev pro parsovani listu
                 if type(i) == type(str()):
-                    #print("dosel jsem ke konci")
+                    # vetec pro dalsi cleneni funkci
                     if type(data[i]) == type(dict()):
+                        delete.append(i)
                         if self.subMethodName == "":
                             self.subMethodName = self.methodName+"_"+str(i)
                         else:
                             self.subMethodName = self.subMethodName+"_"+str(i)
-                        print("nasel jse m submethod",self.subMethodName)
-                        self._rekurze(data[i],False,False,False,True,groupNumber,None)
+                        #!! pokud chci naky hodnoty preposlat do subMethody tak musim pridat tady, takle muzu dorucit treba mac adresu
+                        self._rekurze(data[i],False,False,False,True,groupNumber,idNum)
                     data[i] = self._unpack(data[i])
-                    #if flag == None:
-                    #    flag = flag2
-                    #else:
-                    #    if flag != flag2:
-                    #        print("Disallowed parameters.")
-                    #        exit(1)
-                    print("klic:",i," hodnota:",data[i])
-                    #for m in data.values():
-                    #   print(m,type(m))
                     continue
+                # vetev pro parsovani nazvu group
                 elif list(i.keys())[0] == "group":
 
                     if self.groupName == "":
-                     #   print("nastavuju group 1")
                         self.groupName = str(i["group"][0]["name"])
                     else:
-                      #  print("nastavuju group 3")
                         self.groupName += ":"+str(i["group"][0]["name"])
 
                     groupNumber = len(str(i["group"][0]["name"]).split(":"))
                     del i["group"][0]["name"]
-                    #print("nasel jsem group",self.groupName ,"dalsi kolo:",i["group"])
-                    print("nasel jsem group",self.groupName)
-                    input("stiskni enter")
                     self._rekurze(i["group"],True,False,False,False,groupNumber,None) 
+                # vete pro parsovani nazvu tridy a metody
                 else:
                     if self.className == "":
                         self.className = list(i.keys())[0]
-                        #print("nasel jsem tridu",self.className ," dalsi kolo:",i[self.className])
-                        print("nasel jsem tridu",self.className)
-                        input("stiskni enter")
-                        #class_ = True
-                        #idNum = self._checkId(self.className)
-                        #print("checkId vratilo", idNum)
                         self._rekurze(i[self.className],False,True,False,False,groupNumber,None)
 
                     elif self.methodName == "":
                         self.methodName = list(i.keys())[0]
-                        #print("nasel jsem metodu",self.methodName," dalsi kolo:",i[self.methodName])
-                        print("nasel jsem metodu",self.methodName)
-                        input("stiskni enter")
                         idNum,name,index = self._checkId(self.methodName)
-                        print("checkId vratilo", idNum, type(idNum))
-                        #kontroluju zda byl nalezen identifikator
-                        #pak ho tam musim zase pridat, aby se nasel spravny klic
                         if idNum:
-                            #if type(idNum) == type(list()):
-                            #    num = "("+str(idNum[0])+","+str(idNum[1])+","+str(idNum[2])+")"
-                            #else:
-                            #    num = str(idNum)
                             self.methodName = name
                             self._rekurze(i[self.methodName+index],False,False,True,False,groupNumber,idNum)
                         else:
@@ -214,23 +184,23 @@ class parseConfig:
                             
             except IndexError:
                 continue
-            
-        print("jdu pryc z foru", groupLevel, class_, method)
+        # uprava potrebnych hodnot po skonceni cyklu 
         if class_:
-            #print("resetuju class a vracim se")
             self.className = ""
             class_ = False
             return
+
         elif method:
-            #print("resetuju method a vracim se")
+            #mazani nepotrebnych klicu z subMethod
+            for l in delete:
+                del data[l]
+            ret = [self.groupName,self.className,self.methodName, self.subMethodName, idNum ,data]
+            self.methods.append(ret)
             self.methodName = ""
+            self.subMethodName = ""
             method = False
-            #class_ = True
-            print("moje zkontrolovana data jsou:" )
-            for k in data:
-                print(k,":",data[k])
-            print("identifikator: ",idNum)
             return
+
         elif groupLevel:
             #print("cislo skupiny",groupNumber)
             tmp = self.groupName.rsplit(":",groupNumber)
@@ -238,8 +208,13 @@ class parseConfig:
                 self.groupName = ""
             else:
                 self.groupName = tmp[0] 
-            #print("menim groupName na:", self.groupName) 
+
         elif subMethod:
+            data2 = deepcopy(data)
+            ret = [self.groupName,self.className, self.methodName,self.subMethodName, idNum ,data2]
+            self.methods.append(ret)
+            data.clear()
+
             tmp = self.subMethodName.rsplit("_",1)
             if len(tmp) == 1:
                 self.subMethodName = ""
@@ -247,7 +222,6 @@ class parseConfig:
                 self.subMethodName = tmp[0]
             subMethod = False
             
-            
-class orchestrate():
+class _orchestrate():    
     pass                 
  
