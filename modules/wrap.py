@@ -10,9 +10,10 @@ from copy import deepcopy
 #!!! upravit
 #!!!  pridat metodu getManufactor
 class parseDevice:
-    def __init__(self, filename, group):
+    def __init__(self, filename):
         docu = ""
-        self.data = "" 
+        self.data = "" # nactena data z configu
+        self.hosts = [] #  nalezena zarizeni
         try:
             with open(filename, encoding="utf-8", mode="r") as f:
                 for i in f:
@@ -21,21 +22,56 @@ class parseDevice:
         except Exception as e:
             print(e)
 
-    # puvodni loop
-    def _getHosts(self, info):
+    # vraci seznam zadanych zarizeni podle skupiny
+    def _getHosts(self, group):
         hosts = []
-        while(type(list(info.values())[0])) == type(dict()):
-            info=self.loop(info)
+        try:
+            if group == "all":
+                info = self.data
+            elif ":" in group:
+                info = self.data
+                keys = group.split(":")
+                for i in keys:
+                    try:
+                        i=int(i)    
+                    except ValueError:
+                        pass
+                   
+                    info = info[i]
+            else:
+                info = self.data[group]
+        except KeyError:
+            print("Wrong key")
+            exit(1)
+        except TypeError:
+            print("Bad device file format.")
+            #!!! misto exitu dat vyjimky
+            exit(1)
+
+        try:
+            while(type(list(info.values())[0])) == type(dict()):
+                info=self.loop(info)
+
+        except AttributeError:
+            if type(info[0]) == type(str()):
+                return info
+            else:
+                print("Bad device file format.")
+                exit(1)
+
         for szn in list(info.values()):
             for sz in szn:
                 hosts.append(sz)
         return hosts 
 
-    # to je puvodni ref_loop pro rekurzivni smycku
+    # rekurzivni pruchod
     def loop(self,info):
         it = info.values().__iter__()
         pom = it.__next__()
         return pom
+
+    def _getManufactor(self,ip_address):
+        pass
         
 class parseConfig:
     #nacte konfiguracni soubor, a provede kontrolu formatu yaml
@@ -223,5 +259,11 @@ class parseConfig:
             subMethod = False
             
 class _orchestrate():    
+    # musi si rict o jmeno a heslo
+    # musi si zjistim data k nastaveni
+    # musi si zjistit zarizeni na kterych to nastavit
+    # musi si zjistit vyrobce toho zarizeni aby vedel jakou metodu ma vlastne volat
+    # bude prebirat navratovy kody z nastavovacich funci?
+    # vhodne zde paralelizovat / advance
     pass                 
  
