@@ -90,7 +90,10 @@ if len(sys.argv) == 1:
 print(args)
 
 data = vars(args)
-pars = modules.wrap.parseDevice(data["device"])
+#pars = modules.wrap.parseDevice(data["device"])
 #print(pars._getHosts("all"))
+
 #pars = modules.wrap.parseConfig(data["file"])
 #pars._parse()
+
+modules.wrap._orchestrate(data["file"],data["device"],data["setting"])

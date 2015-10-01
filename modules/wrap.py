@@ -6,6 +6,7 @@ import sys
 import re
 from itertools import product
 from copy import deepcopy
+from modules.connect import snmp
 
 #!!! upravit
 #!!!  pridat metodu getManufactor
@@ -71,7 +72,21 @@ class parseDevice:
         return pom
 
     def _getManufactor(self,ip_address):
-        pass
+        community = "sin"
+        value  = "sysDescr"
+        # zatim udelat natvrdo tady a pak udelat v modulech 
+        # cisco ma nazev hned na zacatku a pak verzi pred slovem Software
+        manufactor = snmp()._snmpGet(ip_address, community, value)   
+        manufactor = manufactor.split()
+        #najdi verzi zarizeni
+        if manufactor[0].lower().startswith("3com"):
+            for pos,i in enumerate(manufactor,start=0):
+                if str(i).lower() == "software":
+                    return("3com"+str(manufactor[pos-2]))
+        elif manufactor[0].lower().startswith("cisco"):
+            for pos,i in enumerate(manufactor,start=0):
+                if re.match("C[0-9][0-9][0-9][0-9]",i):
+                    return("cisco"+str(i))
         
 class parseConfig:
     #nacte konfiguracni soubor, a provede kontrolu formatu yaml
@@ -257,13 +272,28 @@ class parseConfig:
             else:
                 self.subMethodName = tmp[0]
             subMethod = False
+    
+#zjisti nastaveni aplikace
+class parseSettings():
+    def __init__(self):
+        pass
             
 class _orchestrate():    
-    # musi si rict o jmeno a heslo
-    # musi si zjistim data k nastaveni
+    def __init__(self, deviceFile, configFile, settingsFile ):
+        self.deviceFile = deviceFile
+        self.configFile = configFile
+        self.settingsFile = settingsFile
+        
+        self.username = input("Type your username:")
+        self.password = input("Type your password:")
+        
+        name =  parseDevice(self.deviceFile)._getManufactor("10.10.110.88") 
+        print(name)
+
+    # musi si rict o jmeno a heslo 
+    # musi si zjistim data k nastaveni 
     # musi si zjistit zarizeni na kterych to nastavit
     # musi si zjistit vyrobce toho zarizeni aby vedel jakou metodu ma vlastne volat
     # bude prebirat navratovy kody z nastavovacich funci?
     # vhodne zde paralelizovat / advance
-    pass                 
  
