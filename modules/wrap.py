@@ -274,21 +274,76 @@ class parseConfig:
             subMethod = False
     
 #zjisti nastaveni aplikace
-class parseSettings():
-    def __init__(self):
-        pass
+class parseSettings:
+    def __init__(self, filename):
+        self.filename = filename
+        self.community = ""
+        self.network = ""
+        self.networkMask = ""
+        self.configFile = {}
+        self.deviceFile = {}
+
+    def _parse(self):
+        try:
+            with open(self.filename, encoding = "utf-8") as file:
+                # cteni a parsovani radku
+                for lino, line in enumerate(file, start=1):
+                    line = line.strip() 
+                    #odstraneni radkovych komentaru
+                    if re.match("(^#|^$)", line) is not None:
+                        continue
+                    #odstraneni komentaru
+                    if re.search("#", line) is not None:
+                        line = line[:line.index("#")].strip()
+                    
+                    key, value = line.split("=")
+                    key = key.lower().strip()
+                    print(key) 
+                    #kontrola parametru
+                    if key == "community_string":
+                        self.community = value
+                    elif key == "network":
+                        network, mask = value.split("/")
+                        if not re.match("^([1-9][0-9]{0,2}\.){3}[1-9][0-9]{0,2}$", network):
+                            print("bad network form")
+                            #!!! vyhodit vyjimku
+                        try:
+                            mask = int(mask)
+                            if mask < 0 or mask > 32:
+                                print("bad mask")
+                        except:
+                            pass
+                        self.network = network.strip()
+                        self.networkMask = mask
+                    #!!!muzu kontrolovat existeci souboru
+                    elif key.startswith("config_file"):
+                        name, group = key.split(":",1)
+                        self.configFile[group] = value
+                    elif key.startswith("device_file"):
+                        name, group = key.split(":",1)
+                        self.deviceFile[group] = value 
+        
+        except Exception as e:
+            pass
             
-class _orchestrate():    
+
+class _orchestrate:    
     def __init__(self, deviceFile, configFile, settingsFile ):
         self.deviceFile = deviceFile
         self.configFile = configFile
         self.settingsFile = settingsFile
         
-        self.username = input("Type your username:")
-        self.password = input("Type your password:")
+        #self.username = input("Type your username:")
+        #self.password = input("Type your password:")
         
-        name =  parseDevice(self.deviceFile)._getManufactor("10.10.110.88") 
-        print(name)
+        #name =  parseDevice(self.deviceFile)._getManufactor("10.10.110.88") 
+        #print(name)
+
+        par = parseSettings(settingsFile)
+        par._parse()
+        print(par.network,par.networkMask,par.community,par.deviceFile,par.configFile)
+        
+        
 
     # musi si rict o jmeno a heslo 
     # musi si zjistim data k nastaveni 
@@ -296,4 +351,4 @@ class _orchestrate():
     # musi si zjistit vyrobce toho zarizeni aby vedel jakou metodu ma vlastne volat
     # bude prebirat navratovy kody z nastavovacich funci?
     # vhodne zde paralelizovat / advance
- 
+    # v modulu pro device bude atribut method.connection, a podle hodnoty seprovede danne spojeni tady odsud 
