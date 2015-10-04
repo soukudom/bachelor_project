@@ -9,7 +9,7 @@ from pysnmp.entity.rfc3413.oneliner import cmdgen
 
 class ssh():
     def __init__(self,ip, username, password):
-        #!!! self.result = None # mozna pro vysledek, ale asi nebude potreba
+        self.result = ""
 
         self.conn = None # Vzdalena console
         self.conn_pre = paramiko.SSHClient() # priprava pro vzdalenou consoli
@@ -17,20 +17,34 @@ class ssh():
         
     #def _connect(self,ip,username,password):
         try:
-            self.conn_pre.connect(ip,username,password)
-        except paramiko.ssh_exception.AuthenticationExeption:
+            self.conn_pre.connect(ip,username=username,password=password,look_for_keys=False, allow_agent=False)
+        except paramiko.ssh_exception.AuthenticationException:
             print("chyba autentizace")
             return False
         self.conn = self.conn_pre.invoke_shell() 
-        return True
-    
+        #!! mozna si pohlidat smyckou jestli je vstup prazdnej
+        while self.conn.recv_ready():
+            output = self.conn.recv(100)
+            time.sleep(1)
+        #print(output)
+        #return True
+
     def _execCmd(self,command):
         #bude umet cist sekvenci prikazu
-        self.conn.send(command)
-        if conn.recv_ready():
-            pass
+        self.conn.send(command+"\n")
+        time.sleep(1)
+        while self.conn.recv_ready():
+            print("ctu smycku")
+            ot = self.conn.recv(5000)
+            self.result = str(ot)
+            time.sleep(1)
         else:
-            output = self.remote_conn.recv(5000)
+        # asi to bude jenom jednoduse vracet at se to naparsuje jinde:
+            for i in self.result.split("\\n"):
+               #for j in i.split("\\n"):
+                print(i)
+                   
+            #output = self.remote_conn.recv(5000)
 
 class netconf():
     pass

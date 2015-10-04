@@ -7,6 +7,7 @@ import re
 from itertools import product
 from copy import deepcopy
 from modules.connect import snmp
+from modules.connect import ssh
 
 #!!! upravit
 #!!!  pridat metodu getManufactor
@@ -333,8 +334,8 @@ class _orchestrate:
         self.configFile = configFile
         self.settingsFile = settingsFile
         
-        #self.username = input("Type your username:")
-        #self.password = input("Type your password:")
+        self.username = input("Type your username:")
+        self.password = input("Type your password:")
         
         #name =  parseDevice(self.deviceFile)._getManufactor("10.10.110.88") 
         #print(name)
@@ -343,7 +344,8 @@ class _orchestrate:
         par._parse()
         print(par.network,par.networkMask,par.community,par.deviceFile,par.configFile)
         
-        
+        obj = ssh("10.10.110.230",self.username,self.password)    
+        obj._execCmd("show run")
 
     # musi si rict o jmeno a heslo 
     # musi si zjistim data k nastaveni 
