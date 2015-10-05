@@ -9,8 +9,8 @@ from copy import deepcopy
 from modules.connect import snmp
 from modules.connect import ssh
 
-#!!! upravit
-#!!!  pridat metodu getManufactor
+#!!! pohlidat si klicovy slovo all v group
+
 class parseDevice:
     def __init__(self, filename):
         docu = ""
@@ -83,11 +83,11 @@ class parseDevice:
         if manufactor[0].lower().startswith("3com"):
             for pos,i in enumerate(manufactor,start=0):
                 if str(i).lower() == "software":
-                    return("3com"+str(manufactor[pos-2]))
+                    return("3com","3com"+str(manufactor[pos-2]))
         elif manufactor[0].lower().startswith("cisco"):
             for pos,i in enumerate(manufactor,start=0):
                 if re.match("C[0-9][0-9][0-9][0-9]",i):
-                    return("cisco"+str(i))
+                    return("cisco","cisco"+str(i))
         
 class parseConfig:
     #nacte konfiguracni soubor, a provede kontrolu formatu yaml
@@ -112,8 +112,9 @@ class parseConfig:
             
         # funkce ktere rekurzivne prochazi konfiguracni soubor
         self._rekurze(self.data, False, False, False,False,0,None)
-        for i in self.methods:
-            print(i)    
+        #for i in self.methods:
+            #print(i)    
+        return self.methods
 
     #kotroluje a rozbaluje id hodnotu u jmena metody, cislo je tady aby se odlisilo vice metod najednou
     def _checkId(self,name):
@@ -337,15 +338,29 @@ class _orchestrate:
         self.username = input("Type your username:")
         self.password = input("Type your password:")
         
+        device = parseDevice(self.deviceFile)
+        config = parseConfig(configFile)
+        methods = config._parse()
+        for method in methods:
+            print(method)
+            hosts = device._getHosts(method[0])         
+            break
+            # zjisti vyrobce, pokud neni napsanej
+            # jestlize neni v import listu tak importuj
+            # zjisti typ spojeni
+            # pripoj
+            # nastav
+            # vypis vysledek
+
         #name =  parseDevice(self.deviceFile)._getManufactor("10.10.110.88") 
         #print(name)
 
-        par = parseSettings(settingsFile)
-        par._parse()
-        print(par.network,par.networkMask,par.community,par.deviceFile,par.configFile)
+        #par = parseSettings(settingsFile)
+        #par._parse()
+        #print(par.network,par.networkMask,par.community,par.deviceFile,par.configFile)
         
-        obj = ssh("10.10.110.230",self.username,self.password)    
-        obj._execCmd("show run")
+        #obj = ssh("10.10.110.230",self.username,self.password)    
+        #obj._execCmd("show run")
 
     # musi si rict o jmeno a heslo 
     # musi si zjistim data k nastaveni 
