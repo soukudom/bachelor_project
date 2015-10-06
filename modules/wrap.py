@@ -8,6 +8,8 @@ from itertools import product
 from copy import deepcopy
 from modules.connect import snmp
 from modules.connect import ssh
+import os
+import subprocess
 
 #!!! pohlidat si klicovy slovo all v group
 
@@ -25,6 +27,7 @@ class parseDevice:
             print(e)
 
     #kontroluje spravnost ip address a rozbaluje zkratky
+    #!!! vymazat toho vyrobce pac je tam navic
     def _checkHost(self, hosts):
         configHost = {} # vysledny slovnik s konkretnimy hosty, klicem prislusny vendor
         #prochazim vybranou skupinu hostu
@@ -192,7 +195,7 @@ class parseDevice:
         if manufactor[0].lower().startswith("3com"):
             for pos,i in enumerate(manufactor,start=0):
                 if str(i).lower() == "software":
-                    return("3com","3com"+str(manufactor[pos-2]))
+                    return("_3com","_3com"+str(manufactor[pos-2]))
         elif manufactor[0].lower().startswith("cisco"):
             for pos,i in enumerate(manufactor,start=0):
                 if re.match("C[0-9][0-9][0-9][0-9]",i):
@@ -441,28 +444,53 @@ class parseSettings:
 
 class _orchestrate:    
     def __init__(self, deviceFile, configFile, settingsFile ):
+        importedManufactor = []
         self.deviceFile = deviceFile
         self.configFile = configFile
         self.settingsFile = settingsFile
         
         self.username = input("Type your username:")
         self.password = input("Type your password:")
-        
+        #from device_modules.cisco import cisco2950 
+        #from device_modules.cisco import cisco2950 
+        #import device_modules.cisco.cisco2950 as cisco2950
         device = parseDevice(self.deviceFile)
         config = parseConfig(configFile)
         methods = config._parse()
         for method in methods:
-            break
             print(method)
             hosts = device._getHosts(method[0])         
             for vendor in hosts:
-                if vendor == "unknown":
-                    #musim najit vyrobce
-                    continue 
                 for host in hosts[vendor]:
                     manufactor = device._getManufactor(host)
+                    print(manufactor)
+                    try:
+                        with open(manufactor[1]+".py", encoding="utf-8", mode="w") as f:
+                            print("#!/usr/bin/env python3", file=f)
+                            print("import device_modules.{}.{} as {}".format(manufactor[0],manufactor[1],manufactor[1]), file=f) 
+                               
+                            print("{}.info()".format(manufactor[1]),file=f)
+                    except Exception as e:
+                        print(e)
+                        #importedManufactor.append(manufactor[0])
+                        #im = "device_modules.cisco.cisco2950"
+                        
+                        #imp = importlib.import_module(im)
+                        #print(imp)
+                        #import "device_modules."+manufactor[0]+"."+manufactor[1] as manufactor[1]
+                        #"from device_modules."+manufactor[0]+" from " + manufactor[1]
+                    
+                    #p = os.popen("python3 {}".format(manufactor[1]+".py"))                   
+                    #out = p.readlines()
+                    #p.close()
+                    #print(out)
+                    p = subprocess.Popen(["python3", manufactor[1]+".py"],stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+                    output, error = p.communicate()
+                    print("ot:", output)
+                    exit(1)
                     print("vyrobce:",vendor,"host:",host, "manufactor:", manufactor)       
-            break
+                    #cisco2950.info()
+                    
             # zjisti vyrobce, pokud neni napsanej
             # jestlize neni v import listu tak importuj
             # zjisti typ spojeni
@@ -470,7 +498,7 @@ class _orchestrate:
             # nastav
             # vypis vysledek
 
-        #name =  parseDevice(self.deviceFile)._getManufactor("10.10.110.230") 
+        #name =  parseDevice(self.deviceFile)._getManufactor("10.10.110.232") 
         #print(name)
 
         #par = parseSettings(settingsFile)
