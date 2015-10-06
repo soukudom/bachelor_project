@@ -24,6 +24,111 @@ class parseDevice:
         except Exception as e:
             print(e)
 
+    #kontroluje spravnost ip address a rozbaluje zkratky
+    def _checkHost(self, hosts):
+        configHost = {} # vysledny slovnik s konkretnimy hosty, klicem prislusny vendor
+        #prochazim vybranou skupinu hostu
+        for host in hosts:
+            #oddeleni nazvu vyrobce
+            host = host.split(":")
+            #kontrola tvaru ip adresy
+            if re.match("^([1-9][0-9]{0,2}\.){3}[1-9][0-9]{0,2}$", host[0]):
+                if len(host) == 2:
+                    try:
+                        #!!!mozna udelat mnozinu kvuli duplicitam 
+                        configHost[host[1]].append(host[0])
+                    except KeyError:
+                        configHost[host[1]] = []
+                        configHost[host[1]].append(host[0])
+                        
+                else:
+                    try:
+                        configHost["uknown"].append(host[0])
+                    except KeyError:
+                        configHost["unknown"] = []
+                        configHost["unknown"].append(host[0])
+                    
+
+            # pokud neproslo jedna se o nejakou sekvenci
+            else:
+                res = [] # vysledny seznam ip adres
+                tmp = "" #pomocny retezev pro normalni casti ip adresy
+                # rozdeleni podle oktetu
+                parts = host[0].split(".")
+                #kontrola tvaru ip adresy
+                if len(parts) != 4:
+                    print("invalid ip address, too less items")
+                    exit(1)
+                #kontrola jednotlivych oktetu ip adresy
+                for part in parts:
+                    #pokud jsem nalezl range
+                    if re.match("^\(\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?\)$",str(part)):
+                        #odstranim zavorky a rozdelim po cislech
+                        part = part.strip(")(").split(",") 
+                        #jestli ve vysledne seznamu adresy jsou, tak je rozmnozim
+                        if res:
+                            # pomocne pole na uchovani novych adres
+                            res2 = []
+                            for ip in res:
+                                for i in range(int(part[0]),int(part[1]),int(part[2])):
+                                    res2.append(ip + "." + str(i))
+                            #nahrada starych adres za nove
+                            res = res2 
+                        #pokam mam jenom normalni adresu tak pridam rovnou do vysledneho seznamu
+                        elif tmp:
+                            for i in range(int(part[0]),int(part[1]),int(part[2])):
+                                res.append(tmp+"."+str(i))
+                        #!!pridat vetev kdy jeste nemam ani tmp
+                    
+                    #pokud jsem nasel sekvenci
+                    #podobny proces jako u range
+                    elif "," in str(part):
+                        part = part.split(",")
+                        
+                        if res:
+                            res2 = []
+                            for ip in res:
+                                for i in part:
+                                    try:
+                                        int(i)
+                                    except ValueError:
+                                        print("bad value in sekvence")
+                                        exit(1)
+                                    res2.append(ip + "." + str(i))
+                            res = res2 
+                        elif tmp:
+                            for i in part:
+                                try:
+                                    int(i)
+                                except ValueError:
+                                    print("bad value in sekvence")
+                                    exit(1)
+                                res.append(tmp+"."+str(i))
+                    #pridani oktetu do pomocneho tmp
+                    elif type(part) == type(str()):
+                        if tmp:
+                            tmp = tmp + "." + part 
+                        else:
+                            tmp = part
+
+                if len(host) == 2:
+                        #!!!mozna udelat mnozinu kvuli duplicitam 
+                        for ip in res:
+                            try:
+                                configHost[host[1]].append(ip)
+                            except KeyError:
+                                configHost[host[1]] = []
+                                configHost[host[1]].append(ip)
+                #pokud nebyl zadan vyrobce        
+                else:
+                    for ip in res:
+                        try:
+                            configHost["uknown"].append(ip)
+                        except KeyError:
+                            configHost["unknown"] = []
+                            configHost["unknown"].append(ip)
+        return configHost
+
     # vraci seznam zadanych zarizeni podle skupiny
     def _getHosts(self, group):
         hosts = []
@@ -64,7 +169,8 @@ class parseDevice:
         for szn in list(info.values()):
             for sz in szn:
                 hosts.append(sz)
-        return hosts 
+        return self._checkHost(hosts)
+        #return hosts 
 
     # rekurzivni pruchod
     def loop(self,info):
@@ -78,6 +184,9 @@ class parseDevice:
         # zatim udelat natvrdo tady a pak udelat v modulech 
         # cisco ma nazev hned na zacatku a pak verzi pred slovem Software
         manufactor = snmp()._snmpGet(ip_address, community, value)   
+        if manufactor == None:
+            print("device does not exist")
+            return False
         manufactor = manufactor.split()
         #najdi verzi zarizeni
         if manufactor[0].lower().startswith("3com"):
@@ -173,6 +282,7 @@ class parseConfig:
                 return ret#, True
 
             #pokud se jedna pouze o sekvenci, tak vraci seznam
+            #!!pohlidat jestli je to spravnej tvar
             elif "," in str(value):
                 return value.split(",")#, False
 
@@ -342,8 +452,16 @@ class _orchestrate:
         config = parseConfig(configFile)
         methods = config._parse()
         for method in methods:
+            break
             print(method)
             hosts = device._getHosts(method[0])         
+            for vendor in hosts:
+                if vendor == "unknown":
+                    #musim najit vyrobce
+                    continue 
+                for host in hosts[vendor]:
+                    manufactor = device._getManufactor(host)
+                    print("vyrobce:",vendor,"host:",host, "manufactor:", manufactor)       
             break
             # zjisti vyrobce, pokud neni napsanej
             # jestlize neni v import listu tak importuj
@@ -352,7 +470,7 @@ class _orchestrate:
             # nastav
             # vypis vysledek
 
-        #name =  parseDevice(self.deviceFile)._getManufactor("10.10.110.88") 
+        #name =  parseDevice(self.deviceFile)._getManufactor("10.10.110.230") 
         #print(name)
 
         #par = parseSettings(settingsFile)
