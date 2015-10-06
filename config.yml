@@ -1,6 +1,6 @@
 ---
 - group: 
-    - name: dejvicka
+    - name: dej
     - vlan:
         - vlan100:
             description: guest

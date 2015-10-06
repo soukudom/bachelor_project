@@ -96,4 +96,4 @@ data = vars(args)
 #pars = modules.wrap.parseConfig(data["file"])
 #pars._parse()
 
-modules.wrap._orchestrate(data["file"],data["device"],data["setting"])
+modules.wrap._orchestrate(data["device"],data["file"],data["setting"])

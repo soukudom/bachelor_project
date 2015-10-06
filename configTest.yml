@@ -1,0 +1,9 @@
+---
+- group: 
+    - name: dej
+    - vlan:
+        - vlan100:
+            description: guest
+        - vlan200:
+            description: admin
+
