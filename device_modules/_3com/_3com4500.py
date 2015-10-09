@@ -7,5 +7,5 @@ class vlan():
     def __init__(self):
         self.method = "ssh"
 
-    def vlan(self, id="",description="",ip="",netmask="")
+    def vlan(self, id="",description="",ip="",netmask=""):
         pass

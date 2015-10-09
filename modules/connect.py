@@ -8,41 +8,49 @@ from pysnmp.entity.rfc3413.oneliner import cmdgen
 
 
 class ssh():
-    def __init__(self,ip, username, password):
+    def __init__(self):# username, password):
         self.result = ""
 
         self.conn = None # Vzdalena console
         self.conn_pre = paramiko.SSHClient() # priprava pro vzdalenou consoli
         self.conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         
-    #def _connect(self,ip,username,password):
+    def _connect(self,ip,username,password):
         try:
             self.conn_pre.connect(ip,username=username,password=password,look_for_keys=False, allow_agent=False)
         except paramiko.ssh_exception.AuthenticationException:
             print("chyba autentizace")
             return False
         self.conn = self.conn_pre.invoke_shell() 
+        time.sleep(1)
         #!! mozna si pohlidat smyckou jestli je vstup prazdnej
         while self.conn.recv_ready():
             output = self.conn.recv(100)
+            print("uvodni prihlaseni", output)
             time.sleep(1)
         #print(output)
-        #return True
+        return True
 
-    def _execCmd(self,command):
+    def _execCmd(self,commands):
         #bude umet cist sekvenci prikazu
-        self.conn.send(command+"\n")
-        time.sleep(1)
-        while self.conn.recv_ready():
-            print("ctu smycku")
-            ot = self.conn.recv(5000)
-            self.result = str(ot)
+        print(commands)
+        for command in commands:
+            command = command.strip().strip("'")
+            #command = bytes(command+"\n","utf-8") 
+            #print("posilam*"+command+"*")
+            print("posilam*",command)
+            self.conn.send(command+'\n')
             time.sleep(1)
-        else:
-        # asi to bude jenom jednoduse vracet at se to naparsuje jinde:
-            for i in self.result.split("\\n"):
-               #for j in i.split("\\n"):
-                print(i)
+            while self.conn.recv_ready():
+                print("ctu smycku")
+                ot = self.conn.recv(5000)
+                self.result = str(ot)
+                time.sleep(1)
+            else:
+            # asi to bude jenom jednoduse vracet at se to naparsuje jinde:
+                for i in self.result.split("\\n"):
+                #for j in i.split("\\n"):
+                    print(i)
                    
             #output = self.remote_conn.recv(5000)
 

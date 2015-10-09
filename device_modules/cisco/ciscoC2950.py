@@ -4,11 +4,12 @@ def info():
     print("ahoj ja jsem cisco 2950")
 
 class vlan:
-    __init__(self):
+    def __init__(self):
         self.method = "ssh"
 
     def vlan(self,id,description="",ip="",netmask=""):
-        result = ["interface vlan {}".format(id)]
+        result = ["configure terminal"]
+        result.append("interface vlan {}".format(id))
         if description:
             result.append("description {}".format(description))
         if ip and netmask:

@@ -360,7 +360,10 @@ class parseConfig:
             #mazani nepotrebnych klicu z subMethod
             for l in delete:
                 del data[l]
-            ret = [self.groupName,self.className,self.methodName, self.subMethodName, idNum ,data]
+            data["id"] = idNum #pridal jsem aby byly vsechny argumenty pohromade
+            #!odstranit to idnum melo by fungovat
+            #ret = [self.groupName,self.className,self.methodName, self.subMethodName, idNum ,data]
+            ret = [self.groupName,self.className,self.methodName, self.subMethodName ,data]
             self.methods.append(ret)
             self.methodName = ""
             self.subMethodName = ""
@@ -377,7 +380,10 @@ class parseConfig:
 
         elif subMethod:
             data2 = deepcopy(data)
-            ret = [self.groupName,self.className, self.methodName,self.subMethodName, idNum ,data2]
+            data2["id"] = idNum #pridal jsem aby byly vsechny argumenty pohromade
+            #!odstranit to idnum # melo by fungovat 
+            #ret = [self.groupName,self.className, self.methodName,self.subMethodName, idNum ,data2]
+            ret = [self.groupName,self.className, self.methodName,self.subMethodName ,data2]
             self.methods.append(ret)
             data.clear()
 
@@ -444,59 +450,59 @@ class parseSettings:
 
 class _orchestrate:    
     def __init__(self, deviceFile, configFile, settingsFile ):
-        importedManufactor = []
         self.deviceFile = deviceFile
         self.configFile = configFile
         self.settingsFile = settingsFile
         
-        self.username = input("Type your username:")
-        self.password = input("Type your password:")
-        #from device_modules.cisco import cisco2950 
-        #from device_modules.cisco import cisco2950 
-        #import device_modules.cisco.cisco2950 as cisco2950
+        instance = "obj" # instace tridy v pomocnym volani
+        returned = "res" # navratova hodnota
+        self.username = input("Type your username:") #username pro prihlaseni na zarizeni
+        self.password = input("Type your password:") #password pro prihlaseni na zarizeni
+
         device = parseDevice(self.deviceFile)
         config = parseConfig(configFile)
         methods = config._parse()
         for method in methods:
             print(method)
-            hosts = device._getHosts(method[0])         
-            for vendor in hosts:
+            hosts = device._getHosts(method[0]) # zjisti zarizeni, ktere se budou nastavovat         
+            for vendor in hosts: # zjisti nazev zarizeni, ktery je potrebny pro dynamickou praci
                 for host in hosts[vendor]:
                     manufactor = device._getManufactor(host)
                     print(manufactor)
+                    #dynamicke vytvoreni skriptu pro nastaveni
                     try:
                         with open(manufactor[1]+".py", encoding="utf-8", mode="w") as f:
                             print("#!/usr/bin/env python3", file=f)
                             print("import device_modules.{}.{} as {}".format(manufactor[0],manufactor[1],manufactor[1]), file=f) 
-                               
-                            print("{}.info()".format(manufactor[1]),file=f)
+                            
+                            #vytvoreni objektu tridy
+                            print("{} = {}.{}()".format(instance,manufactor[1],method[1]),file=f)
+                            #pokud je definovana submethod
+                            if method[3]:
+                                print("{} = {}.{}(**{})".format(returned,instacen,method[3],method[-1]),file=f)
+                            #pokud je definovano prouze method
+                            else:
+                                print("{} = {}.{}(**{})".format(returned,instance,method[2],method[-1]),file=f)
+                            #vrati vysledek operace
+                            print("print({},{}.method)".format(returned,instance),file=f)
+                            
                     except Exception as e:
                         print(e)
-                        #importedManufactor.append(manufactor[0])
-                        #im = "device_modules.cisco.cisco2950"
-                        
-                        #imp = importlib.import_module(im)
-                        #print(imp)
-                        #import "device_modules."+manufactor[0]+"."+manufactor[1] as manufactor[1]
-                        #"from device_modules."+manufactor[0]+" from " + manufactor[1]
-                    
-                    #p = os.popen("python3 {}".format(manufactor[1]+".py"))                   
-                    #out = p.readlines()
-                    #p.close()
-                    #print(out)
+                    #zavolani pomocneho souboru    
                     p = subprocess.Popen(["python3", manufactor[1]+".py"],stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
                     output, error = p.communicate()
-                    print("ot:", output)
-                    exit(1)
-                    print("vyrobce:",vendor,"host:",host, "manufactor:", manufactor)       
-                    #cisco2950.info()
                     
-            # zjisti vyrobce, pokud neni napsanej
-            # jestlize neni v import listu tak importuj
-            # zjisti typ spojeni
-            # pripoj
-            # nastav
-            # vypis vysledek
+                    print("ot:", output)
+                    deviceSet = output.decode("utf-8").rsplit(" ",1)
+                    deviceSet[0] = deviceSet[0].strip("][").split(",")
+                    #!!rozhodovat se podle pripojeni
+                    import modules.connect as connect
+                    conn = connect.ssh()
+                    nar = conn._connect('10.10.110.230',self.username, self.password)
+                    conn._execCmd(deviceSet[0])
+                    ##pripojit se a nastavit to
+                    exit(1)
+                    
 
         #name =  parseDevice(self.deviceFile)._getManufactor("10.10.110.232") 
         #print(name)
