@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import yaml
+import getpass
 import sys
 import re
 from itertools import product
 from copy import deepcopy
 from modules.connect import snmp
-from modules.connect import ssh
+#from modules.connect import ssh
+import modules.connect as connect
 import os
 import subprocess
 
@@ -457,18 +459,19 @@ class _orchestrate:
         instance = "obj" # instace tridy v pomocnym volani
         returned = "res" # navratova hodnota
         self.username = input("Type your username:") #username pro prihlaseni na zarizeni
-        self.password = input("Type your password:") #password pro prihlaseni na zarizeni
+        self.password = getpass.getpass("Type your password:") #password pro prihlaseni
 
         device = parseDevice(self.deviceFile)
         config = parseConfig(configFile)
         methods = config._parse()
         for method in methods:
-            print(method)
+            print("metoda k nastaveni:",method)
             hosts = device._getHosts(method[0]) # zjisti zarizeni, ktere se budou nastavovat         
+            print("zarizeni k nastaveni",hosts)
             for vendor in hosts: # zjisti nazev zarizeni, ktery je potrebny pro dynamickou praci
                 for host in hosts[vendor]:
                     manufactor = device._getManufactor(host)
-                    print(manufactor)
+                    print("vyrobce:",manufactor)
                     #dynamicke vytvoreni skriptu pro nastaveni
                     try:
                         with open(manufactor[1]+".py", encoding="utf-8", mode="w") as f:
@@ -492,17 +495,14 @@ class _orchestrate:
                     p = subprocess.Popen(["python3", manufactor[1]+".py"],stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
                     output, error = p.communicate()
                     
-                    print("ot:", output)
+                    #print("ot:", output)
                     deviceSet = output.decode("utf-8").rsplit(" ",1)
                     deviceSet[0] = deviceSet[0].strip("][").split(",")
-                    #!!rozhodovat se podle pripojeni
-                    import modules.connect as connect
-                    conn = connect.ssh()
-                    nar = conn._connect('10.10.110.230',self.username, self.password)
-                    conn._execCmd(deviceSet[0])
-                    ##pripojit se a nastavit to
-                    exit(1)
-                    
+                    if deviceSet[1].strip() == "ssh":
+                        conn = connect.ssh()
+                        conn._connect(host,self.username, self.password)
+                        conn._execCmd(deviceSet[0])
+                                
 
         #name =  parseDevice(self.deviceFile)._getManufactor("10.10.110.232") 
         #print(name)
@@ -514,10 +514,4 @@ class _orchestrate:
         #obj = ssh("10.10.110.230",self.username,self.password)    
         #obj._execCmd("show run")
 
-    # musi si rict o jmeno a heslo 
-    # musi si zjistim data k nastaveni 
-    # musi si zjistit zarizeni na kterych to nastavit
-    # musi si zjistit vyrobce toho zarizeni aby vedel jakou metodu ma vlastne volat
-    # bude prebirat navratovy kody z nastavovacich funci?
     # vhodne zde paralelizovat / advance
-    # v modulu pro device bude atribut method.connection, a podle hodnoty seprovede danne spojeni tady odsud 

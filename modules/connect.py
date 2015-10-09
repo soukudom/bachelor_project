@@ -10,7 +10,6 @@ from pysnmp.entity.rfc3413.oneliner import cmdgen
 class ssh():
     def __init__(self):# username, password):
         self.result = ""
-
         self.conn = None # Vzdalena console
         self.conn_pre = paramiko.SSHClient() # priprava pro vzdalenou consoli
         self.conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -22,12 +21,12 @@ class ssh():
             print("chyba autentizace")
             return False
         self.conn = self.conn_pre.invoke_shell() 
-        time.sleep(1)
+        time.sleep(0.5)
         #!! mozna si pohlidat smyckou jestli je vstup prazdnej
         while self.conn.recv_ready():
             output = self.conn.recv(100)
-            print("uvodni prihlaseni", output)
-            time.sleep(1)
+            print("prihlasil jsem se na", output)
+            time.sleep(0.3)
         #print(output)
         return True
 
@@ -38,20 +37,28 @@ class ssh():
             command = command.strip().strip("'")
             #command = bytes(command+"\n","utf-8") 
             #print("posilam*"+command+"*")
-            print("posilam*",command)
+            print("posilam",command)
+            #self.conn.send(command+'\n')
             self.conn.send(command+'\n')
-            time.sleep(1)
+            time.sleep(0.7)
             while self.conn.recv_ready():
-                print("ctu smycku")
+                #print("ctu smycku")
                 ot = self.conn.recv(5000)
                 self.result = str(ot)
-                time.sleep(1)
+                time.sleep(0.3)
             else:
             # asi to bude jenom jednoduse vracet at se to naparsuje jinde:
-                for i in self.result.split("\\n"):
+                if "%" in self.result:
+                    #print("zarizeni vratilo:",self.result, "false")
+                    print("This command '{}' was not proceed due to '{}'".format(command, self.result))
+                else:
+                    print("zarizeni vratilo:",self.result)
+      #  return self.invalidCommands
+            
+             #   for i in self.result.split("\\n"):
                 #for j in i.split("\\n"):
-                    print(i)
-                   
+             #       print(i)
+        print("********************************************************")      
             #output = self.remote_conn.recv(5000)
 
 class netconf():
