@@ -12,6 +12,7 @@ from modules.connect import snmp
 import modules.connect as connect
 import os
 import subprocess
+import importlib
 
 #!!! pohlidat si klicovy slovo all v group
 
@@ -472,36 +473,63 @@ class _orchestrate:
                 for host in hosts[vendor]:
                     manufactor = device._getManufactor(host)
                     print("vyrobce:",manufactor)
-                    #dynamicke vytvoreni skriptu pro nastaveni
-                    try:
-                        with open(manufactor[1]+".py", encoding="utf-8", mode="w") as f:
-                            print("#!/usr/bin/env python3", file=f)
-                            print("import device_modules.{}.{} as {}".format(manufactor[0],manufactor[1],manufactor[1]), file=f) 
-                            
-                            #vytvoreni objektu tridy
-                            print("{} = {}.{}()".format(instance,manufactor[1],method[1]),file=f)
-                            #pokud je definovana submethod
-                            if method[3]:
-                                print("{} = {}.{}(**{})".format(returned,instacen,method[3],method[-1]),file=f)
-                            #pokud je definovano prouze method
-                            else:
-                                print("{} = {}.{}(**{})".format(returned,instance,method[2],method[-1]),file=f)
-                            #vrati vysledek operace
-                            print("print({},{}.method)".format(returned,instance),file=f)
-                            
-                    except Exception as e:
-                        print(e)
-                    #zavolani pomocneho souboru    
-                    p = subprocess.Popen(["python3", manufactor[1]+".py"],stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-                    output, error = p.communicate()
                     
-                    #print("ot:", output)
-                    deviceSet = output.decode("utf-8").rsplit(" ",1)
-                    deviceSet[0] = deviceSet[0].strip("][").split(",")
-                    if deviceSet[1].strip() == "ssh":
-                        conn = connect.ssh()
-                        conn._connect(host,self.username, self.password)
-                        conn._execCmd(deviceSet[0])
+                    #sestaveni modulu pro import
+                    module = "device_modules.{}.{}".format(manufactor[0],manufactor[1])
+                    importObj = importlib.import_module(module)
+                    #zavolani tridy
+                    obj = getattr(importObj,method[1])
+                    objInst = obj()
+                  
+                    #zjisteni metody spojeni
+                    conn_method = objInst.method
+                    #pokud se nastavuje submethod
+                    if method[3]:
+                        inst = getattr(objInst,method[3])
+                        deviceSet = inst(**method[-1])
+                    #pouze method
+                    else:
+                        inst = getattr(objInst,method[2])
+                        deviceSet = inst(**method[-1])
+                    
+                    #zavolani propojovaciho modulue a vykonani prikazu
+                    conn = getattr(connect, conn_method)                     
+                    conn = conn()
+                    conn._connect(host,self.username,self.password)
+                    conn._execCmd(deviceSet)
+
+
+
+#                    #dynamicke vytvoreni skriptu pro nastaveni
+#                    try:
+#                        with open(manufactor[1]+".py", encoding="utf-8", mode="w") as f:
+#                            print("#!/usr/bin/env python3", file=f)
+#                            print("import device_modules.{}.{} as {}".format(manufactor[0],manufactor[1],manufactor[1]), file=f) 
+#                            
+#                            #vytvoreni objektu tridy
+#                            print("{} = {}.{}()".format(instance,manufactor[1],method[1]),file=f)
+#                            #pokud je definovana submethod
+#                            if method[3]:
+#                                print("{} = {}.{}(**{})".format(returned,instacen,method[3],method[-1]),file=f)
+#                            #pokud je definovano prouze method
+#                            else:
+#                                print("{} = {}.{}(**{})".format(returned,instance,method[2],method[-1]),file=f)
+#                            #vrati vysledek operace
+#                            print("print({},{}.method)".format(returned,instance),file=f)
+#                            
+#                    except Exception as e:
+#                        print(e)
+#                    #zavolani pomocneho souboru    
+#                    p = subprocess.Popen(["python3", manufactor[1]+".py"],stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+#                    output, error = p.communicate()
+#                    
+#                    #print("ot:", output)
+#                    deviceSet = output.decode("utf-8").rsplit(" ",1)
+#                    deviceSet[0] = deviceSet[0].strip("][").split(",")
+#                    if deviceSet[1].strip() == "ssh":
+#                        conn = connect.ssh()
+#                        conn._connect(host,self.username, self.password)
+#                        conn._execCmd(deviceSet[0])
                                 
 
         #name =  parseDevice(self.deviceFile)._getManufactor("10.10.110.232") 

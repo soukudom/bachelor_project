@@ -5,6 +5,7 @@ import sys
 import os
 import argparse
 import modules.wrap
+#!!pridat prepinac testing ktery otestuje konfiguraci
 
 #return codes:
 #   1: chyba prepinacu

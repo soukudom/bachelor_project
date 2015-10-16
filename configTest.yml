@@ -1,10 +1,24 @@
 ---
 - group: 
     - name: dej
-    - vlan:
-        - vlan100:
-            description: guest
-            ip: 192.168.11.1/24
-        - vlan200:
-            description: admin
+#    - vlan:
+#        - vlan100:
+#            description: guest
+#            ip: 192.168.11.1/24
+#        - vlan200:
+#            description: admin
 
+#    - interface:
+#        - int2:
+#            description: labelik
+#            shutdown: no
+#            vlan:
+#                mode: access
+#            agregate:
+#                protocol: lacp
+#                channel: 1
+#                mode: on
+
+    - interface:
+        - default(1,6,1):
+            description: defaultik

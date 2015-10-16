@@ -39,6 +39,7 @@
             vlan:
                 mode: access
                 access: 20
+                #!!pridat nativni vlan
         - mac: #nastavi vsechny krome vypsanejch
             address: 11:22:33:44:55:66
             vlan:
