@@ -41,7 +41,7 @@
                 access: 20
                 #!!pridat nativni vlan
         - mac: #nastavi vsechny krome vypsanejch
-            address: 11:22:33:44:55:66
+            id: 11:22:33:44:55:66
             vlan:
                 mode: trunk
                 allowed: 10, 20
@@ -49,6 +49,10 @@
                 protocol: lacp
                 channel: 1
                 mode: on
+        - mac: #nastavi vsechny krome vypsanejch
+            id: "66:55:44:33:22:11"
+            vlan:
+                mode: trunk
         # pridat prepinac aby to nerozbalovalo tuty sekvenci //advanced
         - int(1,10,2):
                 shutdown: yes

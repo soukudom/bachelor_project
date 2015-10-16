@@ -241,7 +241,7 @@ class parseConfig:
             try:
                 int(i)
                 buffer.insert(0,i)
-            # pokud se nejedna o cislo, testuje se pritomnost sekvence
+            # pokud se nejedna o cislo, testuje se pritomnost range
             except Exception as e:
                 tmp = re.search("\(\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?\)\s*?$",name)
                 if tmp is not None:
@@ -252,6 +252,7 @@ class parseConfig:
                     # nasla se range a vraci se seznam
                     return ret, name.split("(")[0], index
                 break
+        #!!!pridat detekci sekvence
         # jestlize nevyhovuje ani jeden vzor, tak se vraci priznak false 
         if not buffer:
             return False, None, ""
@@ -271,6 +272,7 @@ class parseConfig:
                 tmp = value.strip(")(").split(",")
                 for i in range(int(tmp[0]),int(tmp[1]),int(tmp[2])):
                     ret.append(i)
+                #print("rozbaluji range v hodnote", ret)
                 return ret#, True 
 
             # pokud se jedna o nazev se sekvenci
@@ -324,6 +326,7 @@ class parseConfig:
                         #!! pokud chci naky hodnoty preposlat do subMethody tak musim pridat tady, takle muzu dorucit treba mac adresu
                         self._rekurze(data[i],False,False,False,True,groupNumber,idNum)
                     data[i] = self._unpack(data[i])
+                    #print("ukladam",i,data[i])
                     continue
                 # vetev pro parsovani nazvu group
                 elif list(i.keys())[0] == "group":
@@ -363,7 +366,11 @@ class parseConfig:
             #mazani nepotrebnych klicu z subMethod
             for l in delete:
                 del data[l]
-            data["id"] = idNum #pridal jsem aby byly vsechny argumenty pohromade
+            #abych si nepremazaval klic kdyz uz tam je
+            try:
+                data["id"]
+            except:
+                data["id"] = idNum #pridal jsem aby byly vsechny argumenty pohromade
             #!odstranit to idnum melo by fungovat
             #ret = [self.groupName,self.className,self.methodName, self.subMethodName, idNum ,data]
             ret = [self.groupName,self.className,self.methodName, self.subMethodName ,data]
@@ -467,6 +474,7 @@ class _orchestrate:
         methods = config._parse()
         for method in methods:
             print("metoda k nastaveni:",method)
+            continue
             hosts = device._getHosts(method[0]) # zjisti zarizeni, ktere se budou nastavovat         
             print("zarizeni k nastaveni",hosts)
             for vendor in hosts: # zjisti nazev zarizeni, ktery je potrebny pro dynamickou praci

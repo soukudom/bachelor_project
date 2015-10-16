@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-class info:
-    def __init__(self):
-        self.id = "2950"
-    def info(self):
-        print("jsem cisco {}".format(self.id))
+#class info:
+#    def __init__(self):
+#        self.id = "2950"
+    #def info(self):
+    #    print("jsem cisco {}".format(self.id))
 
 class vlan:
     def __init__(self):
@@ -27,6 +27,7 @@ class interface:
     def __init__(self):
         self.method = "ssh"
         self.result = ["configure terminal"]
+        self.interfaceCount = 24 #muzu si dovolit, protoze je to psany pro konkretni model a vim kolim ma rozhrani
     def int(self, id="", description = "", shutdown="",):
         #result = ["configure terminal"]
         #pokud je zadany id range
@@ -87,11 +88,10 @@ class interface:
         
 
     def default(self, id="", shutdown="", description=""):
-        interfaceCount = 24 #muzu si dovolit, protoze je to psany pro konkretni model a vim kolim ma rozhrani
         #result = ["configure terminal"]
         if id:
             idSet = []
-            for i in range(interfaceCount+1):
+            for i in range(self.interfaceCount+1):
                 if i in id:
                     continue
                 else:
@@ -99,14 +99,24 @@ class interface:
             return self.result
                     
     
-    def default_vlan(self,id="", mode="", access=""):
-        pass
+    def default_vlan(self,id="", mode="", access="", allowed=""):
+        if id:
+            idSet = []
+            for i in range(self.interfaceCount+1):
+                if i in id:
+                    continue
+                else:
+                    self.int_vlan(i,mode,allowed,access)
+            return self.result
 
-    def mac(self, address=""):
-        pass
+    def mac(self, id="", description = "", shutdown=""):
+        #!!!id = najdi cislo rozhrani s mac addressou
+        self.int(id,description,shutdown)
     
-    def mac_vlan(self, mode="", allowed=""):
-        pass
+    def mac_vlan(self, id="", mode="", allowed="", access=""):
+        #!!!id = najdi cislo rozhrani s mac adresoun
+        self.int_vlan(self, id="", mode="", allowed="", access="")
 
-    def mac_agregate(self,protocol="",channel="", mode=""):
-        pass
+    def mac_agregate(self,id="",protocol="",channel="", mode=""):
+        #!!!id = najdi cislo rozhrani s mac adresoun
+        self.int_agregate(id,protocol,channel,mode)
