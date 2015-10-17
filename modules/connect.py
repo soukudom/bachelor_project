@@ -5,6 +5,8 @@ import paramiko
 import time
 import sys
 from pysnmp.entity.rfc3413.oneliner import cmdgen
+#import subprocess
+import pexpect
 
 
 class ssh():
@@ -62,7 +64,24 @@ class ssh():
             #output = self.remote_conn.recv(5000)
 
 class netconf():
-    pass
+    def __init__(self):
+        self.proc = ""
+
+    def _connect(self, ip, username, password, helloMessage):
+        self.proc = pexpect.spawn("ssh {}@{} -s netconf".format(username,ip))
+        self.proc.expect("Password:")
+        self.proc.sendline(password) 
+        self.proc.expect(".*\]\]>\]\]>")
+        print(self.proc.after.decode("utf-8"))
+        self.proc.sendline(helloMessage)
+        #self.proc.sendline('<?xml version="1.0" encoding="UTF-8"?><hello><capabilities><capability>urn:ietf:params:netconf:base:1.0</capability><capability>urn:ietf:params:netconf:capability:writeable-running:1.0</capability><capability>urn:ietf:params:netconf:capability:startup:1.0</capability><capability>urn:ietf:params:netconf:capability:url:1.0</capability><capability>urn:cisco:params:netconf:capability:pi-data-model:1.0</capability><capability>urn:cisco:params:netconf:capability:notification:1.0</capability></capabilities></hello>]]>]]>') 
+        time.sleep(0.1)
+
+    def _execCmd(self, commands):
+        self.proc.sendline(commands)
+        time.sleep(0.1)
+        self.proc.expect(".*\]\]>\]\]>")
+        print(self.proc.after.decode("utf-8"))
 
 class snmp():
     def __init(self):

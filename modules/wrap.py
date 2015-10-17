@@ -474,7 +474,6 @@ class _orchestrate:
         methods = config._parse()
         for method in methods:
             print("metoda k nastaveni:",method)
-            continue
             hosts = device._getHosts(method[0]) # zjisti zarizeni, ktere se budou nastavovat         
             print("zarizeni k nastaveni",hosts)
             for vendor in hosts: # zjisti nazev zarizeni, ktery je potrebny pro dynamickou praci
