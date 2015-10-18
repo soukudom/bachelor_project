@@ -7,6 +7,7 @@ import sys
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 #import subprocess
 import pexpect
+import socket
 
 
 class ssh():
@@ -65,7 +66,54 @@ class ssh():
 
 class netconf():
     def __init__(self):
-        self.proc = ""
+        self.proc = "" #slouzi pro volani pexpect
+
+        self.conn = None # Vzdalena console
+        self.conn_pre = paramiko.SSHClient() # priprava pro vzdalenou consoli
+        self.conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        self.socket2 = ""
+        self.ch = ""
+        self.trans = ""
+        
+    
+    def _connect2(self,ip,username,password, helloMessage):
+        self.socket2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket2.connect((ip,22)) 
+
+        self.trans = paramiko.Transport(self.socket2)
+        self.trans.connect(username=username,password=password)
+        
+        self.ch = self.trans.open_session()
+        self.name = self.ch.set_name("netconf")
+        self.ch.invoke_subsystem("netconf")
+        self.ch.send(helloMessage)
+        time.sleep(0.1)
+
+        #data = self.ch.recv(2048)
+        #print(data)
+        while self.ch.recv_ready():
+            data = self.ch.recv(2048)
+            print(data)
+        #    data = ch.recv(1024)
+        #    print(data)
+            
+        #ch.close()
+        #trans.close()
+        #socket2.close()
+
+    def _execCmd2(self, command):
+        self.ch.send(command)
+        time.sleep(0.1)
+        #data = self.ch.recv(2048)
+        while self.ch.recv_ready():
+            data = self.ch.recv(2048)
+            print(data)
+        #data = self.ch.recv(2048)
+        #print(data)
+
+        self.ch.close()
+        self.trans.close()
+        self.socket2.close()
 
     def _connect(self, ip, username, password, helloMessage):
         self.proc = pexpect.spawn("ssh {}@{} -s netconf".format(username,ip))
