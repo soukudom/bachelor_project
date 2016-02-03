@@ -13,8 +13,31 @@ import modules.connect as connect
 import os
 import subprocess
 import importlib
+from abc import ABCMeta, abstractmethod
 
 #!!! pohlidat si klicovy slovo all v group
+
+class ParseFile(metaclass=ABCMeta):
+    def __init__(self,filename):
+        #kontrola souboru
+        try:
+            with open(filename, encoding="utf-8",mode="r") as f:
+                pass 
+        except PermissionError:
+            print("Error permission denied '{}'".format(filename),file=sys.stderr)
+            sys.exit(1)
+        except FileNotFoundError:
+            print("Error file '{}' does not exist".format(filename),file=sys.stderr)
+            sys.exit(1)
+
+        if(os.stat(filename).st_size == 0):
+            print("File {} is empty.".format(filename))
+            sys.exit(1)
+
+    @abstractmethod
+    def parse(self):
+        pass
+
 
 class parseDevice:
     def __init__(self, filename):
@@ -30,7 +53,6 @@ class parseDevice:
             print(e)
 
     #kontroluje spravnost ip address a rozbaluje zkratky
-    #!!! vymazat toho vyrobce pac je tam navic
     def _checkHost(self, hosts):
         configHost = {} # vysledny slovnik s konkretnimy hosty, klicem prislusny vendor
         #prochazim vybranou skupinu hostu
@@ -41,18 +63,22 @@ class parseDevice:
             if re.match("^([1-9][0-9]{0,2}\.){3}[1-9][0-9]{0,2}$", host[0]):
                 if len(host) == 2:
                     try:
-                        #!!!mozna udelat mnozinu kvuli duplicitam 
+                        if host[0] in configHost[host[1]]:
+                            print("duplicit ip address")
+                            sys.exit(1)
                         configHost[host[1]].append(host[0])
                     except KeyError:
                         configHost[host[1]] = []
                         configHost[host[1]].append(host[0])
                         
                 else:
-                    try:
-                        configHost["uknown"].append(host[0])
-                    except KeyError:
-                        configHost["unknown"] = []
-                        configHost["unknown"].append(host[0])
+                    print("The manufactor was not specified")
+                    sys.exit(1)
+                    #try:
+                    #    configHost["uknown"].append(host[0])
+                    #except KeyError:
+                    #    configHost["unknown"] = []
+                    #    configHost["unknown"].append(host[0])
                     
 
             # pokud neproslo jedna se o nejakou sekvenci
@@ -167,11 +193,10 @@ class parseDevice:
 
         except AttributeError:
             if type(info[0]) == type(str()):
-                return info
+                return self._checkHost(info)
             else:
                 print("Bad device file format.")
                 exit(1)
-
         for szn in list(info.values()):
             for sz in szn:
                 hosts.append(sz)
@@ -184,7 +209,7 @@ class parseDevice:
         pom = it.__next__()
         return pom
 
-    def _getManufactor(self,ip_address):
+    def _getManufactor(self,ip_address): #!!!rozsirit od parametr community a value
         community = "sin"
         value  = "sysDescr"
         # zatim udelat natvrdo tady a pak udelat v modulech 
@@ -477,10 +502,13 @@ class _orchestrate:
             hosts = device._getHosts(method[0]) # zjisti zarizeni, ktere se budou nastavovat         
             print("zarizeni k nastaveni",hosts)
             for vendor in hosts: # zjisti nazev zarizeni, ktery je potrebny pro dynamickou praci
+                print("vendor je ", vendor)
                 for host in hosts[vendor]:
                     manufactor = device._getManufactor(host)
                     print("vyrobce:",manufactor)
-                    
+                    continue
+## >>>>>>>>>>>>>>>>>
+                    exit(1)                 
                     #sestaveni modulu pro import
                     module = "device_modules.{}.{}".format(manufactor[0],manufactor[1])
                     importObj = importlib.import_module(module)
@@ -502,6 +530,12 @@ class _orchestrate:
                     
                     #zavolani propojovaciho modulue a vykonani prikazu
                     conn = getattr(connect, conn_method)                     
+
+
+
+
+
+
                     conn = conn()
                     conn._connect(host,self.username,self.password)
                     conn._execCmd(deviceSet)
