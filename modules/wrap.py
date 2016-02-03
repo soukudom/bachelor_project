@@ -486,7 +486,8 @@ class _orchestrate:
                     importObj = importlib.import_module(module)
                     #zavolani tridy
                     obj = getattr(importObj,method[1])
-                    objInst = obj()
+                    objInst = obj() #do objektu pridat atribut check, kterej bude kontrovat zda byla proveda kontrolna na pritomnost prikazu nebo ne
+
                   
                     #zjisteni metody spojeni
                     conn_method = objInst.method
