@@ -1,0 +1,18 @@
+---
+#skupiny budou pouze do 3ti urovne
+
+
+community_string: sin
+
+network: 10.10.110.0/24
+
+config_file: config.yml
+#config_file:sin = config.yml
+#config_file:dej = config02.yml
+
+device_file: hosts2.yml
+#device_file:sin = devices.yml
+#device_file:dej = devices02.yml
+
+
+
