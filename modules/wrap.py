@@ -19,27 +19,26 @@ from abc import ABCMeta, abstractmethod
 
 class ParseFile(metaclass=ABCMeta):
     def __init__(self,filename):
-        #kontrola souboru
+        #kontrola souboru, pokud jsou nacitany pomoci konfiguracniho souboru
         try:
-            with open(filename, encoding="utf-8",mode="r") as f:
-                pass 
+            with open(filename,encoding = "utf-8", mode="r"):
+                pass
         except PermissionError:
-            print("Error permission denied '{}'".format(filename),file=sys.stderr)
-            sys.exit(1)
+            print("File '{}' can not be opened. Not enough permissions.".format(filename))
+            sys.exit(1)    
         except FileNotFoundError:
-            print("Error file '{}' does not exist".format(filename),file=sys.stderr)
+            print("File '{}' does not exist".format(filename))
             sys.exit(1)
-
-        if(os.stat(filename).st_size == 0):
-            print("File {} is empty.".format(filename))
+        except IsADirectoryError:
+            print("File '{}' is a directory.".format(filename))
             sys.exit(1)
 
     @abstractmethod
-    def parse(self):
+    def parse(self,filter):
         pass
 
 
-class parseDevice:
+class parseDevice(ParseFile):
     def __init__(self, filename):
         docu = ""
         self.data = "" # nactena data z configu
@@ -49,6 +48,10 @@ class parseDevice:
                 for i in f:
                     docu += i
             self.data=yaml.load(docu)
+        except yaml.YAMLError as e:
+            print("Bad YAML formating in '{}'".format(self.filename))
+            sys.exit(1)
+            
         except Exception as e:
             print(e)
 
@@ -144,25 +147,31 @@ class parseDevice:
                             tmp = part
 
                 if len(host) == 2:
-                        #!!!mozna udelat mnozinu kvuli duplicitam 
                         for ip in res:
                             try:
+                                if ip in configHost[host[1]]:
+                                    print("duplicit ip address")
+                                    sys.exit(1)
                                 configHost[host[1]].append(ip)
                             except KeyError:
                                 configHost[host[1]] = []
                                 configHost[host[1]].append(ip)
                 #pokud nebyl zadan vyrobce        
                 else:
-                    for ip in res:
-                        try:
-                            configHost["uknown"].append(ip)
-                        except KeyError:
-                            configHost["unknown"] = []
-                            configHost["unknown"].append(ip)
+                    print("The manufactor was not specified")
+                    sys.exit(1)
+
+                   # for ip in res:
+                   #     try:
+                   #         configHost["uknown"].append(ip)
+                   #     except KeyError:
+                   #         configHost["unknown"] = []
+                   #         configHost["unknown"].append(ip)
+
         return configHost
 
     # vraci seznam zadanych zarizeni podle skupiny
-    def _getHosts(self, group):
+    def parse(self, group):
         hosts = []
         try:
             if group == "all":
@@ -189,6 +198,7 @@ class parseDevice:
 
         try:
             while(type(list(info.values())[0])) == type(dict()):
+                print("volam loop")
                 info=self.loop(info)
 
         except AttributeError:
@@ -205,12 +215,14 @@ class parseDevice:
 
     # rekurzivni pruchod
     def loop(self,info):
+        print("metoda loop vstup ", info)
         it = info.values().__iter__()
         pom = it.__next__()
+        print("metoda loop vraci ", pom)
         return pom
 
-    def _getManufactor(self,ip_address): #!!!rozsirit od parametr community a value
-        community = "sin"
+    def _getManufactor(self,ip_address,community):
+        #community = "sin"
         value  = "sysDescr"
         # zatim udelat natvrdo tady a pak udelat v modulech 
         # cisco ma nazev hned na zacatku a pak verzi pred slovem Software
@@ -229,7 +241,7 @@ class parseDevice:
                 if re.match("C[0-9][0-9][0-9][0-9]",i):
                     return("cisco","cisco"+str(i))
         
-class parseConfig:
+class parseConfig(ParseFile):
     #nacte konfiguracni soubor, a provede kontrolu formatu yaml
     def __init__(self, filename):
         docu = ""
@@ -243,7 +255,7 @@ class parseConfig:
             print(e)
 
     #parsuje jednotlive casti kofiguracniho souboru, kontroluje syntaxy
-    def _parse(self):
+    def parse(self,filter):
         self.groupName = "" #nazev skupiny, ve ktere se aktualne nachazim
         self.className = "" # nazev tridy, kde se aktualne nachazim
         self.methodName = "" # nazev metody, kde se aktualne nachazim
@@ -430,81 +442,133 @@ class parseConfig:
             subMethod = False
     
 #zjisti nastaveni aplikace
-class parseSettings:
+class parseSettings(ParseFile):
     def __init__(self, filename):
         self.filename = filename
-        self.community = ""
-        self.network = ""
-        self.networkMask = ""
-        self.configFile = {}
-        self.deviceFile = {}
+        #self.community = ""
+        #self.network = ""
+        #self.networkMask = ""
+        #self.configFile = {}
+        #self.deviceFile = {}
+        self.settingsData = {}
 
-    def _parse(self):
+    def parse(self,filter):
+        #nacteni dat ze souboru
+        docu = ""
         try:
-            with open(self.filename, encoding = "utf-8") as file:
-                # cteni a parsovani radku
-                for lino, line in enumerate(file, start=1):
-                    line = line.strip() 
-                    #odstraneni radkovych komentaru
-                    if re.match("(^#|^$)", line) is not None:
-                        continue
-                    #odstraneni komentaru
-                    if re.search("#", line) is not None:
-                        line = line[:line.index("#")].strip()
-                    
-                    key, value = line.split("=")
-                    key = key.lower().strip()
-                    print(key) 
-                    #kontrola parametru
-                    if key == "community_string":
-                        self.community = value
-                    elif key == "network":
-                        network, mask = value.split("/")
-                        if not re.match("^([1-9][0-9]{0,2}\.){3}[1-9][0-9]{0,2}$", network):
-                            print("bad network form")
-                            #!!! vyhodit vyjimku
-                        try:
-                            mask = int(mask)
-                            if mask < 0 or mask > 32:
-                                print("bad mask")
-                        except:
-                            pass
-                        self.network = network.strip()
-                        self.networkMask = mask
-                    #!!!muzu kontrolovat existeci souboru
-                    elif key.startswith("config_file"):
-                        name, group = key.split(":",1)
-                        self.configFile[group] = value
-                    elif key.startswith("device_file"):
-                        name, group = key.split(":",1)
-                        self.deviceFile[group] = value 
-        
-        except Exception as e:
-            pass
+            with open(self.filename,encoding = "utf-8", mode="r") as f:
+                for line in f:
+                    docu += line
+            self.settingsData = yaml.load(docu)
+            
+        except yaml.YAMLError as e:
+            print("Bad YAML formating in '{}'".format(self.filename))
+            sys.exit(1)
+
+        #kontrola udaju
+        address, mask = self.settingsData["network"].split("/")
+        print("testuju", type(address.strip()),"*")
+        if not re.match("^([1-9][0-9]{0,2}\.){3}[0-9]{0,3}$", address.strip()):
+            print("bad network form")
+            sys.exit(1)
+        try:
+            mask = int(mask)
+            if mask < 0 or mask > 32:
+                print("bad mask")
+                sys.exit(1)
+        except:
+            print("Network mask form mistake")
+            sys.exit(1)
+
+        self.settingsData["network"] = address.strip()
+        self.settingsData["networkMask"] = mask
+        print("naparsoval jsem ",self.settingsData)
+
+#    def _parse(self):
+#        try:
+#            with open(self.filename, encoding = "utf-8") as file:
+#                # cteni a parsovani radku
+#                for lino, line in enumerate(file, start=1):
+#                    line = line.strip() 
+#                    #odstraneni radkovych komentaru
+#                    if re.match("(^#|^$)", line) is not None:
+#                        continue
+#                    #odstraneni komentaru
+#                    if re.search("#", line) is not None:
+#                        line = line[:line.index("#")].strip()
+#                    
+#                    key, value = line.split("=")
+#                    key = key.lower().strip()
+#                    print(key) 
+#                    #kontrola parametru
+#                    if key == "community_string":
+#                        self.community = value
+#                    elif key == "network":
+#                        network, mask = value.split("/")
+#                        if not re.match("^([1-9][0-9]{0,2}\.){3}[1-9][0-9]{0,2}$", network):
+#                            print("bad network form")
+#                            #!!! vyhodit vyjimku
+#                        try:
+#                            mask = int(mask)
+#                            if mask < 0 or mask > 32:
+#                                print("bad mask")
+#                        except:
+#                            pass
+#                        self.network = network.strip()
+#                        self.networkMask = mask
+#                    #!!!muzu kontrolovat existeci souboru
+#                    elif key.startswith("config_file"):
+#                        name, group = key.split(":",1)
+#                        self.configFile[group] = value
+#                    elif key.startswith("device_file"):
+#                        name, group = key.split(":",1)
+#                        self.deviceFile[group] = value 
+#        
+#        except Exception as e:
+#            pass
+    
             
 
 class _orchestrate:    
     def __init__(self, deviceFile, configFile, settingsFile ):
+
         self.deviceFile = deviceFile
         self.configFile = configFile
         self.settingsFile = settingsFile
+
+        globalSettings = parseSettings(self.settingsFile)
+        globalSettings.parse("")
+        if not self.configFile: 
+            try:
+                self.configFile = globalSetting.settingsData[config_file]
+            except KeyError as e:
+                print("Config file has not been inserted")
+                sys.exit(1)
+
+        if not self.deviceFile:
+            try:
+                self.deviceFile = globalSetting.settingsData[device_file]
+            except KeyError as e:
+                print("Config file has not been inserted")
+                sys.exit(1)
         
         instance = "obj" # instace tridy v pomocnym volani
         returned = "res" # navratova hodnota
         self.username = input("Type your username:") #username pro prihlaseni na zarizeni
         self.password = getpass.getpass("Type your password:") #password pro prihlaseni
-
+        
+        
         device = parseDevice(self.deviceFile)
         config = parseConfig(configFile)
-        methods = config._parse()
+        methods = config.parse()
         for method in methods:
             print("metoda k nastaveni:",method)
-            hosts = device._getHosts(method[0]) # zjisti zarizeni, ktere se budou nastavovat         
+            hosts = device.parse(method[0]) # zjisti zarizeni, ktere se budou nastavovat         
             print("zarizeni k nastaveni",hosts)
             for vendor in hosts: # zjisti nazev zarizeni, ktery je potrebny pro dynamickou praci
                 print("vendor je ", vendor)
                 for host in hosts[vendor]:
-                    manufactor = device._getManufactor(host)
+                    manufactor = device._getManufactor(host,globalSettings.settingsData["community_string"])
                     print("vyrobce:",manufactor)
                     continue
 ## >>>>>>>>>>>>>>>>>
@@ -530,10 +594,6 @@ class _orchestrate:
                     
                     #zavolani propojovaciho modulue a vykonani prikazu
                     conn = getattr(connect, conn_method)                     
-
-
-
-
 
 
                     conn = conn()

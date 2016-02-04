@@ -49,7 +49,7 @@ def CheckExist(val):
     except IsADirectoryError:
         raise argparse.ArgumentTypeError("File {} is a directory.".format(val))
     except PermissionError:
-        raise argparse.ArgumentTypeError("File {} can not be opened. Not enough permissions.".format(name,path))
+        raise argparse.ArgumentTypeError("File {} can not be opened. Not enough permissions.".format(val))
     except FileNotFoundError:
         raise argparse.ArgumentTypeError("File {} does not exist.".format(val))
     except Exception as e:
@@ -65,8 +65,8 @@ subparsers = parser.add_subparsers()
 #scanovani
 subparser_scan = subparsers.add_parser("scan",help="scan network device file")
 #parametr nazev vystupniho souboru
-subparser_scan.add_argument("-f","--file",help="output device file", type=CheckPrivilege,default="devices.yml")
-subparser_scan.add_argument("-s","--setting",help="program settings file", type=CheckExist,default="setting.txt")
+subparser_scan.add_argument("-f","--file",help="output device file", type=CheckPrivilege,default="")
+subparser_scan.add_argument("-s","--setting",help="program settings file", type=CheckExist,default="")
 
 # prida info do databaze
 #parser.add_argument("-g","--get_data",help="get device configuration", default=None)
@@ -74,12 +74,12 @@ subparser_scan.add_argument("-s","--setting",help="program settings file", type=
 #konfigurace
 subparser_config = subparsers.add_parser("config", help="config devices")
 #parametr nazev kofiguraku
-subparser_config.add_argument("-f","--file",help="device config description", type=CheckExist, default="config.yml")
+subparser_config.add_argument("-f","--file",help="device config description", type=CheckExist, default="")
 #parametr nazev konfiguraku:cast
 subparser_config.add_argument("-p","--part", help="partial configuration")
 subparser_config.add_argument("-c","--clean",help="clean old configuration", action="store_true")
-subparser_config.add_argument("-s","--setting",help="program settings file", type=CheckExist, default="setting.txt")
-subparser_config.add_argument("-d","--device",help="device file config", type=CheckExist, default="hosts.yml")
+subparser_config.add_argument("-s","--setting",help="program settings file", type=CheckExist, default="")
+subparser_config.add_argument("-d","--device",help="device file config", type=CheckExist, default="")
 
 args = parser.parse_args()
 #pokud neni zadoni nic, tak vyhodit help
