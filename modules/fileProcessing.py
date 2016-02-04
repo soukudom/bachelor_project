@@ -38,7 +38,7 @@ class ParseFile(metaclass=ABCMeta):
         pass
 
 
-class parseDevice(ParseFile):
+class ParseDevice(ParseFile):
     def __init__(self, filename):
         docu = ""
         self.data = "" # nactena data z configu
@@ -241,7 +241,7 @@ class parseDevice(ParseFile):
                 if re.match("C[0-9][0-9][0-9][0-9]",i):
                     return("cisco","cisco"+str(i))
         
-class parseConfig(ParseFile):
+class ParseConfig(ParseFile):
     #nacte konfiguracni soubor, a provede kontrolu formatu yaml
     def __init__(self, filename):
         docu = ""
@@ -442,7 +442,7 @@ class parseConfig(ParseFile):
             subMethod = False
     
 #zjisti nastaveni aplikace
-class parseSettings(ParseFile):
+class ParseSettings(ParseFile):
     def __init__(self, filename):
         self.filename = filename
         #self.community = ""
@@ -529,77 +529,77 @@ class parseSettings(ParseFile):
     
             
 
-class _orchestrate:    
-    def __init__(self, deviceFile, configFile, settingsFile ):
-
-        self.deviceFile = deviceFile
-        self.configFile = configFile
-        self.settingsFile = settingsFile
-
-        globalSettings = parseSettings(self.settingsFile)
-        globalSettings.parse("")
-        if not self.configFile: 
-            try:
-                self.configFile = globalSetting.settingsData[config_file]
-            except KeyError as e:
-                print("Config file has not been inserted")
-                sys.exit(1)
-
-        if not self.deviceFile:
-            try:
-                self.deviceFile = globalSetting.settingsData[device_file]
-            except KeyError as e:
-                print("Config file has not been inserted")
-                sys.exit(1)
-        
-        instance = "obj" # instace tridy v pomocnym volani
-        returned = "res" # navratova hodnota
-        self.username = input("Type your username:") #username pro prihlaseni na zarizeni
-        self.password = getpass.getpass("Type your password:") #password pro prihlaseni
-        
-        
-        device = parseDevice(self.deviceFile)
-        config = parseConfig(configFile)
-        methods = config.parse()
-        for method in methods:
-            print("metoda k nastaveni:",method)
-            hosts = device.parse(method[0]) # zjisti zarizeni, ktere se budou nastavovat         
-            print("zarizeni k nastaveni",hosts)
-            for vendor in hosts: # zjisti nazev zarizeni, ktery je potrebny pro dynamickou praci
-                print("vendor je ", vendor)
-                for host in hosts[vendor]:
-                    manufactor = device._getManufactor(host,globalSettings.settingsData["community_string"])
-                    print("vyrobce:",manufactor)
-                    continue
+#class _orchestrate:    
+#    def __init__(self, deviceFile, configFile, settingsFile ):
+#
+#        self.deviceFile = deviceFile
+#        self.configFile = configFile
+#        self.settingsFile = settingsFile
+#
+#        globalSettings = ParseSettings(self.settingsFile)
+#        globalSettings.parse("")
+#        if not self.configFile: 
+#            try:
+#                self.configFile = globalSetting.settingsData[config_file]
+#            except KeyError as e:
+#                print("Config file has not been inserted")
+#                sys.exit(1)
+#
+#        if not self.deviceFile:
+#            try:
+#                self.deviceFile = globalSetting.settingsData[device_file]
+#            except KeyError as e:
+#                print("Config file has not been inserted")
+#                sys.exit(1)
+#        
+#        instance = "obj" # instace tridy v pomocnym volani
+#        returned = "res" # navratova hodnota
+#        self.username = input("Type your username:") #username pro prihlaseni na zarizeni
+#        self.password = getpass.getpass("Type your password:") #password pro prihlaseni
+#        
+#        
+#        device = ParseDevice(self.deviceFile)
+#        config = ParseConfig(configFile)
+#        methods = config.parse("")
+#        for method in methods:
+#            print("metoda k nastaveni:",method)
+#            hosts = device.parse(method[0]) # zjisti zarizeni, ktere se budou nastavovat         
+#            print("zarizeni k nastaveni",hosts)
+#            for vendor in hosts: # zjisti nazev zarizeni, ktery je potrebny pro dynamickou praci
+#                print("vendor je ", vendor)
+#                for host in hosts[vendor]:
+#                    manufactor = device._getManufactor(host,globalSettings.settingsData["community_string"])
+#                    print("vyrobce:",manufactor)
+#                    continue
 ## >>>>>>>>>>>>>>>>>
-                    exit(1)                 
-                    #sestaveni modulu pro import
-                    module = "device_modules.{}.{}".format(manufactor[0],manufactor[1])
-                    importObj = importlib.import_module(module)
-                    #zavolani tridy
-                    obj = getattr(importObj,method[1])
-                    objInst = obj() #do objektu pridat atribut check, kterej bude kontrovat zda byla proveda kontrolna na pritomnost prikazu nebo ne
-
-                  
-                    #zjisteni metody spojeni
-                    conn_method = objInst.method
-                    #pokud se nastavuje submethod
-                    if method[3]:
-                        inst = getattr(objInst,method[3])
-                        deviceSet = inst(**method[-1])
-                    #pouze method
-                    else:
-                        inst = getattr(objInst,method[2])
-                        deviceSet = inst(**method[-1])
-                    
-                    #zavolani propojovaciho modulue a vykonani prikazu
-                    conn = getattr(connect, conn_method)                     
-
-
-                    conn = conn()
-                    conn._connect(host,self.username,self.password)
-                    conn._execCmd(deviceSet)
-
+#                    exit(1)                 
+#                    #sestaveni modulu pro import
+#                    module = "device_modules.{}.{}".format(manufactor[0],manufactor[1])
+#                    importObj = importlib.import_module(module)
+#                    #zavolani tridy
+#                   obj = getattr(importObj,method[1])
+#                    objInst = obj() #do objektu pridat atribut check, kterej bude kontrovat zda byla proveda kontrolna na pritomnost prikazu nebo ne
+#
+#                  
+#                    #zjisteni metody spojeni
+#                    conn_method = objInst.method
+#                    #pokud se nastavuje submethod
+#                    if method[3]:
+#                        inst = getattr(objInst,method[3])
+#                        deviceSet = inst(**method[-1])
+#                    #pouze method
+#                    else:
+#                        inst = getattr(objInst,method[2])
+#                        deviceSet = inst(**method[-1])
+#                    
+#                    #zavolani propojovaciho modulue a vykonani prikazu
+#                    conn = getattr(connect, conn_method)                     
+#
+#
+#                    conn = conn()
+#                    conn._connect(host,self.username,self.password)
+#                    conn._execCmd(deviceSet)
+#
 
 
 #                    #dynamicke vytvoreni skriptu pro nastaveni

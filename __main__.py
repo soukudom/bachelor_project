@@ -4,7 +4,7 @@
 import sys
 import os
 import argparse
-import modules.wrap
+import modules.logic
 #!!pridat prepinac testing ktery otestuje konfiguraci
 
 #return codes:
@@ -97,4 +97,5 @@ data = vars(args)
 #pars = modules.wrap.parseConfig(data["file"])
 #pars._parse()
 
-modules.wrap._orchestrate(data["device"],data["file"],data["setting"])
+#modules.wrap._orchestrate(data["device"],data["file"],data["setting"])
+modules.logic._orchestrate(data["device"],data["file"],data["setting"])
