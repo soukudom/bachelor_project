@@ -4,6 +4,9 @@
 #        self.id = "2950"
     #def info(self):
     #    print("jsem cisco {}".format(self.id))
+class DefaultConnection:
+    def __init__(self):
+        self.method = "ssh"
 
 class vlan:
     def __init__(self):
@@ -29,9 +32,11 @@ class interface:
         self.result = ["configure terminal"]
         self.interfaceCount = 24 #muzu si dovolit, protoze je to psany pro konkretni model a vim kolim ma rozhrani
     def int(self, id="", description = "", shutdown="",):
+        print("jsem v metode int")
         #result = ["configure terminal"]
         #pokud je zadany id range
         if type(id) == type(list()):
+            print("slozite id")
             while id:
                 self.result.append("interface FastEthernet 0/{}".format(id[0])) 
                 if description:
@@ -47,6 +52,7 @@ class interface:
                 id = id[1:]
         #pouze jednoduche id
         else: 
+            print("jednoduche id")
             if id:
                 self.result.append("interface FastEthernet 0/{}".format(id)) 
             if description:
@@ -57,6 +63,8 @@ class interface:
                 self.result.append("shutdown")
             else:
                 self.result.append("no shutdown")
+        self.result.append("end")
+        print("result je",self.result)
         return self.result
 
     

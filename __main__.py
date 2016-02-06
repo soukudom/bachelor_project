@@ -98,4 +98,6 @@ data = vars(args)
 #pars._parse()
 
 #modules.wrap._orchestrate(data["device"],data["file"],data["setting"])
-modules.logic._orchestrate(data["device"],data["file"],data["setting"])
+conf = modules.logic.Orchestrate(data["device"],data["file"],data["setting"])
+conf.buildConfiguration()
+conf.doConfiguration()

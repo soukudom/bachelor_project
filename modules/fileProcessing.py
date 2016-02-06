@@ -235,11 +235,11 @@ class ParseDevice(ParseFile):
         if manufactor[0].lower().startswith("3com"):
             for pos,i in enumerate(manufactor,start=0):
                 if str(i).lower() == "software":
-                    return("_3com","_3com"+str(manufactor[pos-2]))
+                    return ["_3com","_3com"+str(manufactor[pos-2])]
         elif manufactor[0].lower().startswith("cisco"):
             for pos,i in enumerate(manufactor,start=0):
                 if re.match("C[0-9][0-9][0-9][0-9]",i):
-                    return("cisco","cisco"+str(i))
+                    return ["cisco","cisco"+str(i)]
         
 class ParseConfig(ParseFile):
     #nacte konfiguracni soubor, a provede kontrolu formatu yaml

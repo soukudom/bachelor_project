@@ -33,6 +33,10 @@ class ssh():
         #print(output)
         return True
 
+    def disconnect(self):
+        self.conn_pre.close()
+        print("session has been closed")
+
     def _execCmd(self,commands):
         #bude umet cist sekvenci prikazu
         print(commands)
