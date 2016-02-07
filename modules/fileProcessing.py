@@ -7,7 +7,7 @@ import sys
 import re
 from itertools import product
 from copy import deepcopy
-from modules.connect import snmp
+#from modules.connect import SNMP
 #from modules.connect import ssh
 import modules.connect as connect
 import os
@@ -221,25 +221,33 @@ class ParseDevice(ParseFile):
         print("metoda loop vraci ", pom)
         return pom
 
-    def _getManufactor(self,ip_address,community):
+    def getManufactor(self,ip_address,community,vendor):
+        #naimportuju defaultni parsovaci tridu a zavolam metodu
+        module = "device_modules.{}.{}".format(vendor,vendor)
+        importObj = importlib.import_module(module)
+        obj = getattr(importObj,"Device")
+        objInst = obj()
+        manufactor = objInst.getDeviceName(ip_address,community,"get")
+        return manufactor
+
         #community = "sin"
-        value  = "sysDescr"
+        #value  = "sysDescr"
         # zatim udelat natvrdo tady a pak udelat v modulech 
         # cisco ma nazev hned na zacatku a pak verzi pred slovem Software
-        manufactor = snmp()._snmpGet(ip_address, community, value)   
-        if manufactor == None:
-            print("device does not exist")
-            return False
-        manufactor = manufactor.split()
+        #manufactor = snmp()._snmpGet(ip_address, community, value)   
+        #if manufactor == None:
+         #   print("device does not exist")
+         #   return False
+        #manufactor = manufactor.split()
         #najdi verzi zarizeni
-        if manufactor[0].lower().startswith("3com"):
-            for pos,i in enumerate(manufactor,start=0):
-                if str(i).lower() == "software":
-                    return ["_3com","_3com"+str(manufactor[pos-2])]
-        elif manufactor[0].lower().startswith("cisco"):
-            for pos,i in enumerate(manufactor,start=0):
-                if re.match("C[0-9][0-9][0-9][0-9]",i):
-                    return ["cisco","cisco"+str(i)]
+        #if manufactor[0].lower().startswith("3com"):
+        #    for pos,i in enumerate(manufactor,start=0):
+        #        if str(i).lower() == "software":
+        #            return ["_3com","_3com"+str(manufactor[pos-2])]
+        #elif manufactor[0].lower().startswith("cisco"):
+        #    for pos,i in enumerate(manufactor,start=0):
+        #        if re.match("C[0-9][0-9][0-9][0-9]",i):
+        #            return ["cisco","cisco"+str(i)]
         
 class ParseConfig(ParseFile):
     #nacte konfiguracni soubor, a provede kontrolu formatu yaml

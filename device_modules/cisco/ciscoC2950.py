@@ -6,11 +6,12 @@
     #    print("jsem cisco {}".format(self.id))
 class DefaultConnection:
     def __init__(self):
-        self.method = "ssh"
+        self.method = "SSH"
+        self.connection = "auto" #jestli se pripojuje modul nebo se to ma udelat automaticky
 
 class vlan:
     def __init__(self):
-        self.method = "ssh"
+        self.method = "SSH"
     #!!! udelat nastavovani pro range id jako v int
     def vlan(self,id="",description="",ip="",shutdown=""):
         result = ["configure terminal"]
@@ -28,7 +29,7 @@ class vlan:
 
 class interface:
     def __init__(self):
-        self.method = "ssh"
+        self.method = "SSH"
         self.result = ["configure terminal"]
         self.interfaceCount = 24 #muzu si dovolit, protoze je to psany pro konkretni model a vim kolim ma rozhrani
     def int(self, id="", description = "", shutdown="",):

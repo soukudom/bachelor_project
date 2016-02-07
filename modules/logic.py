@@ -34,15 +34,20 @@ class Orchestrate:
                 print("Config file has not been inserted")
                 sys.exit(1)
         
-        #instance = "obj" # instace tridy v pomocnym volani
-        #returned = "res" # navratova hodnota
-        self.username = input("Type your username:") #username pro prihlaseni na zarizeni
-        self.password = getpass.getpass("Type your password:") #password pro prihlaseni
+        #username = input("Type your username:") #username pro prihlaseni na zarizeni
+        #password = getpass.getpass("Type your password:") #password pro prihlaseni
+        #self.credentials = [username,password]
+        self.setCredentials()
         
         
         self.device = self.factory.getDeviceProcessing(self.deviceFile) #vytvoreni objektu pro parsovani konfiguracniho souboru zarizeni
         self.config = self.factory.getConfigProcessing(self.configFile) #vytvoreni objektu pro parsovani konfiguracniho souboru pro nastaveni
 
+    def setCredentials(self):
+        username = input("Type your username:") #username pro prihlaseni na zarizeni
+        password = getpass.getpass("Type your password:") #password pro prihlaseni
+        self.credentials = [username,password]
+        
     def buildConfiguration(self):
         
         methods = self.config.parse("") # parsovani konfiguraniho souboru
@@ -54,7 +59,18 @@ class Orchestrate:
             for vendor in hosts: # zjisti nazev zarizeni, ktery je potrebny pro dynamickou praci
              #   print("vendor je ", vendor)
                 for host in hosts[vendor]:
-                    manufactor = self.device._getManufactor(host,self.globalSettings.settingsData["community_string"])
+                    manufactor = self.device.getManufactor(host,self.globalSettings.settingsData["community_string"],vendor)
+                    #pokud snmp neziskal data tak se pokracuje dal
+                    if manufactor == None:
+                        print("Getting manufactor name of '{}' no success".format(host))
+                        option = input("Would you like to continue? [Y/n]")
+                        if option == "Y":
+                            continue
+                        else:
+                            print("Closing netat configuration")
+                            sys.exit(1)
+                        
+                    #podarilo se ziskat vyrobce, uklada se do slovniku    
                     manufactor.append(host)
                     manufactor = tuple(manufactor)
                     try:
@@ -78,9 +94,22 @@ class Orchestrate:
             #pripoj se na zarizeni
             conn = getattr(connect, conn_method)            
             conn = conn()
-            conn._connect(dev[2],self.username,self.password) #!!! udelat metodu disconnect
+            #conn._connect(dev[2],self.username,self.password)
+            while True:
+                try:
+                    conn.connect(dev[2],self.credentials)
+                    break;
+                except Exception as e:
+                    print(e)
+                    option = input("Would you like to try it again?[Y/n]")
+                    if option == "Y":
+                        self.setCredentials()
+                        continue
+                    else:
+                        print("Closing netat configuration")
+                        sys.exit(1)
                                                                 
-            print("natuvuju device", dev)
+            print("nastavuju device", dev)
             for method in self.configuration[dev]:
                 print("vstupni method je",method)
                 #zavolani tridy
@@ -107,7 +136,7 @@ class Orchestrate:
                 #conn = conn()
                 #conn._connect(dev[2],self.username,self.password)
            #     print("nastav", deviceSet)
-                conn._execCmd(deviceSet)
+                conn.doCommand(deviceSet)
             conn.disconnect()
 
                     #sestaveni modulu pro import
