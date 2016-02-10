@@ -6,7 +6,8 @@ class Device:
     def __init__(self):
         pass
 
-    def getDeviceName(self,ip_address,community,additional):
+    #def getDeviceName(self,ip_address,community,additional):
+    def getDeviceName(self,protocol):
         #value = "sysDescr"
         #manufactor = snmp()._snmpGet(ip_address, community,value)
         #if manufactor  == None:
@@ -20,15 +21,19 @@ class Device:
         #        return ["cisco","cisco"+str(i)]
 
 
+        print("jsem v metode getDeviceName")
         value = "sysDescr"
-        obj = SNMP()
+        obj = SNMP(protocol)
+        print("vytvoril jsem snmp objekt")
         try:
-            conn = obj.connect(ip_address,community,None)
+            conn = obj.connect()
+            print("snazim se pripojit")
         except Exception as e:
             print(e)
             return None
         try:       
-            manufactor = obj.doCommand(value,additional); 
+            print("posilam na snmp:",value)
+            manufactor = obj.doCommand(value); 
         except Exception as e:
             print(e)
             return None

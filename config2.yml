@@ -2,9 +2,9 @@
 - group: 
     - name: dej
     - interface:
-        - int3:
-            description: label
-            shutdown: yes
+        - int5:
+#            description: label
+            shutdown: no
             #vlan:
             #    mode: trunk
             #    allowed: a( 10  ,50  , 10)  
@@ -12,8 +12,8 @@
             #    protocol: lacp
             #    channel: 1
             #    mode: negotiate
-        - int (  4, 10 , 2  ):
-                shutdown: yes
+#        - int (  4, 10 , 2  ):
+#                shutdown: yes
 
 
 #- group:

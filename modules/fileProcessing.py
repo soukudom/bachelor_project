@@ -221,13 +221,16 @@ class ParseDevice(ParseFile):
         print("metoda loop vraci ", pom)
         return pom
 
-    def getManufactor(self,ip_address,community,vendor):
+    #def getManufactor(self,ip_address,community,vendor):
+    def getManufactor(self,protocol,vendor):
         #naimportuju defaultni parsovaci tridu a zavolam metodu
         module = "device_modules.{}.{}".format(vendor,vendor)
         importObj = importlib.import_module(module)
         obj = getattr(importObj,"Device")
         objInst = obj()
-        manufactor = objInst.getDeviceName(ip_address,community,"get")
+        #manufactor = objInst.getDeviceName(ip_address,community,"get")
+        print("ptam se na vendora: ",protocol)
+        manufactor = objInst.getDeviceName(protocol)
         return manufactor
 
         #community = "sin"

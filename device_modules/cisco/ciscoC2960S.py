@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 
+class DefaultConnection:
+    def __init__:
+        self.method = "NETCONF"
+        self.connection = "auto"
+
+
 class vlan:
     def __init__(self):
         self.method = "netconf"
-        self.hello = '<?xml version="1.0" encoding="UTF-8"?><hello><capabilities><capability>urn:ietf:params:netconf:base:1.0</capability><capability>urn:ietf:params:netconf:capability:writeable-running:1.0</capability><capability>urn:ietf:params:netconf:capability:startup:1.0</capability><capability>urn:ietf:params:netconf:capability:url:1.0</capability><capability>urn:cisco:params:netconf:capability:pi-data-model:1.0</capability><capability>urn:cisco:params:netconf:capability:notification:1.0</capability></capabilities></hello>]]>]]>'
 
     def vlan(self,id="",description="",ip="",shutdown=""):
         self.result = ""
@@ -12,11 +17,42 @@ class vlan:
 class interface:
     def __init__(self):
         self.method = "netconf"
-        self.hello = '<?xml version="1.0" encoding="UTF-8"?><hello><capabilities><capability>urn:ietf:params:netconf:base:1.0</capability><capability>urn:ietf:params:netconf:capability:writeable-running:1.0</capability><capability>urn:ietf:params:netconf:capability:startup:1.0</capability><capability>urn:ietf:params:netconf:capability:url:1.0</capability><capability>urn:cisco:params:netconf:capability:pi-data-model:1.0</capability><capability>urn:cisco:params:netconf:capability:notification:1.0</capability></capabilities></hello>]]>]]>'
     
     def int(self, id="", description = "", shutdown="",):
         self.result = ""
-        return self.result 
+        print("jsem v metode int")
+        #result = ["configure terminal"]
+        #pokud je zadany id range
+        if type(id) == type(list()):
+            print("slozite id")
+            while id:
+                self.result.append("interface FastEthernet 0/{}".format(id[0])) 
+                if description:
+                    if type(description) == type(list()):
+                        self.result.append("description {}".format(description[0]))
+                        description = description[1:]
+                    else:
+                        self.result.append("description {}".format(description))
+                if shutdown:
+                    self.result.append("shutdown")
+                else:
+                    self.result.append("no shutdown")
+                id = id[1:]
+        #pouze jednoduche id
+        else: 
+            print("jednoduche id")
+            if id:
+                self.result.append("interface FastEthernet 0/{}".format(id)) 
+            if description:
+                self.result.append("description {}".format(description))
+            #if shutdown != "":
+            #shutdown vraci yes nebo no
+            if shutdown:
+                self.result.append("shutdown")
+            else:
+                self.result.append("no shutdown")
+        print("result je",self.result)
+        #return self.result 
 
     
     def int_vlan(self,id="",mode="",allowed="", access=""):

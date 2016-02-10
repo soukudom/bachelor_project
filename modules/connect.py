@@ -13,11 +13,11 @@ from lxml import etree
 
 
 class Protocol(metaclass=ABCMeta):
-    def __init__(self):
+    def __init__(self,protocol):
         pass
 
     @abstractmethod
-    def connect(self,ip,authenticate,additional):
+    def connect(self):
         pass
     
     @abstractmethod
@@ -25,19 +25,22 @@ class Protocol(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def doCommand(self,command,additional):
+    def doCommand(self,command):
         pass
 
 class SSH(Protocol):
-    def __init__(self):# username, password):
+    def __init__(self,protocol):# username, password):
+        self.username = protocol["username"] 
+        self.password = protocol["password"]
+        self.ip = protocol["ip"]
         self.result = []
         self.conn = None # Vzdalena console
         self.conn_pre = paramiko.SSHClient() # priprava pro vzdalenou consoli
         self.conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         
-    def connect(self,ip,authenticate):
+    def connect(self):
         try:
-            self.conn_pre.connect(ip,username=authenticate[0],password=authenticate[1],look_for_keys=False, allow_agent=False)
+            self.conn_pre.connect(self.ip,username=self.username,password=self.password,look_for_keys=False, allow_agent=False)
         except paramiko.ssh_exception.AuthenticationException:
             raise Exception("Authentication fail")
         self.conn = self.conn_pre.invoke_shell() 
@@ -91,9 +94,13 @@ class SSH(Protocol):
             #output = self.remote_conn.recv(5000)
 
 class NETCONF(Protocol):
-    def __init__(self):
+    def __init__(self,protocol):
+        self.ip = protocol["ip"]
+        self.username = protocol["username"]
+        self.password = protocol["password"]
+
         self.proc = "" #slouzi pro volani pexpect
-        self.ending = ">]]>]]>"
+        self.ending = "]]>]]>"
         self.conn = None # Vzdalena console
         self.conn_pre = paramiko.SSHClient() # priprava pro vzdalenou consoli
         self.conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -102,7 +109,7 @@ class NETCONF(Protocol):
         self.trans = ""
         
     
-    def connect(self,ip,credentials):
+    def connect(self):
         #vytvoreni hello zpravy
         root = etree.Element("hello")
         child = etree.SubElement(root,"capabilities")
@@ -111,10 +118,10 @@ class NETCONF(Protocol):
         helloMessage = etree.tostring(root,xml_declaration=True,encoding= "utf-8").decode("utf-8")+self.ending
 
         self.socket2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket2.connect((ip,22)) 
+        self.socket2.connect((self.ip,22)) 
 
         self.trans = paramiko.Transport(self.socket2)
-        self.trans.connect(username=credentials[0],password=credentials[1])
+        self.trans.connect(username=self.username,password=self.password)
         
         self.ch = self.trans.open_session()
         self.name = self.ch.set_name("netconf")
@@ -135,8 +142,26 @@ class NETCONF(Protocol):
         #socket2.close()
 
     def doCommand(self,command):
-        self.ch.send(command)
-        time.sleep(0.1)
+        root = etree.Element("rpc")
+        root.set("message-id","105")
+        root.set("xmlns","urn:ietf:params:xml:ns:netconf:base:1.0")
+        #child = etree.SubElement(root,"edit-config")
+        print(command)
+        #spojeni dvou xml
+        inside = etree.fromstring(command)
+        #it = inside.iter()
+        #for elem in it:
+        #    tmp = etree.Element(elem.tag)
+        #    if elem.text:
+        #        tmp.text = elem.text
+            #root.append(tmp)
+        root.append(inside)
+            
+        #print(etree.tostring(root,xml_declaration=True,encoding="utf-8",pretty_print=True).decode("utf-8")+self.ending)
+        message = etree.tostring(root,xml_declaration=True, encoding ="utf-8").decode("utf-8")+self.ending
+
+        self.ch.send(message)
+        time.sleep(0.5)
         #data = self.ch.recv(2048)
         while self.ch.recv_ready():
             data = self.ch.recv(2048)
@@ -144,45 +169,36 @@ class NETCONF(Protocol):
         #data = self.ch.recv(2048)
         #print(data)
 
-        self.ch.close()
-        self.trans.close()
-        self.socket2.close()
 
     def disconnect(self):
+        print("provadim odhlaseni")
         root = etree.Element("rpc")
         root.set("message-id","105")
         root.set("xmlns","urn:ietf:params:xml:ns:netconf:base:1.0")
         etree.SubElement(root,"close-session")
         closeMessage = etree.tostring(root,xml_declaration=True,encoding= "utf-8").decode("utf-8")+self.ending
         self.ch.send(closeMessage)
+        time.sleep(0.1)
         while self.ch.recv_ready():
             data = self.ch.recv(2048)
             print(data)
 
-    def _connect(self, ip, username, password, helloMessage):
-        self.proc = pexpect.spawn("ssh {}@{} -s netconf".format(username,ip))
-        self.proc.expect("Password:")
-        self.proc.sendline(password) 
-        self.proc.expect(".*\]\]>\]\]>")
-        print(self.proc.after.decode("utf-8"))
-        self.proc.sendline(helloMessage)
-        #self.proc.sendline('<?xml version="1.0" encoding="UTF-8"?><hello><capabilities><capability>urn:ietf:params:netconf:base:1.0</capability><capability>urn:ietf:params:netconf:capability:writeable-running:1.0</capability><capability>urn:ietf:params:netconf:capability:startup:1.0</capability><capability>urn:ietf:params:netconf:capability:url:1.0</capability><capability>urn:cisco:params:netconf:capability:pi-data-model:1.0</capability><capability>urn:cisco:params:netconf:capability:notification:1.0</capability></capabilities></hello>]]>]]>') 
-        time.sleep(0.1)
+        self.ch.close()
+        self.trans.close()
+        self.socket2.close()
 
-    def _execCmd(self, commands):
-        self.proc.sendline(commands)
-        time.sleep(0.1)
-        self.proc.expect(".*\]\]>\]\]>")
-        print(self.proc.after.decode("utf-8"))
+        print("odhlaseno")
 
 class SNMP(Protocol):
-    def __init(self):
-        self.ipAddress = ""
-        self.community = ""
+    def __init__(self,protocol):
+        self.ip = protocol["ip"]
+        self.community = protocol["community"]
+        self.method_type = protocol["method_type"]
 
 
-    def doCommand(self, mibVariable,additional):
-        if additional == "get":
+    def doCommand(self, mibVariable):
+        
+        if self.method_type == "get":
             # rozhoduje zda byl zadan oid nebo nazev
             if "." in mibVariable:
                 variable = mibVariable
@@ -194,7 +210,7 @@ class SNMP(Protocol):
             errorIndication, errorStatus, errorIndex, varBinds = cmdGen.getCmd(
                 cmdgen.CommunityData(self.community),# security data, pro snmp1,2 pouze objekt co drzi community string
                 #cmdgen.UdpTransportTarget((networkName, 161),timeout=2, retries=0), #objekt co reprezentuje sitovou cestu k zarizeni
-                cmdgen.UdpTransportTarget((self.ipAddress, 161),timeout=2, retries=0), #objekt co reprezentuje sitovou cestu k zarizeni
+                cmdgen.UdpTransportTarget((self.ip, 161),timeout=2, retries=0), #objekt co reprezentuje sitovou cestu k zarizeni
                 #cmdgen.MibVariable("SNMPv2-MIB", "sysDescr", 0),
                 #"1.3.6.1.2.1.1.1.0", musi tu bej i ta ukoncovaci nula
                 #"1.3.6.1.2.1.1.5", jinak to nefunguje
@@ -215,19 +231,24 @@ class SNMP(Protocol):
                 for name, val in varBinds:
                     return val.prettyPrint()
         else:
-            print(additional)
+            print(self.method_type)
             print("operation is not implemented")
             sys.exit(2)
 
-    def connect(self,ip,community,additional):
-        self.ipAddress = ip
-        self.community = community
+    def connect(self):
+        #self.ipAddress = ip
+        #self.community = community #nemusi bejt, nastavuju uz v initu
+
         #overeni spravnych udaju, pokus o ziskani dat
+        tmp = self.method_type
+        self.method_type="get"
         try:
-            res = self.doCommand("sysDescr","get")  
+            res = self.doCommand("sysDescr")  
             return res
         except Exception as e:
             raise 
+        finally:
+            self.method_type=tmp
     
     def disconnect(self):
         pass
