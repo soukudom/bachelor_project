@@ -5,12 +5,12 @@ import paramiko
 import time
 import sys
 from pysnmp.entity.rfc3413.oneliner import cmdgen
-#import subprocess
-import pexpect
+#import pexpect
 import socket
 from abc import ABCMeta, abstractmethod
 from lxml import etree
 
+#!otestovat pokud zarizeni danej protokol nepodporuje
 
 class Protocol(metaclass=ABCMeta):
     def __init__(self,protocol):
@@ -47,7 +47,6 @@ class SSH(Protocol):
         time.sleep(0.5)
         while self.conn.recv_ready():
             output = self.conn.recv(100)
-            print("prihlasil jsem se na", output)
             time.sleep(0.3)
         #print(output)
         return True
@@ -64,7 +63,7 @@ class SSH(Protocol):
             command = command.strip().strip("'")
             #command = bytes(command+"\n","utf-8") 
             #print("posilam*"+command+"*")
-            print("posilam",command)
+            #print("posilam",command)
             #self.conn.send(command+'\n')
             self.conn.send(command+'\n')
             time.sleep(0.7)
@@ -75,23 +74,11 @@ class SSH(Protocol):
                 #self.result.append(str(ot))
                 time.sleep(0.3)
             else:
-            # asi to bude jenom jednoduse vracet at se to naparsuje jinde:
-                #if "%" in self.result:
-                    #print("zarizeni vratilo:",self.result, "false")
-                #    print("This command '{}' was not proceed due to '{}'".format(command, self.result))
-                #else:
                 self.result.append(rec)
-                print("zarizeni vratilo:",rec)
                 rec = ""
-                print("zarizeni vratilo:",self.result)
-      #  return self.invalidCommands
             
-             #   for i in self.result.split("\\n"):
-                #for j in i.split("\\n"):
-             #       print(i)
         self.result = []
-        print("********************************************************")      
-            #output = self.remote_conn.recv(5000)
+       # print("********************************************************")      
 
 class NETCONF(Protocol):
     def __init__(self,protocol):
@@ -107,6 +94,34 @@ class NETCONF(Protocol):
         self.socket2 = ""
         self.ch = ""
         self.trans = ""
+        
+    def checkReply(self,data,typ):
+        control = {"hello":0,"capabilities":0,"capability":0,"session-id":0}
+        #odriznuti ukoncovaci sekvence znaku
+        data = bytes(data[:-8],"utf-8")
+        tree = etree.fromstring(data, etree.XMLParser())
+        #projdu vsechny elementy a kontroluje jestli tam je element ok u norm zpravy
+        it = tree.iter()
+        for i in it:
+            #testovani hello zpravy
+            if typ == "hello":
+                if i.tag in ["hello","capabilities","capability","session-id"]:
+                    control[i.tag] += 1 
+                continue
+            #testovani ostatnich zprav, ty obsahuji i namespace
+            pos = i.tag.index("}")
+            element = i.tag[pos+1:]
+            if element == "ok":
+                return 0
+        #kontroluje se spravnou hello zpravy
+        if typ == "hello":
+            for val in control.values():
+                if val == 0:
+                    return 1
+                else:
+                    return 0
+        #navratovy kod pokud nastala chyba u netconf zpravy
+        return 1
         
     
     def connect(self):
@@ -129,32 +144,25 @@ class NETCONF(Protocol):
         self.ch.send(helloMessage)
         time.sleep(0.1)
 
-        #data = self.ch.recv(2048)
-        #print(data)
         while self.ch.recv_ready():
-            data = self.ch.recv(2048)
-            print(data)
-        #    data = ch.recv(1024)
-        #    print(data)
-            
-        #ch.close()
-        #trans.close()
-        #socket2.close()
+            data = self.ch.recv(2048).decode("utf-8")
 
+        retVal = self.checkReply(data,"hello")
+        #!!zapisovat do souboru s logem
+        if retVal == 1:
+            print("loguju netconf message")
+            print(data)
+        
+            
     def doCommand(self,command):
+        data = "" #obsahujou prijata data ze zarizeni
         root = etree.Element("rpc")
         root.set("message-id","105")
         root.set("xmlns","urn:ietf:params:xml:ns:netconf:base:1.0")
         #child = etree.SubElement(root,"edit-config")
-        print(command)
+        #print(command)
         #spojeni dvou xml
         inside = etree.fromstring(command)
-        #it = inside.iter()
-        #for elem in it:
-        #    tmp = etree.Element(elem.tag)
-        #    if elem.text:
-        #        tmp.text = elem.text
-            #root.append(tmp)
         root.append(inside)
             
         #print(etree.tostring(root,xml_declaration=True,encoding="utf-8",pretty_print=True).decode("utf-8")+self.ending)
@@ -164,23 +172,33 @@ class NETCONF(Protocol):
         time.sleep(0.5)
         #data = self.ch.recv(2048)
         while self.ch.recv_ready():
-            data = self.ch.recv(2048)
+            data += self.ch.recv(2048).decode("utf-8")
+            
+        retVal = self.checkReply(data,None)
+
+        #!!zapisovat do souboru s logem
+        if retVal == 1:
+            print("loguju netconf message")
             print(data)
-        #data = self.ch.recv(2048)
-        #print(data)
+            
+        #    print(data)
 
 
     def disconnect(self):
-        print("provadim odhlaseni")
         root = etree.Element("rpc")
         root.set("message-id","105")
         root.set("xmlns","urn:ietf:params:xml:ns:netconf:base:1.0")
         etree.SubElement(root,"close-session")
         closeMessage = etree.tostring(root,xml_declaration=True,encoding= "utf-8").decode("utf-8")+self.ending
         self.ch.send(closeMessage)
-        time.sleep(0.1)
+        time.sleep(0.3)
         while self.ch.recv_ready():
-            data = self.ch.recv(2048)
+            data = self.ch.recv(2048).decode("utf-8")
+
+        retVal = self.checkReply(data,None)
+        #!!zapisovat do souboru s logem
+        if retVal == 1:
+            print("loguju netconf message")
             print(data)
 
         self.ch.close()
@@ -219,8 +237,6 @@ class SNMP(Protocol):
             )
         
             if errorStatus:
-                #print("errorStatus")
-                #print(errorStatus)
                 raise Exception(errorStatus)
 
             elif errorIndication:
@@ -231,14 +247,11 @@ class SNMP(Protocol):
                 for name, val in varBinds:
                     return val.prettyPrint()
         else:
-            print(self.method_type)
+            #print(self.method_type)
             print("operation is not implemented")
             sys.exit(2)
 
     def connect(self):
-        #self.ipAddress = ip
-        #self.community = community #nemusi bejt, nastavuju uz v initu
-
         #overeni spravnych udaju, pokus o ziskani dat
         tmp = self.method_type
         self.method_type="get"
@@ -251,4 +264,4 @@ class SNMP(Protocol):
             self.method_type=tmp
     
     def disconnect(self):
-        pass
+        print("odhlaseno") 

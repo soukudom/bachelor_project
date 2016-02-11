@@ -1,10 +1,10 @@
----
-- group: 
-    - name: dej
-    - interface:
-        - int5:
+#---
+#- group: 
+#    - name: dej
+#    - interface:
+#        - int5:
 #            description: label
-            shutdown: no
+#            shutdown: no
             #vlan:
             #    mode: trunk
             #    allowed: a( 10  ,50  , 10)  
@@ -18,3 +18,14 @@
 
 #- group:
 #    - name: sin:48 
+
+---
+- interface:
+    - int:
+        description: label
+        shutdown: no
+    
+- vlan:
+    - vlan:
+        id: 100
+        description: dej

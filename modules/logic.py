@@ -43,6 +43,9 @@ class Orchestrate:
         self.device = self.factory.getDeviceProcessing(self.deviceFile) #vytvoreni objektu pro parsovani konfiguracniho souboru zarizeni
         self.config = self.factory.getConfigProcessing(self.configFile) #vytvoreni objektu pro parsovani konfiguracniho souboru pro nastaveni
 
+        self.buildConfiguration()
+        self.doConfiguration()
+
 
     def setCredentials(self):
         username = input("Type your username:") #username pro prihlaseni na zarizeni
@@ -50,11 +53,11 @@ class Orchestrate:
         self.protocol["username"] = username
         self.protocol["password"] = password
 
-#        self.credentials = [username,password]
         
     def buildConfiguration(self):
         
         methods = self.config.parse("") # parsovani konfiguraniho souboru
+        print("naparsoval jsem",methods)
 
         for method in methods:
             hosts = self.device.parse(method[0]) # zjisti zarizeni, ktere se budou nastavovat         
@@ -67,7 +70,7 @@ class Orchestrate:
                     #pokud snmp neziskal data tak se pokracuje dal
                     if manufactor == None:
                         print("Getting manufactor name of '{}' no success".format(host))
-                        option = input("Would you like to continue? [Y/n]")
+                        option = input("Would you like to go to next device? [Y/n]")
                         if option == "Y":
                             continue
                         else:
@@ -96,14 +99,13 @@ class Orchestrate:
                 break;
             except Exception as e:
                 print(e)
-                option = input("Would you like to try it again?[Y/n]")
-                if option == "Y":
-                    self.setCredentials()
-                    continue
-                else:
-                    print("Closing netat configuration")
-                    sys.exit(1)
-        #return conn 
+                #option = input("Would you like to try it again?[Y/n]")
+                #if option == "Y":
+                #    self.setCredentials()
+                #    continue
+                #else:
+                print("Closing netat configuration")
+                sys.exit(1)
 
     #zmeni spojeni se zarizenim podle device modulu
     def makeChange(self,conn_method_def,config_method_def,conn_method,config_method):
@@ -123,129 +125,114 @@ class Orchestrate:
         return conn_method, config_method                
 
     def doConfiguration(self):
+        number_of_devices = len(self.configuration)
+        print("pocet zarizeni",number_of_devices)
+        for dev in self.configuration:
+            retCode = self.configureDevice(dev)
+            if retCode == 1:
+                print("Missing compulsory atributes 'method' and 'connection' in 'DefaultConnection' class")
+                print("Go to the next device...")
+
+            elif retCode == 2:
+                print("Device module does not return any configuration data")
+                print("Go to the next device...")
+
+            elif retCode == 3:
+                print("Configuration method is not valid")
+                print("Go to the next device")
+
+    def configureDevice(self,dev):
         conn_method_def = None
         config_method_def = None
         conn_method = None
         config_method = None
 
-        for dev in self.configuration:
-            #sestaveni modulu pro import
-            module = "device_modules.{}.{}".format(dev[0],dev[1])
-            importObj = importlib.import_module(module)
-            obj = getattr(importObj,"DefaultConnection") #!!! osetrit pokud trida DefaultConnection nebude existovat  
-            objInst = obj()
-            try:
-                conn_method_def = objInst.method
-                config_method_def = objInst.connection
-            except AttributeError:
-                print("atributes method and connection in class DefaultConnection are compulsory")
-                print("Going to next device")
-                continue
+        #sestaveni modulu pro import
+        module = "device_modules.{}.{}".format(dev[0],dev[1])
+        importObj = importlib.import_module(module)
+        obj = getattr(importObj,"DefaultConnection") #!!! osetrit pokud trida DefaultConnection nebude existovat  
+        objInst = obj()
+        try:
+            conn_method_def = objInst.method
+            config_method_def = objInst.connection
+        except AttributeError:
+            print("atributes method and connection in class DefaultConnection are compulsory")
+            print("Going to next device")
+            return 1
             
              
-            #pripoj se na zarizeni            
-            if config_method_def == "auto" or config_method_def == "hybrid":
-                self.connect2device(conn_method_def)
+        #pripoj se na zarizeni            
+        if config_method_def == "auto" or config_method_def == "hybrid":
+            self.connect2device(conn_method_def)
                                                                 
-                print("nastavuju device", dev)
-            #projdi vsechny metody pro dany zarizeni
-            for method in self.configuration[dev]:
-                print("vstupni method je",method)
-                #zavolani tridy
-                obj = getattr(importObj,method[1])
-                objInst = obj()
+        #projdi vsechny metody pro dany zarizeni
+        for method in self.configuration[dev]:
+            #zavolani tridy
+            obj = getattr(importObj,method[1])
+            objInst = obj()
 
-                #zjisteni protokolu spojeni tady uz to je nepovinny
-                try:
-                    conn_method = objInst.method
-                    config_method = objInst.connection
-                    #kontrola zmen parametru pro pripojeni
-                    tmp = self.makeChange(conn_method_def,config_method_def,conn_method,config_method)
-                    conn_method = tmp[0] 
-                    config_method = tmp[1]
+            #zjisteni protokolu spojeni tady uz to je nepovinny
+            try:
+                conn_method = objInst.method
+                config_method = objInst.connection
+                #kontrola zmen parametru pro pripojeni
+                tmp = self.makeChange(conn_method_def,config_method_def,conn_method,config_method)
+                conn_method = tmp[0] 
+                config_method = tmp[1]
 
-                except AttributeError:
-                    pass
+            except AttributeError:
+                pass
                     
-                #pokud nebylo defaultni nastaveni upraveno, tak ho pouzij
-                if conn_method == None:
-                    conn_method = conn_method_def
-                if config_method == None:
-                    config_method = config_method_def 
+            #pokud nebylo defaultni nastaveni upraveno, tak ho pouzij
+            if conn_method == None:
+                conn_method = conn_method_def
+            if config_method == None:
+                config_method = config_method_def 
                     
-                if config_method == "auto": 
-                    #pokud se nastavuje submethod
-                    if method[3]:
-                        inst = getattr(objInst,method[3])
-                        deviceSet = inst(**method[-1])
-                    #pouze method
-                    else:
-                        inst = getattr(objInst,method[2].strip())
-                        deviceSet = inst(**method[-1])
+            if config_method == "auto": 
+                #pokud se nastavuje submethod
+                if method[3]:
+                    inst = getattr(objInst,method[3])
+                    deviceSet = inst(**method[-1])
+                #pouze method
+                else:
+                    inst = getattr(objInst,method[2].strip())
+                    deviceSet = inst(**method[-1])
 
+                if deviceSet == None:
+                    self.conn.disconnect()
+                    return 2
+                self.conn.doCommand(deviceSet)
+
+            elif config_method == "manual" or config_method == "hybrid":
+                #pokud se nastavuje submethod
+                if method[3]:
+                    inst = getattr(objInst,method[3])
+                    method[-1]["protocol"] = self.protocol
+                    deviceSet = inst(**method[-1])
+                #pouze method
+                else:
+                    inst = getattr(objInst,method[2].strip())
+                    method[-1]["protocol"] = self.protocol
+                    deviceSet = inst(**method[-1])
+                    
+                if config_method == "hybrid":
                     if deviceSet == None:
                         self.conn.disconnect()
-                        return
-                    self.conn.doCommand(deviceSet)
+                        return 2
+                    conn.doCommand(deviceSet) 
 
-                elif config_method == "manual" or config_method == "hybrid":
-                    #pokud se nastavuje submethod
-                    if method[3]:
-                        inst = getattr(objInst,method[3])
-                        method[-1]["protocol"] = self.protocol
-                        deviceSet = inst(**method[-1])
-                    #pouze method
-                    else:
-                        #print("volam method",method[2])
-                        #inst = getattr(objInst,method[2])
-                        inst = getattr(objInst,method[2].strip())
-                        #print("volam instanci", method[-1])
-                        method[-1]["protocol"] = self.protocol
-                        deviceSet = inst(**method[-1])
-                    
-                    if config_method == "hybrid":
-                        if deviceSet == None:
-                            self.conn.disconnect()
-                            return
-                        conn.doCommand(deviceSet) 
+            else:
+                return 3
 
-                else:
-                    print("invalid configuration option")
-
-                #resetuj nastaveni pro conn a config
-                conn_method = None
-                config_method = None
-            try:
-                self.conn.disconnect()
-            except Exeption as e:
-                print("nastala vyjimka")
-                print(e)
+            #resetuj nastaveni pro conn a config
+            conn_method = None
+            config_method = None
+        try:
+            self.conn.disconnect()
+        except Exception as e:
+            print("nastala vyjimka")
+            print(e)
                 
 
-                    #sestaveni modulu pro import
-#                    module = "device_modules.{}.{}".format(manufactor[0],manufactor[1])
-#                    importObj = importlib.import_module(module)
-#                    #zavolani tridy
-#                    obj = getattr(importObj,method[1])
-#                    objInst = obj() #do objektu pridat atribut check, kterej bude kontrovat zda byla proveda kontrolna na pritomnost prikazu nebo ne
-
-                  
-                    #zjisteni metody spojeni
-#                    conn_method = objInst.method
-#                    #pokud se nastavuje submethod
-#                    if method[3]:
-#                        inst = getattr(objInst,method[3])
-#                        deviceSet = inst(**method[-1])
-#                    #pouze method
-#                    else:
-#                        inst = getattr(objInst,method[2])
-#                        deviceSet = inst(**method[-1])
-#                    
-#                    #zavolani propojovaciho modulue a vykonani prikazu
-#                    conn = getattr(connect, conn_method)                     
-#
-#
-#                    conn = conn()
-#                    conn._connect(host,self.username,self.password)
-#                    conn._execCmd(deviceSet)
 

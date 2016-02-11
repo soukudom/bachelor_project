@@ -22,14 +22,11 @@ def getDevName(path):
     
     
 def CheckPrivilege(val):
-    #if val == None:
-    #    val = "."
     path, name = os.path.split(val)
     if path == "": path = "."
     if name == "" or name == ".": name = getDevName(path)
     try:
         with open(os.path.join(path,name),mode="w",encoding="utf-8") as f:
-            #pass
             print("vytvoril jsem soubor", name)
         os.unlink(os.path.join(path,name))
     except IsADirectoryError:
@@ -68,8 +65,6 @@ subparser_scan = subparsers.add_parser("scan",help="scan network device file")
 subparser_scan.add_argument("-f","--file",help="output device file", type=CheckPrivilege,default="")
 subparser_scan.add_argument("-s","--setting",help="program settings file", type=CheckExist,default="")
 
-# prida info do databaze
-#parser.add_argument("-g","--get_data",help="get device configuration", default=None)
 
 #konfigurace
 subparser_config = subparsers.add_parser("config", help="config devices")
@@ -91,13 +86,7 @@ if len(sys.argv) == 1:
 print(args)
 
 data = vars(args)
-#pars = modules.wrap.parseDevice(data["device"])
-#print(pars._getHosts("all"))
 
-#pars = modules.wrap.parseConfig(data["file"])
-#pars._parse()
-
-#modules.wrap._orchestrate(data["device"],data["file"],data["setting"])
 conf = modules.logic.Orchestrate(data["device"],data["file"],data["setting"])
-conf.buildConfiguration()
-conf.doConfiguration()
+#conf.buildConfiguration()
+#conf.doConfiguration()
