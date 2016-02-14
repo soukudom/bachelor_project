@@ -9,13 +9,10 @@ from itertools import product
 from copy import deepcopy
 import modules.connect as connect
 import os
-import subprocess
 import importlib
 from abc import ABCMeta, abstractmethod
 
 
-
-#!!! pohlidat si klicovy slovo all v group
 
 class ParseFile(metaclass=ABCMeta):
     def __init__(self,filename):
@@ -49,11 +46,10 @@ class ParseDevice(ParseFile):
                     docu += i
             self.data=yaml.load(docu)
         except yaml.YAMLError as e:
-            print("Bad YAML formating in '{}'".format(self.filename))
+            print("Mistake in YAML syntax in '{}'".format(filename))
+            print("For more infomation check log file")
             sys.exit(1)
             
-        except Exception as e:
-            print(e)
 
     #kontroluje spravnost ip address a rozbaluje zkratky
     def checkHost(self, hosts):
@@ -227,7 +223,10 @@ class ParseConfig(ParseFile):
                     docu += i
             self.data=yaml.load(docu)
         except Exception as e:
-            print(e)
+            print("Mistake in YAML syntax in '{}'".format(filename))
+            print("For more infomation check log file")
+            sys.exit(1)
+            #print(e) #!! pridat log file
 
     #parsuje jednotlive casti kofiguracniho souboru, kontroluje syntaxy
     def parse(self,filter):

@@ -5,7 +5,6 @@ import paramiko
 import time
 import sys
 from pysnmp.entity.rfc3413.oneliner import cmdgen
-#import pexpect
 import socket
 from abc import ABCMeta, abstractmethod
 from lxml import etree
@@ -40,20 +39,19 @@ class SSH(Protocol):
         
     def connect(self):
         try:
-            self.conn_pre.connect(self.ip,username=self.username,password=self.password,look_for_keys=False, allow_agent=False)
+            self.conn_pre.connect(self.ip,username=self.username,password=self.password,look_for_keys=False, allow_agent=False,timeout=5)
         except paramiko.ssh_exception.AuthenticationException:
             raise Exception("Authentication fail")
         self.conn = self.conn_pre.invoke_shell() 
         time.sleep(0.5)
         while self.conn.recv_ready():
-            output = self.conn.recv(100)
+            output = self.conn.recv(2048)
             time.sleep(0.3)
         #print(output)
-        return True
+        return output
 
     def disconnect(self):
         self.conn_pre.close()
-        print("session has been closed")
 
     def doCommand(self,commands):
         #bude umet cist sekvenci prikazu
@@ -61,10 +59,6 @@ class SSH(Protocol):
         print(commands)
         for command in commands:
             command = command.strip().strip("'")
-            #command = bytes(command+"\n","utf-8") 
-            #print("posilam*"+command+"*")
-            #print("posilam",command)
-            #self.conn.send(command+'\n')
             self.conn.send(command+'\n')
             time.sleep(0.7)
             while self.conn.recv_ready():
@@ -76,22 +70,17 @@ class SSH(Protocol):
             else:
                 self.result.append(rec)
                 rec = ""
-            
-        self.result = []
-       # print("********************************************************")      
+        return self.result   
+        #self.result = []
 
 class NETCONF(Protocol):
     def __init__(self,protocol):
         self.ip = protocol["ip"]
         self.username = protocol["username"]
         self.password = protocol["password"]
-
-        self.proc = "" #slouzi pro volani pexpect
         self.ending = "]]>]]>"
         self.conn = None # Vzdalena console
-        self.conn_pre = paramiko.SSHClient() # priprava pro vzdalenou consoli
-        self.conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.socket2 = ""
+        self.socket = ""
         self.ch = ""
         self.trans = ""
         
@@ -132,13 +121,14 @@ class NETCONF(Protocol):
         child2.text = "urn:ietf:params:netconf:base:1.0"
         helloMessage = etree.tostring(root,xml_declaration=True,encoding= "utf-8").decode("utf-8")+self.ending
 
-        self.socket2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket2.connect((self.ip,22)) 
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.connect((self.ip,22)) 
 
-        self.trans = paramiko.Transport(self.socket2)
+        self.trans = paramiko.Transport(self.socket)
         self.trans.connect(username=self.username,password=self.password)
         
         self.ch = self.trans.open_session()
+        self.ch.settimeout(5)
         self.name = self.ch.set_name("netconf")
         self.ch.invoke_subsystem("netconf")
         self.ch.send(helloMessage)
@@ -152,6 +142,9 @@ class NETCONF(Protocol):
         if retVal == 1:
             print("loguju netconf message")
             print(data)
+            raise Exception("Can not connet to device '{}'".format(self.ip))
+        else:
+            return data
         
             
     def doCommand(self,command):
@@ -180,6 +173,9 @@ class NETCONF(Protocol):
         if retVal == 1:
             print("loguju netconf message")
             print(data)
+            return False
+        else:
+            return data
             
         #    print(data)
 
@@ -200,12 +196,12 @@ class NETCONF(Protocol):
         if retVal == 1:
             print("loguju netconf message")
             print(data)
+            return False
 
         self.ch.close()
         self.trans.close()
-        self.socket2.close()
-
-        print("odhlaseno")
+        self.socket.close()
+        return data
 
 class SNMP(Protocol):
     def __init__(self,protocol):
@@ -228,7 +224,7 @@ class SNMP(Protocol):
             errorIndication, errorStatus, errorIndex, varBinds = cmdGen.getCmd(
                 cmdgen.CommunityData(self.community),# security data, pro snmp1,2 pouze objekt co drzi community string
                 #cmdgen.UdpTransportTarget((networkName, 161),timeout=2, retries=0), #objekt co reprezentuje sitovou cestu k zarizeni
-                cmdgen.UdpTransportTarget((self.ip, 161),timeout=2, retries=0), #objekt co reprezentuje sitovou cestu k zarizeni
+                cmdgen.UdpTransportTarget((self.ip, 161),timeout=5, retries=0), #objekt co reprezentuje sitovou cestu k zarizeni
                 #cmdgen.MibVariable("SNMPv2-MIB", "sysDescr", 0),
                 #"1.3.6.1.2.1.1.1.0", musi tu bej i ta ukoncovaci nula
                 #"1.3.6.1.2.1.1.5", jinak to nefunguje
@@ -237,6 +233,7 @@ class SNMP(Protocol):
             )
         
             if errorStatus:
+                print("error status")
                 raise Exception(errorStatus)
 
             elif errorIndication:

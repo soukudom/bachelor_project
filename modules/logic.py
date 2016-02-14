@@ -91,7 +91,6 @@ class Orchestrate:
         #pripoj se na zarizeni
         conn = getattr(connect, conn_method)            
         self.conn = conn(self.protocol)
-        #conn._connect(dev[2],self.username,self.password)
         while True:
             try:
                 #conn.connect(dev[2],self.protocol)
@@ -132,14 +131,17 @@ class Orchestrate:
             if retCode == 1:
                 print("Missing compulsory atributes 'method' and 'connection' in 'DefaultConnection' class")
                 print("Go to the next device...")
+                continue
 
             elif retCode == 2:
                 print("Device module does not return any configuration data")
                 print("Go to the next device...")
+                continue
 
             elif retCode == 3:
                 print("Configuration method is not valid")
                 print("Go to the next device")
+                continue
 
     def configureDevice(self,dev):
         conn_method_def = None
@@ -150,14 +152,19 @@ class Orchestrate:
         #sestaveni modulu pro import
         module = "device_modules.{}.{}".format(dev[0],dev[1])
         importObj = importlib.import_module(module)
-        obj = getattr(importObj,"DefaultConnection") #!!! osetrit pokud trida DefaultConnection nebude existovat  
+        try:
+            obj = getattr(importObj,"DefaultConnection") #!!! osetrit pokud trida DefaultConnection nebude existovat  
+        except AttributeError as e:
+            print("Class 'DefaultConnection' in device module is compulsory")
+            print("Go to the next device")
+            return 1
         objInst = obj()
         try:
             conn_method_def = objInst.method
             config_method_def = objInst.connection
         except AttributeError:
-            print("atributes method and connection in class DefaultConnection are compulsory")
-            print("Going to next device")
+            print("Atributes 'method' and 'connection' in class DefaultConnection are compulsory")
+            print("Go to to the next device")
             return 1
             
              
@@ -168,7 +175,18 @@ class Orchestrate:
         #projdi vsechny metody pro dany zarizeni
         for method in self.configuration[dev]:
             #zavolani tridy
-            obj = getattr(importObj,method[1])
+            try:
+                obj = getattr(importObj,method[1])
+            except AttributeError as e:
+                print("Module 'device_module/{}/{}' has not class '{}'".format(dev[0],dev[1],method[1]))
+                option = input("Would you like to continue?[Y/n]")
+                if option == "Y" or option == "y":
+                    continue
+                else:
+                    print("Closing netat script.")
+                    self.conn.disconnect()
+                    sys.exit(1) 
+    
             objInst = obj()
 
             #zjisteni protokolu spojeni tady uz to je nepovinny
@@ -192,12 +210,56 @@ class Orchestrate:
             if config_method == "auto": 
                 #pokud se nastavuje submethod
                 if method[3]:
-                    inst = getattr(objInst,method[3])
-                    deviceSet = inst(**method[-1])
+                    try:
+                        inst = getattr(objInst,method[3])
+                    except Exception as e:
+                        print("Object '{}' has no method '{}'. Check file 'device_modules/{}/{}'".format(method[1],method[3],dev[0],dev[1]))
+                        option = input("Would you like to continue?[Y/n]")
+                        if option == "Y" or option == "y":
+                            continue
+                        else:
+                            print("Closing netat script.")
+                            self.conn.disconnect()
+                            sys.exit(1) 
+
+                    try:
+                        deviceSet = inst(**method[-1])
+                    except TypeError as e:
+                        arg = str(e).split()
+                        print("Method '{}' has no argument {}".format(method[3],arg[-1]))
+                        option = input("Would you like to continue?[Y/n]")
+                        if option == "Y" or option == "y":
+                            continue
+                        else:
+                            print("Closing netat script.")
+                            self.conn.disconnect()
+                            sys.exit(1)
                 #pouze method
                 else:
-                    inst = getattr(objInst,method[2].strip())
-                    deviceSet = inst(**method[-1])
+                    try:
+                        inst = getattr(objInst,method[2].strip())
+                    except Exception as e:
+                        print("Object '{}' has no method '{}'. Check file 'device_modules/{}/{}'".format(method[1],method[2],dev[0],dev[1]))
+                        option = input("Would you like to continue?[Y/n]")
+                        if option == "Y" or option == "y":
+                            continue
+                        else:
+                            print("Closing netat script.")
+                            self.conn.disconnect()
+                            sys.exit(1)
+                    try:    
+                        deviceSet = inst(**method[-1])
+                    except TypeError as e:
+                        arg = str(e).split()
+                        print("Method '{}' has no argument {}".format(method[2],arg[-1]))
+                        option = input("Would you like to continue?[Y/n]")
+                        if option == "Y" or option == "y":
+                            continue
+                        else:
+                            print("Closing netat script.")
+                            self.conn.disconnect()
+                            sys.exit(1)
+                        
 
                 if deviceSet == None:
                     self.conn.disconnect()

@@ -21,11 +21,12 @@
 
 ---
 - interface:
-    - int:
-        description: label
+    - int5:
+#        description: label
         shutdown: no
     
-- vlan:
-    - vlan:
-        id: 100
-        description: dej
+#- vlan:
+#    - vlan:
+#        id: 100
+ #       description: dej
+
