@@ -6,6 +6,7 @@ import os
 import modules.factory as factory
 import importlib
 import modules.connect as connect
+from paramiko.ssh_exception import AuthenticationException
 
 class Orchestrate:    
     def __init__(self, deviceFile, configFile, settingsFile ):
@@ -38,6 +39,7 @@ class Orchestrate:
         
         self.setCredentials()
         self.protocol["community"] = self.globalSettings.settingsData["community_string"]
+        self.protocol["timeout"] = self.globalSettings.settingsData["timeout"]
         
         
         self.device = self.factory.getDeviceProcessing(self.deviceFile) #vytvoreni objektu pro parsovani konfiguracniho souboru zarizeni
@@ -66,7 +68,8 @@ class Orchestrate:
                     #pripraveni ip a method_type pro protokol
                     self.protocol["ip"] = host
                     self.protocol["method_type"] = "get"
-                    manufactor = self.device.getManufactor(self.protocol,vendor)
+                    #manufactor = self.device.getManufactor(self.protocol,vendor)
+                    manufactor = self.getManufactor(vendor)
                     #pokud snmp neziskal data tak se pokracuje dal
                     if manufactor == None:
                         print("Getting manufactor name of '{}' no success".format(host))
@@ -87,6 +90,16 @@ class Orchestrate:
 
                     #continue
 
+    def getManufactor(self,vendor):
+        #import defaultni parsovaci tridy
+        module = "device_modules.{}.{}".format(vendor,vendor)
+        importObj = importlib.import_module(module)
+        obj = getattr(importObj,"Device")
+        objInst = obj()
+        manufactor = objInst.getDeviceName(self.protocol)
+        return manufactor
+
+
     def connect2device(self,conn_method):
         #pripoj se na zarizeni
         conn = getattr(connect, conn_method)            
@@ -97,13 +110,10 @@ class Orchestrate:
                 self.conn.connect()
                 break;
             except Exception as e:
+            #except AuthenticationException as e:
                 print(e)
-                #option = input("Would you like to try it again?[Y/n]")
-                #if option == "Y":
-                #    self.setCredentials()
-                #    continue
-                #else:
-                print("Closing netat configuration")
+                print("Closing netat configuration due to connect")
+                self.write2log("Authentication failed. Username: {}, Password: {}".format(self.protocol["username"],self.protocol["password"]))
                 sys.exit(1)
 
     #zmeni spojeni se zarizenim podle device modulu
@@ -124,6 +134,7 @@ class Orchestrate:
         return conn_method, config_method                
 
     def doConfiguration(self):
+        print("pocet procesu {}".format(self.globalSettings.settingsData["process_count"]))
         number_of_devices = len(self.configuration)
         print("pocet zarizeni",number_of_devices)
         for dev in self.configuration:
@@ -143,6 +154,15 @@ class Orchestrate:
                 print("Go to the next device")
                 continue
 
+    def write2log(self,message):
+        try:
+            with open(self.globalSettings.settingsData["log_file"],encoding="utf-8",mode="a") as log:
+                log.write(message)
+                log.write("\n")
+
+        except Exception as e:
+            print(e)
+
     def configureDevice(self,dev):
         conn_method_def = None
         config_method_def = None
@@ -153,7 +173,7 @@ class Orchestrate:
         module = "device_modules.{}.{}".format(dev[0],dev[1])
         importObj = importlib.import_module(module)
         try:
-            obj = getattr(importObj,"DefaultConnection") #!!! osetrit pokud trida DefaultConnection nebude existovat  
+            obj = getattr(importObj,"DefaultConnection") 
         except AttributeError as e:
             print("Class 'DefaultConnection' in device module is compulsory")
             print("Go to the next device")
@@ -264,7 +284,11 @@ class Orchestrate:
                 if deviceSet == None:
                     self.conn.disconnect()
                     return 2
-                self.conn.doCommand(deviceSet)
+                try:
+                    self.conn.doCommand(deviceSet)
+                except Exception as e:
+                    print(e)
+                    self.write2log(str(e))
 
             elif config_method == "manual" or config_method == "hybrid":
                 #pokud se nastavuje submethod
@@ -282,7 +306,11 @@ class Orchestrate:
                     if deviceSet == None:
                         self.conn.disconnect()
                         return 2
-                    conn.doCommand(deviceSet) 
+                    try:
+                        conn.doCommand(deviceSet) 
+                    except Exception as e:
+                        print(e)
+                        self.write2log(str(e))
 
             else:
                 return 3
@@ -297,4 +325,5 @@ class Orchestrate:
             print(e)
                 
 
+    
 

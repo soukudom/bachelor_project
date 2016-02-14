@@ -4,7 +4,7 @@
 
 community_string: sin       # community string
 
-network: 10.10.110.0/24     # network address and mask 
+#network: 10.10.110.0/24     # network address and mask 
 
 config_file: config.yml     # path to the main configuration file
 #config_file:sin = config.yml
@@ -14,6 +14,7 @@ device_file: hosts2.yml     # path to the device configuration file
 #device_file:sin = devices.yml
 #device_file:dej = devices02.yml
 
+log_file: log.txt           # program log file
 process_count: 2            # number of processes
 timeout: 5                  # timeout for network configuration protocols       
 

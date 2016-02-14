@@ -32,6 +32,7 @@ class SSH(Protocol):
         self.username = protocol["username"] 
         self.password = protocol["password"]
         self.ip = protocol["ip"]
+        self.timeout = protocol["timeout"]
         self.result = []
         self.conn = None # Vzdalena console
         self.conn_pre = paramiko.SSHClient() # priprava pro vzdalenou consoli
@@ -39,9 +40,9 @@ class SSH(Protocol):
         
     def connect(self):
         try:
-            self.conn_pre.connect(self.ip,username=self.username,password=self.password,look_for_keys=False, allow_agent=False,timeout=5)
+            self.conn_pre.connect(self.ip,username=self.username,password=self.password,look_for_keys=False, allow_agent=False,timeout=self.timeout)
         except paramiko.ssh_exception.AuthenticationException:
-            raise Exception("Authentication fail")
+            raise Exception("Authentication failed")
         self.conn = self.conn_pre.invoke_shell() 
         time.sleep(0.5)
         while self.conn.recv_ready():
@@ -78,11 +79,13 @@ class NETCONF(Protocol):
         self.ip = protocol["ip"]
         self.username = protocol["username"]
         self.password = protocol["password"]
+        self.timeout = protocol["timeout"]
         self.ending = "]]>]]>"
         self.conn = None # Vzdalena console
         self.socket = ""
         self.ch = ""
         self.trans = ""
+        self.message_id = 1
         
     def checkReply(self,data,typ):
         control = {"hello":0,"capabilities":0,"capability":0,"session-id":0}
@@ -128,7 +131,7 @@ class NETCONF(Protocol):
         self.trans.connect(username=self.username,password=self.password)
         
         self.ch = self.trans.open_session()
-        self.ch.settimeout(5)
+        self.ch.settimeout(self.timeout)
         self.name = self.ch.set_name("netconf")
         self.ch.invoke_subsystem("netconf")
         self.ch.send(helloMessage)
@@ -138,19 +141,20 @@ class NETCONF(Protocol):
             data = self.ch.recv(2048).decode("utf-8")
 
         retVal = self.checkReply(data,"hello")
-        #!!zapisovat do souboru s logem
         if retVal == 1:
-            print("loguju netconf message")
-            print(data)
-            raise Exception("Can not connet to device '{}'".format(self.ip))
+            #print("loguju netconf message")
+            #print(data)
+            raise Exception("Can not connect to device '{}'".format(self.ip),data)
         else:
             return data
         
             
     def doCommand(self,command):
+        self.message_id += 1
         data = "" #obsahujou prijata data ze zarizeni
         root = etree.Element("rpc")
-        root.set("message-id","105")
+        #root.set("message-id","105")
+        root.set("message-id",str(self.message_id))
         root.set("xmlns","urn:ietf:params:xml:ns:netconf:base:1.0")
         #child = etree.SubElement(root,"edit-config")
         #print(command)
@@ -169,11 +173,10 @@ class NETCONF(Protocol):
             
         retVal = self.checkReply(data,None)
 
-        #!!zapisovat do souboru s logem
         if retVal == 1:
             print("loguju netconf message")
             print(data)
-            return False
+            raise Exception("NETCONF: Problem with configuring command.",data)
         else:
             return data
             
@@ -181,8 +184,9 @@ class NETCONF(Protocol):
 
 
     def disconnect(self):
+        self.message_id += 1
         root = etree.Element("rpc")
-        root.set("message-id","105")
+        root.set("message-id",str(self.message_id))
         root.set("xmlns","urn:ietf:params:xml:ns:netconf:base:1.0")
         etree.SubElement(root,"close-session")
         closeMessage = etree.tostring(root,xml_declaration=True,encoding= "utf-8").decode("utf-8")+self.ending
@@ -192,11 +196,10 @@ class NETCONF(Protocol):
             data = self.ch.recv(2048).decode("utf-8")
 
         retVal = self.checkReply(data,None)
-        #!!zapisovat do souboru s logem
         if retVal == 1:
-            print("loguju netconf message")
-            print(data)
-            return False
+        #    print("loguju netconf message")
+        #    print(data)
+            raise Exeption("NETCONF: Problem with closing session", data)
 
         self.ch.close()
         self.trans.close()
@@ -208,6 +211,7 @@ class SNMP(Protocol):
         self.ip = protocol["ip"]
         self.community = protocol["community"]
         self.method_type = protocol["method_type"]
+        self.timeout = protocol["timeout"]
 
 
     def doCommand(self, mibVariable):
@@ -224,7 +228,7 @@ class SNMP(Protocol):
             errorIndication, errorStatus, errorIndex, varBinds = cmdGen.getCmd(
                 cmdgen.CommunityData(self.community),# security data, pro snmp1,2 pouze objekt co drzi community string
                 #cmdgen.UdpTransportTarget((networkName, 161),timeout=2, retries=0), #objekt co reprezentuje sitovou cestu k zarizeni
-                cmdgen.UdpTransportTarget((self.ip, 161),timeout=5, retries=0), #objekt co reprezentuje sitovou cestu k zarizeni
+                cmdgen.UdpTransportTarget((self.ip, 161),timeout=self.timeout, retries=0), #objekt co reprezentuje sitovou cestu k zarizeni
                 #cmdgen.MibVariable("SNMPv2-MIB", "sysDescr", 0),
                 #"1.3.6.1.2.1.1.1.0", musi tu bej i ta ukoncovaci nula
                 #"1.3.6.1.2.1.1.5", jinak to nefunguje
@@ -261,4 +265,4 @@ class SNMP(Protocol):
             self.method_type=tmp
     
     def disconnect(self):
-        print("odhlaseno") 
+        pass

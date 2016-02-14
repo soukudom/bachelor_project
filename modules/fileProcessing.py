@@ -7,9 +7,6 @@ import sys
 import re
 from itertools import product
 from copy import deepcopy
-import modules.connect as connect
-import os
-import importlib
 from abc import ABCMeta, abstractmethod
 
 
@@ -201,16 +198,16 @@ class ParseDevice(ParseFile):
         #print("metoda loop vraci ", pom)
         return pom
 
-    def getManufactor(self,protocol,vendor):
-        #naimportuju defaultni parsovaci tridu a zavolam metodu
-        module = "device_modules.{}.{}".format(vendor,vendor)
-        importObj = importlib.import_module(module)
-        obj = getattr(importObj,"Device")
-        objInst = obj()
-        #manufactor = objInst.getDeviceName(ip_address,community,"get")
-        #print("ptam se na vendora: ",protocol)
-        manufactor = objInst.getDeviceName(protocol)
-        return manufactor
+    #def getManufactor(self,protocol,vendor):
+    #    #naimportuju defaultni parsovaci tridu a zavolam metodu
+    #    module = "device_modules.{}.{}".format(vendor,vendor)
+    #    importObj = importlib.import_module(module)
+    #    obj = getattr(importObj,"Device")
+    #    objInst = obj()
+    #    #manufactor = objInst.getDeviceName(ip_address,community,"get")
+    #    #print("ptam se na vendora: ",protocol)
+    #    manufactor = objInst.getDeviceName(protocol)
+    #    return manufactor
 
 class ParseConfig(ParseFile):
     #nacte konfiguracni soubor, a provede kontrolu formatu yaml
@@ -435,21 +432,21 @@ class ParseSettings(ParseFile):
             sys.exit(1)
 
         #kontrola udaju
-        address, mask = self.settingsData["network"].split("/")
-        #print("testuju", type(address.strip()),"*")
-        if not re.match("^([1-9][0-9]{0,2}\.){3}[0-9]{0,3}$", address.strip()):
-            print("bad network form")
-            sys.exit(1)
-        try:
-            mask = int(mask)
-            if mask < 0 or mask > 32:
-                print("bad mask")
-                sys.exit(1)
-        except:
-            print("Network mask form mistake")
-            sys.exit(1)
-
-        self.settingsData["network"] = address.strip()
-        self.settingsData["networkMask"] = mask
-#        print("naparsoval jsem ",self.settingsData)
+        #address, mask = self.settingsData["network"].split("/")
+        ##print("testuju", type(address.strip()),"*")
+        #if not re.match("^([1-9][0-9]{0,2}\.){3}[0-9]{0,3}$", address.strip()):
+        #    print("bad network form")
+        #    sys.exit(1)
+        #try:
+        #    mask = int(mask)
+        #    if mask < 0 or mask > 32:
+        #        print("bad mask")
+        #        sys.exit(1)
+        #except:
+        #    print("Network mask form mistake")
+        #    sys.exit(1)
+        #
+        #self.settingsData["network"] = address.strip()
+        #self.settingsData["networkMask"] = mask
+        print("naparsoval jsem ",self.settingsData)
 
