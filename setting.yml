@@ -6,7 +6,7 @@ community_string: sin       # community string
 
 #network: 10.10.110.0/24     # network address and mask 
 
-config_file: config.yml     # path to the main configuration file
+config_file: config2.yml     # path to the main configuration file
 #config_file:sin = config.yml
 #config_file:dej = config02.yml
 

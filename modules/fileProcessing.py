@@ -15,6 +15,7 @@ class ParseFile(metaclass=ABCMeta):
     def __init__(self,filename):
         #kontrola souboru, pokud jsou nacitany pomoci konfiguracniho souboru
         try:
+            print("init testing")
             with open(filename,encoding = "utf-8", mode="r"):
                 pass
         except PermissionError:
@@ -26,6 +27,10 @@ class ParseFile(metaclass=ABCMeta):
         except IsADirectoryError:
             print("File '{}' is a directory.".format(filename))
             sys.exit(1)
+        except TypeError as e:
+            print("Invalid file '{}'".format(filename))
+            sys.exit(1)
+            
 
     @abstractmethod
     def parse(self,filter):
@@ -34,6 +39,7 @@ class ParseFile(metaclass=ABCMeta):
 
 class ParseDevice(ParseFile):
     def __init__(self, filename):
+        super().__init__(filename)
         docu = ""
         self.data = "" # nactena data z configu
         self.hosts = [] #  nalezena zarizeni
@@ -212,6 +218,7 @@ class ParseDevice(ParseFile):
 class ParseConfig(ParseFile):
     #nacte konfiguracni soubor, a provede kontrolu formatu yaml
     def __init__(self, filename):
+        super().__init__(filename)
         docu = ""
         self.data = "" 
         try:
@@ -222,7 +229,8 @@ class ParseConfig(ParseFile):
         except Exception as e:
             print("Mistake in YAML syntax in '{}'".format(filename))
             print("For more infomation check log file")
-            sys.exit(1)
+            #sys.exit(1)
+            raise Exception(e)
             #print(e) #!! pridat log file
 
     #parsuje jednotlive casti kofiguracniho souboru, kontroluje syntaxy
@@ -415,6 +423,7 @@ class ParseConfig(ParseFile):
 #zjisti nastaveni aplikace
 class ParseSettings(ParseFile):
     def __init__(self, filename):
+        super().__init__(filename)
         self.filename = filename
         self.settingsData = {}
 

@@ -5,13 +5,12 @@ import sys
 import os
 import argparse
 import modules.logic
-#!!pridat prepinac testing ktery otestuje konfiguraci
 
 #return codes:
 #   1: chyba prepinacu
 
-def getDevName(path):
-    defName = "devices.yml"
+def getDefName(path):
+    defName = "log.yml"
     number = 0
     content = os.listdir(path)
     while defName in content:
@@ -40,6 +39,8 @@ def CheckPrivilege(val):
     
 
 def CheckExist(val):
+    if val == None:
+        return val
     try:
         with open(val, mode="r") as f:
             pass
@@ -55,38 +56,50 @@ def CheckExist(val):
     return val
 
 parser = argparse.ArgumentParser()
-subparsers = parser.add_subparsers()
-
-#pridat nacitani ze souboru, z radky bude mit vetsi planost 
-
-#scanovani
-subparser_scan = subparsers.add_parser("scan",help="scan network device file")
-#parametr nazev vystupniho souboru
-subparser_scan.add_argument("-f","--file",help="output device file", type=CheckPrivilege,default="")
-subparser_scan.add_argument("-s","--setting",help="program settings file", type=CheckExist,default="")
-
-
+#subparsers = parser.add_subparsers()
+#
+##pridat nacitani ze souboru, z radky bude mit vetsi planost 
+#
+##scanovani
+#subparser_scan = subparsers.add_parser("scan",help="scan network device file")
+##parametr nazev vystupniho souboru
+#subparser_scan.add_argument("-f","--file",help="output device file", type=CheckPrivilege,default="")
+#subparser_scan.add_argument("-s","--setting",help="program settings file", type=CheckExist,default="")
+#
+#
 #konfigurace
-subparser_config = subparsers.add_parser("config", help="config devices")
+#subparser_config = subparsers.add_parser("config", help="config devices")
 #parametr nazev kofiguraku
-subparser_config.add_argument("-f","--file",help="device config description", type=CheckExist, default="")
+#subparser_config.add_argument("-f","--file",help="device config description", type=CheckExist, default="")
 #parametr nazev konfiguraku:cast
-subparser_config.add_argument("-p","--part", help="partial configuration")
-subparser_config.add_argument("-c","--clean",help="clean old configuration", action="store_true")
-subparser_config.add_argument("-s","--setting",help="program settings file", type=CheckExist, default="")
-subparser_config.add_argument("-d","--device",help="device file config", type=CheckExist, default="")
+#subparser_config.add_argument("-p","--part", help="partial configuration")
+#subparser_config.add_argument("-c","--clean",help="clean old configuration", action="store_true")
+#subparser_config.add_argument("-s","--setting",help="program settings file", type=CheckExist, default="")
+#subparser_config.add_argument("-d","--device",help="device file config", type=CheckExist, default="")
+#
+
+parser.add_argument("-cf","--configFile",help="device configuration file", type=CheckExist, default=None)
+parser.add_argument("-df","--deviceFile",help="file with hosts to configure", type=CheckExist,default=None)
+parser.add_argument("-sf","--settingsFile",help="file with global setting configuration", type=CheckExist,default=None)
+parser.add_argument("-l","--log",help="log file", type=getDefName,default=None)
+parser.add_argument("-dp","--devPart",help="choose part of device file",default=None)
+parser.add_argument("-cp","--configPart",help="choose part of configuration file",default=None)
+parser.add_argument("-np","--numberOfProcess",help="specify number of process",default=1)
+parser.add_argument("-t","--timeout",help="specify timeout for network connection",default=5)
+parser.add_argument("-c","--community",help="community string for snmp",default=None)
 
 args = parser.parse_args()
 #pokud neni zadoni nic, tak vyhodit help
-if len(sys.argv) == 1:
-    parser.print_help()
-    sys.exit(1)
+#if len(sys.argv) == 1:
+#    parser.print_help()
+#    sys.exit(1)
 
 
 print(args)
 
 data = vars(args)
 
-conf = modules.logic.Orchestrate(data["device"],data["file"],data["setting"])
+#conf = modules.logic.Orchestrate(data["device"],data["file"],data["setting"],data["log"],data["devPart"],data["configPart"])
+conf = modules.logic.Orchestrate(data)
 #conf.buildConfiguration()
 #conf.doConfiguration()

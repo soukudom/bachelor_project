@@ -1,13 +1,13 @@
-#---
-#- group: 
-#    - name: dej
-#    - interface:
-#        - int5:
-#            description: label
-#            shutdown: no
-            #vlan:
-            #    mode: trunk
-            #    allowed: a( 10  ,50  , 10)  
+---
+- group: 
+    - name: ssh
+    - interface:
+        - int5:
+            description: testConf
+            shutdown: no
+            vlan:
+                mode: trunk
+                allowed: ( 10  ,50  , 10)  
             #agregate:
             #    protocol: lacp
             #    channel: 1
@@ -19,11 +19,11 @@
 #- group:
 #    - name: sin:48 
 
----
-- interface:
-    - int5:
+#---
+#- interface:
+#    - int5:
 #        description: label
-        shutdown: no
+#        shutdown: no
     
 #- vlan:
 #    - vlan:
