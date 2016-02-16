@@ -2,19 +2,19 @@
 - group: 
     - name: ssh
     - interface:
-        - int5:
-            description: testConf
-            shutdown: no
-            vlan:
-                mode: trunk
-                allowed: ( 10  ,50  , 10)  
+        #- int8:
+        #    description: XXXXXXXXXXXXXXXXXXxx
+        #    shutdown: no
+        #    vlan:
+        #        mode: trunk
+        #        allowed: 10
             #agregate:
             #    protocol: lacp
             #    channel: 1
             #    mode: negotiate
-#        - int (  4, 10 , 2  ):
-#                shutdown: yes
-
+        #- int9:
+        #    description: YYYYY
+    
 
 #- group:
 #    - name: sin:48 
@@ -30,3 +30,4 @@
 #        id: 100
  #       description: dej
 
+#delete vlan, interface - udelat volbu except

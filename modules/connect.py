@@ -65,6 +65,7 @@ class SSH(Protocol):
             while self.conn.recv_ready():
                 #print("ctu smycku")
                 ot = self.conn.recv(5000)
+                print(ot)
                 rec += str(ot)
                 #self.result.append(str(ot))
                 time.sleep(0.3)

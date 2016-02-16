@@ -265,9 +265,18 @@ class ParseConfig(ParseFile):
                     for i in range(int(buffer[0]),int(buffer[1]),int(buffer[2])):
                         ret.append(i)        
                     # nasla se range a vraci se seznam
+                    print("vracim:",ret,name.split("(")[0],index)
                     return ret, name.split("(")[0], index
+                ###NEW !!ohlidat aby tam mohli bejt presne 3 cisla
+                else:
+                    tmp = re.search("(^[^0-9]*)([0-9][0-9]*,[0-9][0-9]*,[0-9][0-9]*$)",name)
+                    if tmp is not None:
+                        index = tmp.group(2)
+                        ret = index.split(",")
+                       # print("sekvence",tmp.group(1),tmp.group(2))
+                        return ret, tmp.group(1), index
+                ##END NEW !!
                 break
-        #!!!pridat detekci sekvence
         # jestlize nevyhovuje ani jeden vzor, tak se vraci priznak false 
         if not buffer:
             return False, None, ""

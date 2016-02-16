@@ -337,6 +337,7 @@ class Orchestrate:
                     try:    
                         deviceSet = inst(**method[-1])
                     except TypeError as e:
+                        print(e) #!!! smazat
                         arg = str(e).split()
                         print("Method '{}' has no argument {}".format(method[2],arg[-1]))
                         option = input("Would you like to continue?[Y/n]")

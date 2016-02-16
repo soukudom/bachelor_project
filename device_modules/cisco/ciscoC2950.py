@@ -12,32 +12,57 @@ class DefaultConnection:
 class vlan:
     def __init__(self):
         self.method = "SSH"
-    #!!! udelat nastavovani pro range id jako v int
+        self.result = ["configure terminal"]
+
     def vlan(self,id="",description="",ip="",shutdown=""):
-        result = ["configure terminal"]
-        if id:
-            result.append("interface vlan {}".format(id))
-        if description:
-            result.append("description {}".format(description))
-        if ip:
-            ip = ip.split("/")
-            if str(ip[1]) == str(24):
-                ip[1] = "255.255.255.0"
-            result.append("ip address {} {}".format(ip[0], ip[1]))
+        #slozite id
+        if type(id) == type(list()): 
+            while id:    
+                self.result.append("interface vlan {}".format(id))
+                if description:
+                    if type(description) == type(list()):
+                        self.result.append("description {}".format(description[0]))
+                        description = description[1:]
+                    else:
+                        self.result.append("description {}".format(description))
+                if ip: 
+                    if type(ip) == type(list()):
+                        tmp = ip[0]
+                        tmp = tmp.split("/")
+                        if str(tmp[1]) == str(24):
+                            tmp[1] = "255.255.255.0"
+                        self.result.append("ip address {} {}".format(tmp[0],tmp[1]))
+                        ip = ip[1:]
+                    else:
+                        ip = ip.split("/")
+                        if str(ip[1]) == str(24):
+                            ip[1] = "255.255.255.0"
+                        self.result.append("ip address {} {}".format(ip[0], ip[1]))
+                id = id[1:]
+        else:
+        #jednoduche id
+            if id:
+                self.result.append("interface vlan {}".format(id))
+            if description:
+                self.result.append("description {}".format(description))
+            if ip:
+                ip = ip.split("/")
+                if str(ip[1]) == str(24):
+                    ip[1] = "255.255.255.0"
+                self.result.append("ip address {} {}".format(ip[0], ip[1]))
+            
     
-        return result 
+        return self.result 
 
 class interface:
     def __init__(self):
         self.method = "SSH"
         self.result = ["configure terminal"]
         self.interfaceCount = 24 #muzu si dovolit, protoze je to psany pro konkretni model a vim kolim ma rozhrani
+
     def int(self, id="", description = "", shutdown="",):
-        print("jsem v metode int")
-        #result = ["configure terminal"]
         #pokud je zadany id range
         if type(id) == type(list()):
-            print("slozite id")
             while id:
                 self.result.append("interface FastEthernet 0/{}".format(id[0])) 
                 if description:
@@ -53,37 +78,64 @@ class interface:
                 id = id[1:]
         #pouze jednoduche id
         else: 
-            print("jednoduche id")
             if id:
                 self.result.append("interface FastEthernet 0/{}".format(id)) 
             if description:
                 self.result.append("description {}".format(description))
-            #if shutdown != "":
             #shutdown vraci yes nebo no
             if shutdown:
                 self.result.append("shutdown")
             else:
                 self.result.append("no shutdown")
         self.result.append("end")
-        print("result je",self.result)
+        print("int je",self.result)
         return self.result
 
     
     def int_vlan(self,id="",mode="",allowed="", access=""):
-        #result = ["configure terminal"]
-        if id:
-            self.result.append("interface FastEthernet 0/{}".format(id))
-        if mode:
-            self.result.append("switchport mode access")
-        if allowed:
-            self.result.append("switchport trunk allowed vlan {}".fromat(allowed))
-        if access:
-            self.result.append("switchport access vlan {}".format(access))
+        #allowed
+        print("int_vlan")
+        if type(allowed) == type(list()):
+            print("slozity allowed")
+            tmp = ""
+            for i in allowed:
+                tmp += str(i) + ","
+            allowed = tmp[:-1]
+                
+        #slozite id
+        if type(id) == type(list()):
+            while id:
+                print("allowed je", allowed)
+                self.result.append("interface FastEthernet 0/{}".format(id[0]))
+                if mode:
+                    print("pridavam mode")
+                    self.result.append("switchport mode {}".format(mode))                        
+                if allowed:
+                    print("pridavam allowed")
+                    self.result.append("switchport trunk allowed vlan {}".format(allowed))
+                if access:
+                    print("pridavam access")
+                    self.resutl.append("switchport access vlan {}".format(access))
+                id = id[1:]
+        else:
+        #jednoduche id
+            if id:
+                self.result.append("interface FastEthernet 0/{}".format(id))
+            if mode:
+                self.result.append("switchport mode {}".format(mode))
+            if allowed: 
+                self.result.append("switchport trunk allowed vlan {}".format(allowed))
+            if access:
+                self.result.append("switchport access vlan {}".format(access))
 
+        self.result.append("end")
+        print("int_vlan je", self.result)
         return self.result
     
     def int_agregate(self,id="",protocol="",channel="",mode=""):
-        #result = ["configure terminal"] 
+        if type(id) == type(list):
+            while id:
+                pass
         if id:
             self.result.append("interface FastEthernet 0/{}".format(id))
         if channel and mode:
@@ -118,14 +170,14 @@ class interface:
                     self.int_vlan(i,mode,allowed,access)
             return self.result
 
-    def mac(self, id="", description = "", shutdown=""):
-        #!!!id = najdi cislo rozhrani s mac addressou
-        self.int(id,description,shutdown)
+    #def mac(self, id="", description = "", shutdown=""):
+    #    #!!!id = najdi cislo rozhrani s mac addressou
+    #    self.int(id,description,shutdown)
     
-    def mac_vlan(self, id="", mode="", allowed="", access=""):
-        #!!!id = najdi cislo rozhrani s mac adresoun
-        self.int_vlan(self, id="", mode="", allowed="", access="")
+    #def mac_vlan(self, id="", mode="", allowed="", access=""):
+    #    #!!!id = najdi cislo rozhrani s mac adresoun
+    #    self.int_vlan(self, id="", mode="", allowed="", access="")
 
-    def mac_agregate(self,id="",protocol="",channel="", mode=""):
-        #!!!id = najdi cislo rozhrani s mac adresoun
-        self.int_agregate(id,protocol,channel,mode)
+    #def mac_agregate(self,id="",protocol="",channel="", mode=""):
+    #    #!!!id = najdi cislo rozhrani s mac adresoun
+    #    self.int_agregate(id,protocol,channel,mode)
