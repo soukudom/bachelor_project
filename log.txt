@@ -31,3 +31,43 @@ Authentication failed. Username: root, Password: Maozhi10
 Authentication failed. Username: root, Password: Maozhi10
 Authentication failed. Username: root, Password: Maozhi10
 Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+name 'conn' is not defined
+name 'conn' is not defined
+name 'conn' is not defined
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: mazohi10
+Authentication failed. Username: root, Password: Maozhi10
+Bad datatype. List is needed.
+Authentication failed. Username: root, Password: Maozhi10
+Bad datatype. List is needed.
+Authentication failed. Username: root, Password: Maozhi10
+mapping values are not allowed here
+  in "<unicode string>", line 21, column 16:
+        - name: ssh:
+                   ^
+mapping values are not allowed here
+  in "<unicode string>", line 22, column 14:
+            -int6:
+                 ^
+mapping values are not allowed here
+  in "<unicode string>", line 22, column 15:
+            - int6:
+                  ^
+Authentication failed. Username: root, Password: Mazohi10
+Authentication failed. Username: root, Password: Mazohi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Mazohi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Mazohi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Mazohi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Mazohi10

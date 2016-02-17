@@ -2,18 +2,26 @@
 - group: 
     - name: ssh
     - interface:
-        #- int8:
-        #    description: XXXXXXXXXXXXXXXXXXxx
-        #    shutdown: no
-        #    vlan:
-        #        mode: trunk
-        #        allowed: 10
+        - int5:
+#           #description: AAAAAAAAAAAAAAAAAAAAAAAAAAAa
+            shutdown: no
+            #vlan:
+            #    mode: trunk
+            #    allowed: 10
             #agregate:
             #    protocol: lacp
             #    channel: 1
             #    mode: negotiate
         #- int9:
         #    description: YYYYY
+        #- delete_int:
+        #    id: 9
+                
+- group:
+    - name: netconf
+    - interface:
+        - int5:
+            shutdown: no
     
 
 #- group:

@@ -58,13 +58,15 @@ class SSH(Protocol):
         #bude umet cist sekvenci prikazu
         rec = ""
         print(commands)
+        if type(commands) != type(list()):
+            raise Exception("Bad datatype. List is needed.")
         for command in commands:
             command = command.strip().strip("'")
             self.conn.send(command+'\n')
             time.sleep(0.7)
             while self.conn.recv_ready():
                 #print("ctu smycku")
-                ot = self.conn.recv(5000)
+                ot = self.conn.recv(5000) #pridat flag jestli jsem uz dostal odpoved
                 print(ot)
                 rec += str(ot)
                 #self.result.append(str(ot))
@@ -151,6 +153,8 @@ class NETCONF(Protocol):
         
             
     def doCommand(self,command):
+        if type(command) != type(str()):
+            raise Exception("Bad datatype. Datatype str is needed.")
         self.message_id += 1
         data = "" #obsahujou prijata data ze zarizeni
         root = etree.Element("rpc")
@@ -215,50 +219,52 @@ class SNMP(Protocol):
         self.timeout = protocol["timeout"]
 
 
-    def doCommand(self, mibVariable):
+    def doCommand(self, mibVariables):
+        if type(mibVariables) != type(list()):
+            raise Exception("Bad datatype. List is needed.")
+        for mibVariable in mibVariables: 
+            if self.method_type == "get":
+                # rozhoduje zda byl zadan oid nebo nazev
+                if "." in mibVariable:
+                    variable = mibVariable
+                else:
+                    variable = cmdgen.MibVariable("SNMPv2-MIB", mibVariable, 0)
+
+                cmdGen = cmdgen.CommandGenerator()
+
+                errorIndication, errorStatus, errorIndex, varBinds = cmdGen.getCmd(
+                    cmdgen.CommunityData(self.community),# security data, pro snmp1,2 pouze objekt co drzi community string
+                    #cmdgen.UdpTransportTarget((networkName, 161),timeout=2, retries=0), #objekt co reprezentuje sitovou cestu k zarizeni
+                    cmdgen.UdpTransportTarget((self.ip, 161),timeout=self.timeout, retries=0), #objekt co reprezentuje sitovou cestu k zarizeni
+                    #cmdgen.MibVariable("SNMPv2-MIB", "sysDescr", 0),
+                    #"1.3.6.1.2.1.1.1.0", musi tu bej i ta ukoncovaci nula
+                    #"1.3.6.1.2.1.1.5", jinak to nefunguje
+                    variable, #muze byt sekvence hodnot co chci ziskat
+                    lookupNames=True, lookupValues=True
+                )
         
-        if self.method_type == "get":
-            # rozhoduje zda byl zadan oid nebo nazev
-            if "." in mibVariable:
-                variable = mibVariable
+                if errorStatus:
+                    print("error status")
+                    raise Exception(errorStatus)
+
+                elif errorIndication:
+                    #snmp timeout
+                    raise Exception(errorIndication)
+
+                else:
+                    for name, val in varBinds:
+                        return val.prettyPrint()
             else:
-                variable = cmdgen.MibVariable("SNMPv2-MIB", mibVariable, 0)
-
-            cmdGen = cmdgen.CommandGenerator()
-
-            errorIndication, errorStatus, errorIndex, varBinds = cmdGen.getCmd(
-                cmdgen.CommunityData(self.community),# security data, pro snmp1,2 pouze objekt co drzi community string
-                #cmdgen.UdpTransportTarget((networkName, 161),timeout=2, retries=0), #objekt co reprezentuje sitovou cestu k zarizeni
-                cmdgen.UdpTransportTarget((self.ip, 161),timeout=self.timeout, retries=0), #objekt co reprezentuje sitovou cestu k zarizeni
-                #cmdgen.MibVariable("SNMPv2-MIB", "sysDescr", 0),
-                #"1.3.6.1.2.1.1.1.0", musi tu bej i ta ukoncovaci nula
-                #"1.3.6.1.2.1.1.5", jinak to nefunguje
-                variable, #muze byt sekvence hodnot co chci ziskat
-                lookupNames=True, lookupValues=True
-            )
-        
-            if errorStatus:
-                print("error status")
-                raise Exception(errorStatus)
-
-            elif errorIndication:
-                #snmp timeout
-                raise Exception(errorIndication)
-
-            else:
-                for name, val in varBinds:
-                    return val.prettyPrint()
-        else:
-            #print(self.method_type)
-            print("operation is not implemented")
-            sys.exit(2)
+                #print(self.method_type)
+                print("operation is not implemented")
+                sys.exit(2)
 
     def connect(self):
         #overeni spravnych udaju, pokus o ziskani dat
         tmp = self.method_type
         self.method_type="get"
         try:
-            res = self.doCommand("sysDescr")  
+            res = self.doCommand(["sysDescr"])  
             return res
         except Exception as e:
             raise 

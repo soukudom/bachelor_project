@@ -7,7 +7,7 @@ class Device:
         pass
 
     def getDeviceName(self,protocol):
-        value = "sysDescr"
+        value = ["sysDescr"]
         obj = SNMP(protocol)
         try:
             conn = obj.connect()
@@ -17,6 +17,7 @@ class Device:
         try:       
             manufactor = obj.doCommand(value); 
         except Exception as e:
+            print("vyjimka")
             print(e)
             return None
 

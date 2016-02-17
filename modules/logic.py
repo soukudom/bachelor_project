@@ -23,7 +23,6 @@ def createDefName():
         sys.exit(1)
 
 class Orchestrate:    
-    #def __init__(self, deviceFile, configFile, settingsFile, logFile, devPart, confPart ):
     def __init__(self, arguments ):
 
         #deviceFile #nazev konfiguracniho souboru pro zarizeni
@@ -39,6 +38,7 @@ class Orchestrate:
         self.configuration = {} # slovnik obsahujici konfiguraci, ktera se bude volat
         self.protocol={} # slovnik, kterej bude slouzit pro data pro protokoly
         self.conn = None #connection handler
+        self.partial = arguments["partial"]
 
         self.globalSettings = self.factory.getSettingsProcessing(self.settingsFile) #vytvoreni objektu pro parsovani globalniho nastaveni
         self.globalSettings.parse("")
@@ -83,10 +83,8 @@ class Orchestrate:
         if arguments["timeout"] == 5:
             try:
                 self.protocol["timeout"] = self.globalSettings.settingsData["timeout"]
-                print("nastaveno")
             except KeyError as e:
                 self.protocol["timeout"] = 5
-                print("nastaveno2")
         else:
             self.protocol["timeout"] = arguments["timeout"]
         if not arguments["community"]:
@@ -126,8 +124,11 @@ class Orchestrate:
     def buildConfiguration(self):
         methods = self.config.parse("") # parsovani konfiguraniho souboru
         print("naparsoval jsem",methods)
-
+        
         for method in methods:
+            #if not self.partial in method:
+             #   print("jdu na dalsi")
+             #   continue
             hosts = self.device.parse(method[0]) # zjisti zarizeni, ktere se budou nastavovat         
             for vendor in hosts: # zjisti nazev zarizeni, ktery je potrebny pro dynamickou praci
                 for host in hosts[vendor]:
@@ -185,17 +186,19 @@ class Orchestrate:
     #zmeni spojeni se zarizenim podle device modulu
     def makeChange(self,conn_method_def,config_method_def,conn_method,config_method):
         #pokud je nastaven hybrid nebo auto a jdu na manual
-        if (config_method_def == "hybrid" or config_method_def == "auto") and confing_method == "manual":
+        if (config_method_def == "hybrid" or config_method_def == "auto") and config_method == "manual":
             self.conn.disconnect()
         #pokud je nastaven manual a je hybrid nebo auto
-        elif (config_method == "hybrid" or config_method == "auto") and confing_method_def == "manual":
+        elif (config_method == "hybrid" or config_method == "auto") and config_method_def == "manual":
             self.conn.connect2device(conn_method)
         #pokud jdu z hybrid nebo auto na to samy
-        elif (config_method == "hybrid" or config_method == "auto") and (confing_method_def == "hybrid" or config_method_def == "auto"):
+        elif (config_method == "hybrid" or config_method == "auto") and (config_method_def == "hybrid" or config_method_def == "auto"):
             #kontrola jestli se nezmenil protokol a neni treba prepojit
             if conn_method_def != conn_method:
                 self.conn.disconnect()
                 self.conn.connect2device(conn_method)
+        else:
+            return conn_method_def,config_method_def
                 
         return conn_method, config_method                
 
@@ -258,6 +261,7 @@ class Orchestrate:
         #pripoj se na zarizeni            
         if config_method_def == "auto" or config_method_def == "hybrid":
             self.connect2device(conn_method_def)
+            print("pripojeno na device")
                                                                 
         #projdi vsechny metody pro dany zarizeni
         for method in self.configuration[dev]:
@@ -280,13 +284,13 @@ class Orchestrate:
             try:
                 conn_method = objInst.method
                 config_method = objInst.connection
-                #kontrola zmen parametru pro pripojeni
-                tmp = self.makeChange(conn_method_def,config_method_def,conn_method,config_method)
-                conn_method = tmp[0] 
-                config_method = tmp[1]
-
             except AttributeError:
                 pass
+            #kontrola zmen parametru pro pripojeni
+            tmp = self.makeChange(conn_method_def,config_method_def,conn_method,config_method)
+            conn_method = tmp[0] 
+            config_method = tmp[1]
+
                     
             #pokud nebylo defaultni nastaveni upraveno, tak ho pouzij
             if conn_method == None:
@@ -337,7 +341,7 @@ class Orchestrate:
                     try:    
                         deviceSet = inst(**method[-1])
                     except TypeError as e:
-                        print(e) #!!! smazat
+                        #print(e) #!!! smazat
                         arg = str(e).split()
                         print("Method '{}' has no argument {}".format(method[2],arg[-1]))
                         option = input("Would you like to continue?[Y/n]")
@@ -375,7 +379,7 @@ class Orchestrate:
                         self.conn.disconnect()
                         return 2
                     try:
-                        conn.doCommand(deviceSet) 
+                        self.conn.doCommand(deviceSet) 
                     except Exception as e:
                         print(e)
                         self.write2log(str(e))
