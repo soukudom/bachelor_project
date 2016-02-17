@@ -2,7 +2,7 @@
 - group: 
     - name: ssh
     - interface:
-        - int5:
+        - int6:
 #           #description: AAAAAAAAAAAAAAAAAAAAAAAAAAAa
             shutdown: no
             #vlan:

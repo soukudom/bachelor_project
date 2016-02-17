@@ -126,10 +126,11 @@ class Orchestrate:
         print("naparsoval jsem",methods)
         
         for method in methods:
-            #if not self.partial in method:
-             #   print("jdu na dalsi")
-             #   continue
+            if not self.partial in method:
+                continue
+            print("najdi jmeno pro",method[0])
             hosts = self.device.parse(method[0]) # zjisti zarizeni, ktere se budou nastavovat         
+            print("budu nastavovat",hosts)
             for vendor in hosts: # zjisti nazev zarizeni, ktery je potrebny pro dynamickou praci
                 for host in hosts[vendor]:
                     #pripraveni ip a method_type pro protokol
@@ -148,6 +149,7 @@ class Orchestrate:
                             sys.exit(1)
                         
                     #podarilo se ziskat vyrobce, uklada se do slovniku    
+                    print("vyrobce",vendor," je",manufactor)
                     manufactor.append(host)
                     manufactor = tuple(manufactor)
                     try:
@@ -238,6 +240,7 @@ class Orchestrate:
         config_method_def = None
         conn_method = None
         config_method = None
+        self.protocol["ip"] = dev[2]
 
         #sestaveni modulu pro import
         module = "device_modules.{}.{}".format(dev[0],dev[1])
@@ -257,7 +260,7 @@ class Orchestrate:
             print("Go to to the next device")
             return 1
             
-             
+        print("connection",conn_method_def," config",config_method_def,dev) 
         #pripoj se na zarizeni            
         if config_method_def == "auto" or config_method_def == "hybrid":
             self.connect2device(conn_method_def)
