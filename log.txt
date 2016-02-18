@@ -118,3 +118,4 @@ expected <block end>, but found '?'
     netconf:
     ^
 Duplicit ip address.
+Authentication failed. Username: root, Password: Mazohi10

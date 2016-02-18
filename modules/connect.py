@@ -65,18 +65,21 @@ class SSH(Protocol):
     def doCommand(self, commands):
         #bude umet cist sekvenci prikazu
         rec = ""
-        print(commands)
+      #  print(commands)
         if type(commands) != type(list()):
             raise Exception("Bad datatype. List is needed.")
         for command in commands:
             command = command.strip().strip("'")
             self.conn.send(command + '\n')
-            time.sleep(0.7)
+            #cekani dokud neprijde nejaka odpoved
+            while not self.conn.recv_ready():
+                time.sleep(0.3)
+
             while self.conn.recv_ready():
                 #print("ctu smycku")
                 ot = self.conn.recv(
-                    5000)  #pridat flag jestli jsem uz dostal odpoved
-                print(ot)
+                    5000)
+                #print(ot)
                 rec += str(ot)
                 #self.result.append(str(ot))
                 time.sleep(0.3)
@@ -155,7 +158,10 @@ class NETCONF(Protocol):
         self.name = self.ch.set_name("netconf")
         self.ch.invoke_subsystem("netconf")
         self.ch.send(helloMessage)
-        time.sleep(0.1)
+        #time.sleep(0.1)
+        #cekani dokud neprijde nejaka odpoved
+        while not self.ch.recv_ready():
+            time.sleep(0.1)
 
         while self.ch.recv_ready():
             data = self.ch.recv(2048).decode("utf-8")
@@ -191,7 +197,10 @@ class NETCONF(Protocol):
             encoding="utf-8").decode("utf-8") + self.ending
 
         self.ch.send(message)
-        time.sleep(0.5)
+        #cekani dokud neprijde nejaka odpoved
+        while not self.ch.recv_ready():
+            time.sleep(0.1)
+        #time.sleep(0.5)
         #data = self.ch.recv(2048)
         while self.ch.recv_ready():
             data += self.ch.recv(2048).decode("utf-8")
@@ -218,7 +227,10 @@ class NETCONF(Protocol):
             xml_declaration=True,
             encoding="utf-8").decode("utf-8") + self.ending
         self.ch.send(closeMessage)
-        time.sleep(0.3)
+        #time.sleep(0.3)
+        #cekani dokud neprijde nejaka odpoved
+        while not self.ch.recv_ready():
+            time.sleep(0.1)
         while self.ch.recv_ready():
             data = self.ch.recv(2048).decode("utf-8")
 
