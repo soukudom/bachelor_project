@@ -39,7 +39,7 @@ class SSH(Protocol):
         self.conn = None  # Vzdalena console
         self.conn_pre = paramiko.SSHClient()  # priprava pro vzdalenou consoli
         self.conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        print("pripoj se na ip", self.ip)
+        #print("pripoj se na ip", self.ip)
 
     def connect(self):
         try:
@@ -102,7 +102,7 @@ class NETCONF(Protocol):
         self.ch = ""
         self.trans = ""
         self.message_id = 1
-        print("pripoj se na ip", self.ip)
+        #print("pripoj se na ip", self.ip)
 
     def checkReply(self, data, typ):
         control = {"hello": 0,

@@ -14,7 +14,7 @@ class ParseFile(metaclass=ABCMeta):
     def __init__(self, filename):
         #kontrola souboru, pokud jsou nacitany pomoci konfiguracniho souboru
         try:
-            print("init testing")
+            #print("init testing")
             with open(filename, encoding="utf-8", mode="r"):
                 pass
         except PermissionError:
@@ -256,7 +256,7 @@ class ParseConfig(ParseFile):
 
             #parsuje jednotlive casti kofiguracniho souboru, kontroluje syntaxy
     def parse(self, filter):
-        print("metoda parse v config parseru")
+        #print("metoda parse v config parseru")
         self.groupName = ""  # nazev skupiny, ve ktere se aktualne nachazim
         self.className = ""  # nazev tridy, kde se aktualne nachazim
         self.methodName = ""  # nazev metody, kde se aktualne nachazim
@@ -289,7 +289,7 @@ class ParseConfig(ParseFile):
                             int(buffer[0]), int(buffer[1]), int(buffer[2])):
                         ret.append(i)
                     # nasla se range a vraci se seznam
-                    print("vracim:", ret, name.split("(")[0], index)
+                    #print("vracim:", ret, name.split("(")[0], index)
                     return ret, name.split("(")[0], index
                 ###NEW !!ohlidat aby tam mohli bejt presne 3 cisla
                 else:
@@ -413,7 +413,7 @@ class ParseConfig(ParseFile):
                                          True, False, groupNumber, idNum)
 
             except IndexError:
-                print("vyjimka index error")
+                #print("vyjimka index error")
                 continue
         # uprava potrebnych hodnot po skonceni cyklu
         if class_:

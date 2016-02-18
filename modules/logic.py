@@ -161,12 +161,12 @@ class Orchestrate:
             self.write2log(str(e))
             sys.exit(1)
 
-        print("naparsoval jsem", methods)
+        #print("naparsoval jsem", methods)
 
         for method in methods:
             if not self.partial in method:
                 continue
-            print("najdi jmeno pro", method[0])
+            #print("najdi jmeno pro", method[0])
             try:
                 hosts = self.device.parse(
                     method[0])  # zjisti zarizeni, ktere se budou nastavovat
@@ -176,7 +176,7 @@ class Orchestrate:
                 self.write2log(str(e))
                 sys.exit(1)
 
-            print("budu nastavovat", hosts)
+        #    print("budu nastavovat", hosts)
             for vendor in hosts:  # zjisti nazev zarizeni, ktery je potrebny pro dynamickou praci
                 for host in hosts[vendor]:
                     #pripraveni ip a method_type pro protokol
@@ -198,7 +198,7 @@ class Orchestrate:
                             sys.exit(1)
 
                         #podarilo se ziskat vyrobce, uklada se do slovniku
-                    print("vyrobce", vendor, " je", manufactor)
+                    #print("vyrobce", vendor, " je", manufactor)
                     manufactor.append(host)
                     manufactor = tuple(manufactor)
                     try:
