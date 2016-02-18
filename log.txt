@@ -93,3 +93,28 @@ Authentication failed. Username: root, Password: asdfas
 Authentication failed. Username: root, Password: asdfas
 Authentication failed. Username: root, Password: Maozhi10
 Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: asdf
+Authentication failed. Username: root, Password: asdf
+SSH
+SSH
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+File 'hosts232.yml' does not exist
+File 'hosts232.yml' does not exist
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+while parsing a block collection
+  in "<unicode string>", line 10, column 1:
+    - ssh:
+    ^
+expected <block end>, but found '?'
+  in "<unicode string>", line 15, column 1:
+    netconf:
+    ^
+Duplicit ip address.
