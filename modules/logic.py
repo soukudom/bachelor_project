@@ -7,6 +7,7 @@ import modules.factory as factory
 import importlib
 import modules.connect as connect
 from paramiko.ssh_exception import AuthenticationException
+from multiprocessing import Pool, Process
 
 def createDefName():
     defName = "log.yml"
@@ -182,8 +183,11 @@ class Orchestrate:
             #except AuthenticationException as e:
                 print(e)
                 print("Closing netat configuration due to connect")
+                
                 self.write2log("Authentication failed. Username: {}, Password: {}".format(self.protocol["username"],self.protocol["password"]))
-                sys.exit(1)
+                print("navrat")
+                return "Authentication failed."
+                #sys.exit(1)
 
     #zmeni spojeni se zarizenim podle device modulu
     def makeChange(self,conn_method_def,config_method_def,conn_method,config_method):
@@ -192,13 +196,17 @@ class Orchestrate:
             self.conn.disconnect()
         #pokud je nastaven manual a je hybrid nebo auto
         elif (config_method == "hybrid" or config_method == "auto") and config_method_def == "manual":
-            self.conn.connect2device(conn_method)
+            r = self.conn.connect2device(conn_method)
+            if r:
+                return r
         #pokud jdu z hybrid nebo auto na to samy
         elif (config_method == "hybrid" or config_method == "auto") and (config_method_def == "hybrid" or config_method_def == "auto"):
             #kontrola jestli se nezmenil protokol a neni treba prepojit
             if conn_method_def != conn_method:
                 self.conn.disconnect()
-                self.conn.connect2device(conn_method)
+                r = self.conn.connect2device(conn_method)
+                if r:
+                    return r
         else:
             return conn_method_def,config_method_def
                 
@@ -206,25 +214,32 @@ class Orchestrate:
 
     def doConfiguration(self):
         #print("pocet procesu {}".format(self.globalSettings.settingsData["process_count"]))
-        print("pocet procesu {}".format(self.process_count))
         number_of_devices = len(self.configuration)
         print("pocet zarizeni",number_of_devices)
-        for dev in self.configuration:
-            retCode = self.configureDevice(dev)
-            if retCode == 1:
-                print("Missing compulsory atributes 'method' and 'connection' in 'DefaultConnection' class")
-                print("Go to the next device...")
-                continue
+        if number_of_devices < int(self.process_count):
+            self.process_count = number_of_devices
+        print("pocet procesu {}".format(self.process_count))
 
-            elif retCode == 2:
-                print("Device module does not return any configuration data")
-                print("Go to the next device...")
-                continue
+        pool = Pool(processes=int(self.process_count))
+        results = [pool.apply_async(self.configureDevice,args=(dev,)) for dev in self.configuration]
+        output = [p.get() for p in results]
+        print(output)
+        #for dev in self.configuration:
+        #    retCode = self.configureDevice(dev)
+        #    if retCode == 1:
+        #        print("Missing compulsory atributes 'method' and 'connection' in 'DefaultConnection' class")
+        #        print("Go to the next device...")
+        #        continue
 
-            elif retCode == 3:
-                print("Configuration method is not valid")
-                print("Go to the next device")
-                continue
+         #   elif retCode == 2:
+         #       print("Device module does not return any configuration data")
+         #       print("Go to the next device...")
+         #       continue
+
+          #  elif retCode == 3:
+          #      print("Configuration method is not valid")
+          #      print("Go to the next device")
+          #      continue
 
     def write2log(self,message):
         try:
@@ -263,7 +278,10 @@ class Orchestrate:
         print("connection",conn_method_def," config",config_method_def,dev) 
         #pripoj se na zarizeni            
         if config_method_def == "auto" or config_method_def == "hybrid":
-            self.connect2device(conn_method_def)
+            print("test spojeni")
+            r = self.connect2device(conn_method_def)
+            if r:
+                return r
             print("pripojeno na device")
                                                                 
         #projdi vsechny metody pro dany zarizeni
@@ -395,6 +413,7 @@ class Orchestrate:
             config_method = None
         try:
             self.conn.disconnect()
+            return "ok"
         except Exception as e:
             print("nastala vyjimka")
             print(e)
