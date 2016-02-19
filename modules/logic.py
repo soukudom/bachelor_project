@@ -268,6 +268,7 @@ class Orchestrate:
     def doConfiguration(self):
         #print("pocet procesu {}".format(self.globalSettings.settingsData["process_count"]))
         number_of_devices = len(self.configuration)
+        self.devNumber = 0
         print("pocet zarizeni", number_of_devices)
         if number_of_devices < int(self.process_count):
             self.process_count = number_of_devices
@@ -277,6 +278,7 @@ class Orchestrate:
         results = [pool.apply_async(self.configureDevice,
                                     args=(dev, ))
                    for dev in self.configuration]
+        
         output = [p.get() for p in results]
         print(output)
         #for dev in self.configuration:
@@ -340,6 +342,7 @@ class Orchestrate:
 
             #projdi vsechny metody pro dany zarizeni
         for method in self.configuration[dev]:
+            print("Configuring {} at device {}".format(method[1],dev[1]))
             #zavolani tridy
             try:
                 obj = getattr(importObj, method[1])
@@ -515,7 +518,7 @@ class Orchestrate:
             config_method = None
         try:
             self.conn.disconnect()
-            return "ok"
+            return "ok",dev[1],self.protocol["ip"]
         except Exception as e:
             print("nastala vyjimka")
             return 1
