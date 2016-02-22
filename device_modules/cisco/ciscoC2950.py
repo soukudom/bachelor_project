@@ -107,7 +107,7 @@ class interface:
         return self.result
 
     def delete_int(self, id=""):
-        print("delete_int")
+        #print("delete_int")
         if type(id) == type(list()):
             while id:
                 self.result.append("interface FastEthernet 0/{}".format(id[0]))

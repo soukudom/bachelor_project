@@ -7,7 +7,8 @@ import modules.factory as factory
 import importlib
 import modules.connect as connect
 from paramiko.ssh_exception import AuthenticationException
-from multiprocessing import Pool, Process
+from multiprocessing import Pool, Process, Manager
+import time
 
 
 def createDefName():
@@ -235,7 +236,8 @@ class Orchestrate:
                 "Authentication failed. Username: {}, Password: {}".format(
                     self.protocol["username"], self.protocol["password"]))
             print("navrat")
-            return "Authentication failed."
+            return "Authentication failed.","Unknown",self.protocol["ip"]
+            #return "ok",dev[1],self.protocol["ip"]
             #sys.exit(1)
 
                 #zmeni spojeni se zarizenim podle device modulu
@@ -265,22 +267,58 @@ class Orchestrate:
 
         return (0,conn_method,config_method)
 
+    def printResult(self,result):
+        print("*"*20)
+        for res in result:
+            print("*"*5)
+            print("Device: {}".format(res[1]))
+            print("Ip address: {}".format(res[2]))
+            print("Status: {}".format(res[0]))
+            print("*"*5)
+        
+        print("*"*20)
+        
+
     def doConfiguration(self):
         #print("pocet procesu {}".format(self.globalSettings.settingsData["process_count"]))
         number_of_devices = len(self.configuration)
         self.devNumber = 0
+        cnt = 0
         print("pocet zarizeni", number_of_devices)
         if number_of_devices < int(self.process_count):
             self.process_count = number_of_devices
         print("pocet procesu {}".format(self.process_count))
 
-        pool = Pool(processes=int(self.process_count))
-        results = [pool.apply_async(self.configureDevice,
-                                    args=(dev, ))
-                   for dev in self.configuration]
-        
-        output = [p.get() for p in results]
-        print(output)
+        #pool = Pool(processes=int(self.process_count))
+        #results = [pool.apply_async(self.configureDevice,
+        #                            args=(dev, ))
+        #           for dev in self.configuration]
+       # 
+       # output = [p.get() for p in results]
+       # print(output)
+        p = Pool()
+        m = Manager()
+        #q = m.Queue()
+        args = [i for i in self.configuration]
+        result = p.map_async(self.configureDevice, args)
+        while True:
+            cnt += 1
+            #print(cnt)
+            if result.ready():
+                break
+            else:
+                #size = q.qsize()
+                dots = (cnt%4)
+                if dots == 0:
+                    print("\033[1AConfiguring devices. Please wait   \033[0m")
+                
+                else:
+                    print("\033[1AConfiguring devices. Please wait{}\033[0m".format("."*dots))
+                time.sleep(0.3)
+        output = result.get()
+        self.printResult(output)
+
+
         #for dev in self.configuration:
         #    retCode = self.configureDevice(dev)
         #    if retCode == 1:
@@ -313,7 +351,7 @@ class Orchestrate:
         config_method_def = None
         conn_method = None
         config_method = None
-        self.protocol["ip"] = dev[2]
+        self.protocol["ip"] = dev[2] #!!uprava kvuli kontrolovani prubehu
 
         #sestaveni modulu pro import
         module = "device_modules.{}.{}".format(dev[0], dev[1])
@@ -341,8 +379,8 @@ class Orchestrate:
                 return r
 
             #projdi vsechny metody pro dany zarizeni
-        for method in self.configuration[dev]:
-            print("Configuring {} at device {}".format(method[1],dev[1]))
+        for method in self.configuration[dev]: #!!zmena kvuli sledovani pokroku
+            print(" "*36,"\033[1A\033[0K: Configuring {} at device {}".format(method[1],dev[1]))
             #zavolani tridy
             try:
                 obj = getattr(importObj, method[1])
