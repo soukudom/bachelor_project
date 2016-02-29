@@ -153,3 +153,49 @@ Authentication failed. Username: sdf, Password: asdf
 Authentication failed. Username: root, Password: Maozhi10
 Authentication failed. Username: root, Password: Maozhi10
 Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: df, Password: adf
+Authentication failed. Username: df, Password: adf
+Authentication failed. Username: df, Password: adf
+while parsing a block mapping
+  in "<unicode string>", line 3, column 7:
+        - name: ssh
+          ^
+expected <block end>, but found '<block sequence start>'
+  in "<unicode string>", line 17, column 9:
+            - delete_int:
+            ^
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+mapping values are not allowed here
+  in "<unicode string>", line 7, column 21:
+                shutdown: no
+                        ^
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+string indices must be integers
+Authentication failed. Username: asdfa, Password: asdfsa
+Authentication failed. Username: asdfa, Password: asdfsa
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10

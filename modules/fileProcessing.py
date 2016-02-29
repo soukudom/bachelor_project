@@ -265,6 +265,7 @@ class ParseConfig(ParseFile):
 
         # funkce ktere rekurzivne prochazi konfiguracni soubor
         self.rekurze(self.data, False, False, False, False, 0, None)
+        print("metody",self.methods)
         return self.methods
 
     #kotroluje a rozbaluje id hodnotu u jmena metody, cislo je tady aby se odlisilo vice metod najednou
@@ -506,4 +507,4 @@ class ParseSettings(ParseFile):
         #
         #self.settingsData["network"] = address.strip()
         #self.settingsData["networkMask"] = mask
-        print("naparsoval jsem ", self.settingsData)
+        #print("naparsoval jsem ", self.settingsData)

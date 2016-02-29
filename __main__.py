@@ -105,7 +105,7 @@ parser.add_argument("-l",
 parser.add_argument("-p",
                     "--partial",
                     help="choose one group from config file",
-                    default="")
+                    default=None)
 parser.add_argument("-np",
                     "--numberOfProcess",
                     help="specify number of process",
@@ -125,7 +125,7 @@ args = parser.parse_args()
 #    parser.print_help()
 #    sys.exit(1)
 
-print(args)
+#print(args)
 
 data = vars(args)
 

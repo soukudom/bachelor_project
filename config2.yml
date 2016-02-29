@@ -1,27 +1,31 @@
----
-- group: 
-    - name: ssh
-    - interface:
-        - int(2,10,2):
-#           description: AAAAAAAAAAAAAAAAAAAAAAAAAAAa
-            shutdown: no
-            vlan:
-                mode: trunk
-                allowed: 10
-            #agregate:
-            #    protocol: lacp
-            #    channel: 1
-            #    mode: negotiate
-        #- int9:
-        #    description: YYYYY
-        - delete_int:
-            id: (2,10,2)
+#---
+#- group: 
+#    - name: ssh
+#    - interface:
+#        - int(2,10,2):
+#            description: AAAAAAAAAAAAAAAAAAAAAAAAAAAa
+#            shutdown: no
+#            vlan:
+#                mode: trunk
+#                allowed: 10
+#            #agregate:
+#            #    protocol: lacp
+#            #    channel: 1
+#            #    mode: negotiate
+#        #- int9:
+#        #    description: YYYYY
+#        - delete_int:
+#            id: (2,24,1)
+#    - vlan:
+#        - vlan:
+#            id: 111
+#            description: private
                 
-- group:
-    - name: netconf
-    - interface:
-        - int5:
-            shutdown: no
+#- group:
+#    - name: netconf
+#    - interface:
+#        - int5:
+#           shutdown: no
     
 
 #- group:
@@ -39,3 +43,14 @@
  #       description: dej
 
 #delete vlan, interface - udelat volbu except
+
+
+---
+- group: 
+    - name: ssh
+    - interface:
+        - int2,6,5:
+            vlan:
+                mode: access
+                access: 10
+                

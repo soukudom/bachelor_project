@@ -69,6 +69,7 @@ class SSH(Protocol):
         if type(commands) != type(list()):
             raise Exception("Bad datatype. List is needed.")
         for command in commands:
+      #      print(command)
             command = command.strip().strip("'")
             self.conn.send(command + '\n')
             #cekani dokud neprijde nejaka odpoved
@@ -79,7 +80,7 @@ class SSH(Protocol):
                 #print("ctu smycku")
                 ot = self.conn.recv(
                     5000)
-                #print(ot)
+       #         print(ot)
                 rec += str(ot)
                 #self.result.append(str(ot))
                 time.sleep(0.3)

@@ -126,7 +126,8 @@ class interface:
         self.result.append("end")
         return self.result
 
-    def int_vlan(self, id="", mode="", allowed="", access="", protocol=""):
+    def int_vlan(self, id="", mode="", allowed="", access=""):
+        #print("metoda int_vlan", id)
         #allowed
         if type(allowed) == type(list()):
             print("slozity allowed")
@@ -138,18 +139,18 @@ class interface:
             #slozite id
         if type(id) == type(list()):
             while id:
-                print("allowed je", allowed)
+                #print("allowed je", allowed)
                 self.result.append("interface FastEthernet 0/{}".format(id[0]))
                 if mode:
-                    print("pridavam mode")
+                    #print("pridavam mode")
                     self.result.append("switchport mode {}".format(mode))
                 if allowed:
-                    print("pridavam allowed")
+                    #print("pridavam allowed")
                     self.result.append(
                         "switchport trunk allowed vlan {}".format(allowed))
                 if access:
-                    print("pridavam access")
-                    self.resutl.append("switchport access vlan {}".format(
+                    #print("pridavam access")
+                    self.result.append("switchport access vlan {}".format(
                         access))
                 id = id[1:]
         else:
@@ -165,7 +166,7 @@ class interface:
                 self.result.append("switchport access vlan {}".format(access))
 
         self.result.append("end")
-        # print("int_vlan je", self.result)
+        #print("int_vlan je", self.result)
         return self.result
 
     def int_agregate(self,

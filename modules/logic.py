@@ -40,7 +40,7 @@ class Orchestrate:
             settingsFile = arguments["settingsFile"]
 
         self.settingsFile = settingsFile  #nazev konfiguracniho souboru pro globalni parametry
-        self.factory = factory.Factory()  # vytvoreni objektu tovarny
+        factory_tmp = factory.Factory()  # vytvoreni objektu tovarny
         self.configuration = {
         }  # slovnik obsahujici konfiguraci, ktera se bude volat
         self.protocol = {
@@ -48,7 +48,7 @@ class Orchestrate:
         self.conn = None  #connection handler
         self.partial = arguments["partial"]
 
-        self.globalSettings = self.factory.getSettingsProcessing(
+        self.globalSettings = factory_tmp.getSettingsProcessing(
             self.settingsFile
         )  #vytvoreni objektu pro parsovani globalniho nastaveni
         self.globalSettings.parse("")
@@ -123,7 +123,7 @@ class Orchestrate:
         #self.protocol["timeout"] = self.globalSettings.settingsData["timeout"]
 
         try:
-            self.device = self.factory.getDeviceProcessing(
+            self.device = factory_tmp.getDeviceProcessing(
                 deviceFile
             )  #vytvoreni objektu pro parsovani konfiguracniho souboru zarizeni
         except Exception as e:
@@ -133,7 +133,7 @@ class Orchestrate:
             sys.exit(1)
             
         try:
-            self.config = self.factory.getConfigProcessing(
+            self.config = factory_tmp.getConfigProcessing(
                 configFile
             )  
         except Exception as e:
@@ -165,9 +165,8 @@ class Orchestrate:
         #print("naparsoval jsem", methods)
 
         for method in methods:
-            if not self.partial in method:
+            if not self.partial in method and self.partial != None:
                 continue
-            #print("najdi jmeno pro", method[0])
             try:
                 hosts = self.device.parse(
                     method[0])  # zjisti zarizeni, ktere se budou nastavovat
@@ -203,8 +202,10 @@ class Orchestrate:
                     manufactor.append(host)
                     manufactor = tuple(manufactor)
                     try:
+                        print("pridavam",method)
                         self.configuration[manufactor].append(method)
                     except:
+                        print("pridavam",method)
                         self.configuration[manufactor] = [method]
 
                     #continue
@@ -379,7 +380,8 @@ class Orchestrate:
                 return r
 
             #projdi vsechny metody pro dany zarizeni
-        for method in self.configuration[dev]: #!!zmena kvuli sledovani pokroku
+        for method in self.configuration[dev]:
+            #print(method)
             print(" "*36,"\033[1A\033[0K: Configuring {} at device {}".format(method[1],dev[1]))
             #zavolani tridy
             try:
