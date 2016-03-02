@@ -1,4 +1,7 @@
 #!/usr/vin/env python3
+# -*- coding: utf-8 -*-
+
+#Autor: Dominik Soukup, soukudom@fit.cvut.cz
 
 import getpass
 import sys
@@ -10,59 +13,64 @@ from paramiko.ssh_exception import AuthenticationException
 from multiprocessing import Pool, Process, Manager
 import time
 
+#exit codes:
+#   1: file formating error
+#   2: file/parameter missing error
+
 
 def createDefName():
-    defName = "log.yml"
+    defName = "log.txt"
     number = 0
     content = os.listdir("./")
     while defName in content:
-        defName = "log" + str(number + 1).zfill(3) + ".yml"
+        defName = "log" + str(number + 1).zfill(3) + ".txt"
         number += 1
     try:
+        print("otevirm",defName)
         with open(defName, encoding="utf-8", mode="w") as f:
             pass
     except Exception as e:
-        print("Can not create '{}' file.".format(defname))
-        return defname
-       # sys.exit(1)
+        print("Can not create '{}' file.".format(defName))
+        return None
+    return defName
 
 
 class Orchestrate:
     def __init__(self, arguments):
-
-        #deviceFile #nazev konfiguracniho souboru pro zarizeni
-        #configFile #nazev konfiguracniho souboru pro nastaveni
+        #fining out settings file filename
         if not arguments["settingsFile"]:
             print(
-                "Settings file not specyfied. Using default name: 'setting.yml'")
+                "Settings file not specified. Using default name: 'setting.yml'")
             settingsFile = "setting.yml"
         else:
             settingsFile = arguments["settingsFile"]
 
-        self.settingsFile = settingsFile  #nazev konfiguracniho souboru pro globalni parametry
-        factory_tmp = factory.Factory()  # vytvoreni objektu tovarny
-        self.configuration = {
-        }  # slovnik obsahujici konfiguraci, ktera se bude volat
-        self.protocol = {
-        }  # slovnik, kterej bude slouzit pro data pro protokoly
-        self.conn = None  #connection handler
-        self.partial = arguments["partial"]
+        self.settingsFile = settingsFile    #settings filename with global configuration data
+        factory_tmp = factory.Factory()     #creation factory object  
+        self.configuration = {}             #dictionary with device configuration data
+        self.protocol = {}                  #dictionary with data necessary for configuration protocols
+        self.conn = None                    #connection handler
+        self.partial = arguments["partial"] #name for group filtering
 
         self.globalSettings = factory_tmp.getSettingsProcessing(
             self.settingsFile
-        )  #vytvoreni objektu pro parsovani globalniho nastaveni
-        self.globalSettings.parse("")
+        )                                   #creation settings parse object from factory
+        #run file parsing
+        self.globalSettings.parse("")       
+
         if type(self.globalSettings.settingsData) != type(dict()):
-            print("Bad settings file format. Please read manual for help.")
+            print("Error: Bad settings file '{}' format.".format(self.settingsFile))
+            #self.write2log("Bad settings file format. Please read manual for help.")
             sys.exit(1)
-        #ulozeni nazvu konfiguranich souboru; prednost maji prepinace pred konfiguracnim souborem
+
+        #Checking data from settings file. Data from command line has higher priority
         if not arguments["configFile"]:
             try:
                 configFile = self.globalSettings.settingsData["config_file"]
             except KeyError as e:
-                print("Config file has not been inserted.")
-                self.write2log("Config file has not been inserted.")
-                sys.exit(1)
+                print("Error: Config file has not been inserted.")
+                #self.write2log("Config file has not been inserted. It is necessary to specify filename in settings file or in commandline.")
+                sys.exit(2)
         else:
             configFile = arguments["configFile"]
 
@@ -70,9 +78,9 @@ class Orchestrate:
             try:
                 deviceFile = self.globalSettings.settingsData["device_file"]
             except KeyError as e:
-                print("Device file has not been inserted")
-                self.write2log("Device file has not been inserted.")
-                sys.exit(1)
+                print("Error: Device file has not been inserted.")
+                #self.write2log("Device file has not been inserted. It is necessary to specify filename int settings file or in commandline")
+                sys.exit(2)
         else:
             deviceFile = arguments["deviceFile"]
 
@@ -81,15 +89,16 @@ class Orchestrate:
                 self.logFile = self.globalSettings.settingsData["log_file"]
             except KeyError as e:
                 print("Log file has not been inserted")
-                print("Creating default log file")
-                r = createDefName()
-                if r:
-                    print("Can not create '{}' file.".format(r))
-                    self.write2log("Can not create '{}' file.".format(r))
-                    sys.exit(1)
+                print("Creating default log file...")
+                self.logFile = createDefName()
+                if not self.logFile:
+                    print("Can not create log file.")
+                    sys.exit(2)
+                print("Log file '{}' has been created.".format(self.logFile))
                     
         else:
             self.logFile = arguments["log"]
+
         if arguments["numberOfProcess"] == 1:
             try:
                 self.process_count = self.globalSettings.settingsData[
@@ -98,6 +107,7 @@ class Orchestrate:
                 self.process_count = 1
         else:
             self.process_count = arguments["numberOfProcess"]
+
         if arguments["timeout"] == 5:
             try:
                 self.protocol["timeout"] = self.globalSettings.settingsData[
@@ -106,43 +116,42 @@ class Orchestrate:
                 self.protocol["timeout"] = 5
         else:
             self.protocol["timeout"] = arguments["timeout"]
+
         if not arguments["community"]:
             try:
                 self.protocol["community"] = self.globalSettings.settingsData[
                     "community_string"]
             except KeyError as e:
-                print("Community string has not been inserted.")
-                self.write2log("Community string has not been inserted.")
-                sys.exit(1)
+                print("Error: Community string has not been inserted.")
+                #self.write2log("Community string has not been inserted.")
+                sys.exit(2)
         else:
             self.protocol["community"] = arguments["community"]
 
-        print(self.protocol["timeout"])
+        #sets credentials to access network devices
         self.setCredentials()
-        #self.protocol["community"] = self.globalSettings.settingsData["community_string"]
-        #self.protocol["timeout"] = self.globalSettings.settingsData["timeout"]
 
         try:
             self.device = factory_tmp.getDeviceProcessing(
                 deviceFile
-            )  #vytvoreni objektu pro parsovani konfiguracniho souboru zarizeni
+            )                               #creation device parse object from factory
         except Exception as e:
-            print("Problem with getting config parse object from factory.")
-            print(e)
+            print("Error: Can not get device parse object from factory. Check the log file.")
             self.write2log(str(e))
-            sys.exit(1)
+            sys.exit(2)
             
         try:
             self.config = factory_tmp.getConfigProcessing(
                 configFile
-            )  
+            )                               #creation configuraton parse object from factory
         except Exception as e:
-            print("Problem with getting config parse object from factory.")
-            print(e)
+            print("Error: Con not get configuration parse object from factory. Check the log file")
             self.write2log(str(e))
-            sys.exit(1)
+            sys.exit(2)
 
+        #prepare configuration data for configuring
         self.buildConfiguration()
+        #run configuration
         self.doConfiguration()
 
     def setCredentials(self):

@@ -1,46 +1,49 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+#Autor: Dominik Soukup, soukudom@fit.cvut.cz
+
 import sys
 import os
 import argparse
 import modules.logic
 
-#return codes:
-#   1: chyba prepinacu
+#exit codes:
+#   2: input parameters error
+#   5: internal error
+
+#def getDefName(path):
+#    defName = "log.txt"
+#    number = 0
+#    content = os.listdir(path)
+#    while defName in content:
+#        defName = "log" + str(number + 1).zfill(3) + ".txt"
+#        number += 1
+#    return defName
 
 
-def getDefName(path):
-    defName = "log.yml"
-    number = 0
-    content = os.listdir(path)
-    while defName in content:
-        defName = "devices" + str(number + 1).zfill(3) + ".yml"
-        number += 1
-    return defName
+#def CheckPrivilege(val):
+#    path, name = os.path.split(val)
+#    if path == "": path = "."
+#    if name == "" or name == ".": name = getDevName(path)
+#    try:
+#        with open(os.path.join(path, name), mode="w", encoding="utf-8") as f:
+#            print("vytvoril jsem soubor", name)
+#        os.unlink(os.path.join(path, name))
+#    except IsADirectoryError:
+#        raise argparse.ArgumentTypeError(
+#            "File {} is a directory. Maybe you forgot '/'.".format(name))
+#    except PermissionError:
+#        raise argparse.ArgumentTypeError(
+#            "File {} can not be written to {}.".format(name, path))
+#    except Exception as e:
+#        print(e)
+#        print("vyhodil jsem vyjimku na CheckPrivilege")
+#    return os.path.join(path, name)
 
-
-def CheckPrivilege(val):
-    path, name = os.path.split(val)
-    if path == "": path = "."
-    if name == "" or name == ".": name = getDevName(path)
-    try:
-        with open(os.path.join(path, name), mode="w", encoding="utf-8") as f:
-            print("vytvoril jsem soubor", name)
-        os.unlink(os.path.join(path, name))
-    except IsADirectoryError:
-        raise argparse.ArgumentTypeError(
-            "File {} is a directory. Maybe you forgot '/'.".format(name))
-    except PermissionError:
-        raise argparse.ArgumentTypeError(
-            "File {} can not be written to {}.".format(name, path))
-    except Exception as e:
-        print(e)
-        print("vyhodil jsem vyjimku na CheckPrivilege")
-    return os.path.join(path, name)
-
-
-def CheckExist(val):
+# \fn checks if the file is usable
+# \param val: filename
+def checkExist(val):
     if val == None:
         return val
     try:
@@ -54,69 +57,48 @@ def CheckExist(val):
     except FileNotFoundError:
         raise argparse.ArgumentTypeError("File {} does not exist.".format(val))
     except Exception as e:
-        print("vyhazuju vyjimku CheckExist")
-        print(e)
+        print("Internal error.")
+        sys.exit(2)
     return val
 
-
+#argparser configuration
 parser = argparse.ArgumentParser()
-#subparsers = parser.add_subparsers()
-#
-##pridat nacitani ze souboru, z radky bude mit vetsi planost 
-#
-##scanovani
-#subparser_scan = subparsers.add_parser("scan",help="scan network device file")
-##parametr nazev vystupniho souboru
-#subparser_scan.add_argument("-f","--file",help="output device file", type=CheckPrivilege,default="")
-#subparser_scan.add_argument("-s","--setting",help="program settings file", type=CheckExist,default="")
-#
-#
-#konfigurace
-#subparser_config = subparsers.add_parser("config", help="config devices")
-#parametr nazev kofiguraku
-#subparser_config.add_argument("-f","--file",help="device config description", type=CheckExist, default="")
-#parametr nazev konfiguraku:cast
-#subparser_config.add_argument("-p","--part", help="partial configuration")
-#subparser_config.add_argument("-c","--clean",help="clean old configuration", action="store_true")
-#subparser_config.add_argument("-s","--setting",help="program settings file", type=CheckExist, default="")
-#subparser_config.add_argument("-d","--device",help="device file config", type=CheckExist, default="")
-#
 
 parser.add_argument("-cf",
                     "--configFile",
-                    help="device configuration file",
-                    type=CheckExist,
+                    help="Device configuration file",
+                    type=checkExist,
                     default=None)
 parser.add_argument("-df",
                     "--deviceFile",
-                    help="file with hosts to configure",
-                    type=CheckExist,
+                    help="File with hosts to configure",
+                    type=checkExist,
                     default=None)
 parser.add_argument("-sf",
                     "--settingsFile",
-                    help="file with global setting configuration",
-                    type=CheckExist,
+                    help="File with global configuration setting",
+                    type=checkExist,
                     default=None)
 parser.add_argument("-l",
                     "--log",
-                    help="log file",
-                    type=getDefName,
+                    help="File with logs",
+                    type=checkExist,
                     default=None)
 parser.add_argument("-p",
                     "--partial",
-                    help="choose one group from config file",
+                    help="Filter for specific group name.",
                     default=None)
 parser.add_argument("-np",
                     "--numberOfProcess",
-                    help="specify number of process",
+                    help="Number of running processes",
                     default=1)
 parser.add_argument("-t",
                     "--timeout",
-                    help="specify timeout for network connection",
+                    help="Timeout for configuration protocols",
                     default=5)
 parser.add_argument("-c",
                     "--community",
-                    help="community string for snmp",
+                    help="Community string for snmp",
                     default=None)
 
 args = parser.parse_args()
@@ -125,11 +107,7 @@ args = parser.parse_args()
 #    parser.print_help()
 #    sys.exit(1)
 
-#print(args)
-
+#convert input data to dictionary
 data = vars(args)
-
-#conf = modules.logic.Orchestrate(data["device"],data["file"],data["setting"],data["log"],data["devPart"],data["configPart"])
+#call backend object
 conf = modules.logic.Orchestrate(data)
-#conf.buildConfiguration()
-#conf.doConfiguration()
