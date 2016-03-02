@@ -16,7 +16,7 @@ import time
 #exit codes:
 #   1: file formating error
 #   2: file/parameter missing error
-
+#   3: closed by user 
 
 def createDefName():
     defName = "log.txt"
@@ -155,45 +155,44 @@ class Orchestrate:
         self.doConfiguration()
 
     def setCredentials(self):
-        username = input("Type your username:"
-                         )  #username pro prihlaseni na zarizeni
-        password = getpass.getpass("Type your password:"
-                                   )  #password pro prihlaseni
+        username = input("Type your username:")             #username for authentication
+        password = getpass.getpass("Type your password:")   #password for authentication
+        #save gained data to protocol dictionary
         self.protocol["username"] = username
         self.protocol["password"] = password
 
     def buildConfiguration(self):
         try:
-            methods = self.config.parse("")  # parsovani konfiguraniho souboru
+            methods = self.config.parse("")  #parse configuration file
         except Exception as e:
-            print("vyjimka pri parsovani configu")
             print(e)
+            print("Error during parsing configuration file. Check the log file.")
             self.write2log(str(e))
             sys.exit(1)
-
-        #print("naparsoval jsem", methods)
-
+        #!!! hlidat aby byl spravny datovy typ 
+        #goes through all method and prepare it for paralel processing
         for method in methods:
+            #partial filtering
             if not self.partial in method and self.partial != None:
                 continue
             try:
-                hosts = self.device.parse(
-                    method[0])  # zjisti zarizeni, ktere se budou nastavovat
+                hosts = self.device.parse(method[0])  #parse device file with concrete groupname
             except Exception as e:
-                print("vyjimka pri parsovani devicu")
-                print(e)
+                print("Error during parsing device file. Check the log file.")
                 self.write2log(str(e))
                 sys.exit(1)
 
-        #    print("budu nastavovat", hosts)
-            for vendor in hosts:  # zjisti nazev zarizeni, ktery je potrebny pro dynamickou praci
+            #!!! hlidat aby byl spravny datovy typ, ocekava se dict {vendor: list(ip_addresy)}
+            #finds out the name of device module which is needed for dynamic import
+            print(hosts)
+            for vendor in hosts:
                 for host in hosts[vendor]:
-                    #pripraveni ip a method_type pro protokol
+                    #prepares necessary information for snmp prtocol
                     self.protocol["ip"] = host
                     self.protocol["method_type"] = "get"
-                    #manufactor = self.device.getManufactor(self.protocol,vendor)
+                    #returns name of manufactor module
+                    #!!!hlidani spravnyho datovyho typu
                     manufactor = self.getManufactor(vendor)
-                    #pokud snmp neziskal data tak se pokracuje dal
                     if manufactor == None:
                         print(
                             "Getting manufactor name of '{}' no success".format(
@@ -203,81 +202,75 @@ class Orchestrate:
                         if option == "Y":
                             continue
                         else:
-                            print("Closing netat configuration")
-                            sys.exit(1)
+                            print("Closing configuration...")
+                            self.write2log("Configuration closed by user.")
+                            sys.exit(3)
 
-                        #podarilo se ziskat vyrobce, uklada se do slovniku
-                    #print("vyrobce", vendor, " je", manufactor)
+                    #appends ip address of device to vendor name structure 
                     manufactor.append(host)
+                    #convert list data type to tuple due to hash ability
                     manufactor = tuple(manufactor)
+                    #append method to concrete devices, this structure is good for pararel processing
                     try:
-                        print("pridavam",method)
                         self.configuration[manufactor].append(method)
                     except:
-                        print("pridavam",method)
                         self.configuration[manufactor] = [method]
 
-                    #continue
 
     def getManufactor(self, vendor):
-        #import defaultni parsovaci tridy
+        #imports default parse class for specific vendor
         module = "device_modules.{}.{}".format(vendor, vendor)
         importObj = importlib.import_module(module)
+        #!!!osetrit existenci tridy
         obj = getattr(importObj, "Device")
         objInst = obj()
         manufactor = objInst.getDeviceName(self.protocol)
         return manufactor
 
     def connect2device(self, conn_method):
-        #pripoj se na zarizeni
+        #finds out the type of connection method
         conn = getattr(connect, conn_method)
         self.conn = conn(self.protocol)
-        #while True:
         try:
-            #conn.connect(dev[2],self.protocol)
             self.conn.connect()
-           # break
         except Exception as e:
-            #except AuthenticationException as e:
-            print(e)
-            print("Closing netat configuration due to connect")
+            #print(e)
+            print("Unable to connect to the network device. Check log.")
 
             self.write2log(
-                "Authentication failed. Username: {}, Password: {}".format(
-                    self.protocol["username"], self.protocol["password"]))
-            print("navrat")
+                "Authentication failed. Connection protocol '{}'".format(conn_method))
             return "Authentication failed.","Unknown",self.protocol["ip"]
-            #return "ok",dev[1],self.protocol["ip"]
-            #sys.exit(1)
 
-                #zmeni spojeni se zarizenim podle device modulu
-    def makeChange(self, conn_method_def, config_method_def, conn_method,
-                   config_method):
-        #pokud je nastaven hybrid nebo auto a jdu na manual
-        if (config_method_def == "hybrid" or
-                config_method_def == "auto") and config_method == "manual":
+    #zmeni spojeni se zarizenim podle device modulu
+   # def makeChange(self, conn_method_def, config_method_def, conn_method,
+    def makeChange(self,conn_method, config_method):
+        #default is hybrid or auto and manual is needed 
+        if (self.config_method_def == "hybrid" or
+                self.config_method_def == "auto") and config_method == "manual":
             self.conn.disconnect()
-        #pokud je nastaven manual a je hybrid nebo auto
+        #default is manual and hybrid or auto is needed
         elif (config_method == "hybrid" or
-              config_method == "auto") and config_method_def == "manual":
+              config_method == "auto") and self.config_method_def == "manual":
             r = self.conn.connect2device(conn_method)
+            #!!! nechybi tady try?
             if r:
-                return (1,r)
-        #pokud jdu z hybrid nebo auto na to samy
+                return (4,r)
+        #default is hybrid or auto and hybrid or auto is needed (different procol can be used)
         elif (config_method == "hybrid" or config_method == "auto") and (
-                config_method_def == "hybrid" or config_method_def == "auto"):
-            #kontrola jestli se nezmenil protokol a neni treba prepojit
-            if conn_method_def != conn_method:
+                self.config_method_def == "hybrid" or self.config_method_def == "auto"):
+            #check possible protocol change
+            if self.conn_method_def != conn_method:
                 self.conn.disconnect()
                 r = self.conn.connect2device(conn_method)
                 if r:
-                    return (1,r)
+                    return (4,r)
         else:
-            return (0,conn_method_def, config_method_def)
+            return (0,self.conn_method_def, self.config_method_def)
 
         return (0,conn_method,config_method)
 
     def printResult(self,result):
+        #!!!pouzit naky specialni direktiry proto
         print("*"*20)
         for res in result:
             print("*"*5)
@@ -291,43 +284,41 @@ class Orchestrate:
 
     def doConfiguration(self):
         #print("pocet procesu {}".format(self.globalSettings.settingsData["process_count"]))
-        number_of_devices = len(self.configuration)
-        self.devNumber = 0
-        cnt = 0
-        print("pocet zarizeni", number_of_devices)
+        number_of_devices = len(self.configuration) #number of devices ready to be configured
+        cnt = 0 #help variable for checking number of progress dots
+        print("Number of devices:", number_of_devices)
+        #in case of higher number of processes the devices, that processes are unnecessary
         if number_of_devices < int(self.process_count):
             self.process_count = number_of_devices
-        print("pocet procesu {}".format(self.process_count))
-
-        #pool = Pool(processes=int(self.process_count))
-        #results = [pool.apply_async(self.configureDevice,
-        #                            args=(dev, ))
-        #           for dev in self.configuration]
-       # 
-       # output = [p.get() for p in results]
-       # print(output)
+        print("Number of procceses: {}\n".format(self.process_count))
+        #preparing pararel configuration
         p = Pool()
         m = Manager()
-        #q = m.Queue()
+        #preparing input arguments
         args = [i for i in self.configuration]
+        #devices are independed so pool is random
         result = p.map_async(self.configureDevice, args)
+        #checking configuration progress
         while True:
             cnt += 1
-            #print(cnt)
             if result.ready():
                 break
             else:
-                #size = q.qsize()
                 dots = (cnt%4)
                 if dots == 0:
                     print("\033[1AConfiguring devices. Please wait   \033[0m")
                 
                 else:
                     print("\033[1AConfiguring devices. Please wait{}\033[0m".format("."*dots))
+                #speed of progress dots
                 time.sleep(0.3)
         output = result.get()
         self.printResult(output)
-
+        #result codes:
+            #1: Missing compulsory atributes 'method' and 'connection' in 'DefaultConnection' class
+            #2: Device module does not return any configuration data
+            #3: Configuration method is not valid, is not form set (auto, manual, hybrid)
+            #4: Connection problem
 
         #for dev in self.configuration:
         #    retCode = self.configureDevice(dev)
@@ -348,78 +339,89 @@ class Orchestrate:
 
     def write2log(self, message):
         try:
+            #opens log file and writes message
             with open(self.logFile, encoding="utf-8", mode="a") as log:
                 log.write(message)
                 log.write("\n")
 
         except Exception as e:
-            #print(e)
-            print("write2log error")#!!!mozna osetrit i kdyz se nepovede zapsat do logu
+            print("Error: unable to access to log file '{}'".format(self.logfile))
 
     def configureDevice(self, dev):
-        conn_method_def = None
-        config_method_def = None
-        conn_method = None
-        config_method = None
-        self.protocol["ip"] = dev[2] #!!uprava kvuli kontrolovani prubehu
+        self.conn_method_def = None      #default connection method
+        self.config_method_def = None    #default configuration method
+        conn_method = None          #local connection method
+        config_method = None        #local configuration method
+        self.protocol["ip"] = dev[2] #ip refresh #!!!uprava kvuli kontrolovani prubehu, zkontrolovat
 
-        #sestaveni modulu pro import
+################ IMPORTOVANI DEVICE MODULU A KONTROLA DEFAULTNICH DAT
+
+        #build device modul name for import
         module = "device_modules.{}.{}".format(dev[0], dev[1])
-        importObj = importlib.import_module(module)
+        importObj = importlib.import_module(module) #!!!nemusi se testovat tenhle import taky
+        #imports default class to get default configuratin device data
         try:
             obj = getattr(importObj, "DefaultConnection")
         except AttributeError as e:
-            print("Class 'DefaultConnection' in device module is compulsory")
-            print("Go to the next device")
+            print("Class 'DefaultConnection' in device module is compulsory.")
+            print("Go to the next device...")
+            self.write2log("Missing compulsory class 'DefaultConnection' in device module.")
             return 1
         objInst = obj()
         try:
-            conn_method_def = objInst.method
-            config_method_def = objInst.connection
+            self.conn_method_def = objInst.method
+            self.config_method_def = objInst.connection
         except AttributeError:
             print(
-                "Atributes 'method' and 'connection' in class DefaultConnection are compulsory")
+                "Atributes 'method' and 'connection' in class 'DefaultConnection' are compulsory")
             print("Go to to the next device")
+            self.write2log("Missing compulsory data 'method' and 'connection' in class 'DefaultConnection'")
             return 1
 
-        #pripoj se na zarizeni
-        if config_method_def == "auto" or config_method_def == "hybrid":
-            r = self.connect2device(conn_method_def)
+######################### PRIPOJENI K DEVICU PODLE ZVOLENE METODY
+
+        #connect to the device
+        if self.config_method_def == "auto" or self.config_method_def == "hybrid":
+            #!!!otestovat jak se to chova - v pripade ze nepujde modul
+            r = self.connect2device(self.conn_method_def)
             if r:
                 return r
 
-            #projdi vsechny metody pro dany zarizeni
+######################### KONFIGURACE 
+
+        #goes throught all method and configurates them
         for method in self.configuration[dev]:
-            #print(method)
+            #prints progress of configuration
             print(" "*36,"\033[1A\033[0K: Configuring {} at device {}".format(method[1],dev[1]))
-            #zavolani tridy
+
+###################### IMPORT TRIDY
+        #vlozit: importObj, method
+            #call method class
             try:
                 obj = getattr(importObj, method[1])
             except AttributeError as e:
-                print("Module 'device_module/{}/{}' has not class '{}'".format(
+                print("Error: Module 'device_module/{}/{}' has not class '{}'".format(
                     dev[0], dev[1], method[1]))
-                #option = input("Would you like to continue?[Y/n]")
-                #if option == "Y" or option == "y":
-                #    continue
-                #else:
-                print("Closing device connection.")
+                self.write2log("Module 'device_module/{}/{}' has not class '{}''".format(dev[0],dev[1],method[1]))
+                print("Closing device connection...")
                 self.conn.disconnect()
-                #sys.exit(1)
                 return 1
 
             objInst = obj()
 
-            #zjisteni protokolu spojeni tady uz to je nepovinny
+            #finds out local connect and configuration values, these values are unnecessary
             try:
                 conn_method = objInst.method
                 config_method = objInst.connection
             except AttributeError:
                 pass
-            #kontrola zmen parametru pro pripojeni
-            tmp = self.makeChange(conn_method_def, config_method_def,
-                                  conn_method, config_method)
+            #changes connection settings according to local conf. and connect values
+            #tmp = self.makeChange(self.conn_method_def, self.config_method_def,
+            #                      conn_method, config_method)
+            tmp = self.makeChange(conn_method,config_method)
             if tmp[0] != 0:
-                print("chyba v makeChange")
+                print("Error: Error during changing configuration method.")
+                self.write2log("Unable to change connection and configuration method. Error in makeChange method.")
                 return tmp[0]
 
             conn_method = tmp[1]
@@ -427,13 +429,15 @@ class Orchestrate:
 
             #pokud nebylo defaultni nastaveni upraveno, tak ho pouzij
             #!!!nejsem si jistej jestli se to pouziva
-            if conn_method == None:
-                conn_method = conn_method_def
-            if config_method == None:
-                config_method = config_method_def
+            #if conn_method == None:
+            #    conn_method = conn_method_def
+            #if config_method == None:
+            #    config_method = config_method_def
+
+######################### IMPORT JEDNOTLIVYCH METHOD A SUBMETHOD PRO AUTO
 
             if config_method == "auto":
-                #pokud se nastavuje submethod
+                #configurint submethod
                 if method[3]:
                     try:
                         inst = getattr(objInst, method[3])
@@ -441,13 +445,11 @@ class Orchestrate:
                         print(
                             "Object '{}' has no method '{}'. Check file 'device_modules/{}/{}'".format(
                                 method[1], method[3], dev[0], dev[1]))
-                        #option = input("Would you like to continue?[Y/n]")
-                        #if option == "Y" or option == "y":
-                        #    continue
-                        #else:
-                        print("Closing device connection.")
+                        self.write2log(
+                            "Object '{}' has no method '{}'. Check file 'device_modules/{}/{}'".format(
+                                method[1], method[3], dev[0], dev[1]))
+                        print("Closing device connection...")
                         self.conn.disconnect()
-                        #sys.exit(1)
                         return 1
 
                     try:
@@ -456,15 +458,13 @@ class Orchestrate:
                         arg = str(e).split()
                         print("Method '{}' has no argument {}".format(method[
                             3], arg[-1]))
-                        #option = input("Would you like to continue?[Y/n]")
-                        #if option == "Y" or option == "y":
-                        #    continue
-                        #else:
+                        self.write2log("Method '{}' has no argument {}".format(method[
+                            3], arg[-1]))
                         print("Closing device connection.")
                         self.conn.disconnect()
-                        #sys.exit(1)
                         return 1
-                #pouze method
+                #!!!podivat se jesli je jeste nejaka jina moznost nez method a submethod
+                #configuring method
                 else:
                     try:
                         inst = getattr(objInst, method[2].strip())
@@ -472,77 +472,82 @@ class Orchestrate:
                         print(
                             "Object '{}' has no method '{}'. Check file 'device_modules/{}/{}'".format(
                                 method[1], method[2], dev[0], dev[1]))
-                        #option = input("Would you like to continue?[Y/n]")
-                        #if option == "Y" or option == "y":
-                        #    continue
-                        #else:
+                        self.write2log("Object '{}' has no method '{}'. Check file 'device_modules/{}/{}'".format(
+                                method[1], method[2], dev[0], dev[1]))
                         print("Closing device connection.")
                         self.conn.disconnect()
-                        #sys.exit(1)
                         return 1
                     try:
                         deviceSet = inst(**method[-1])
                     except TypeError as e:
-                        #print(e) #!!! smazat
                         arg = str(e).split()
                         print("Method '{}' has no argument {}".format(method[
                             2], arg[-1]))
-                        #option = input("Would you like to continue?[Y/n]")
-                        #if option == "Y" or option == "y":
-                        #    continue
-                        #else:
+                        self.write2log("Method '{}' has no argument {}".format(method[
+                            2], arg[-1]))
                         print("Closing device connection.")
                         self.conn.disconnect()
-                        #sys.exit(1)
                         return 1
-
+                #checks if deviceSet (list of network device command) are empty
+                #these command are returned by device module
                 if deviceSet == None:
                     self.conn.disconnect()
                     return 2
                 try:
                     self.conn.doCommand(deviceSet)
                 except Exception as e:
-                    print(e)
+                    print("Error: Unable to do commands")
                     self.write2log(str(e))
-            #pokud je to manual nebo hybrid tak posilam navim self.protocol
+
+######################### IMPORT JEDNOTLIVYCH METHOD A SUBMETHOD PRO HYBRID NEBO MANUAL
+
+            #if config method is manual or hybrid, dictionary Protocol is sent to device module
             elif config_method == "manual" or config_method == "hybrid":
-                #pokud se nastavuje submethod
+                #configuring submethod
                 if method[3]:
                     try:
                         inst = getattr(objInst, method[3])
                     except Exception as e:
+                        #!!! ve finalni verzi logy takovydleho typu zestrucnit
                         print("Object '{}' has no method '{}'. Check file 'device_module/{}/{}'".format(method[1],method[3],dev[0],dev[1]))
+                        self.write2log("Object '{}' has no method '{}'. Check file 'device_module/{}/{}'".format(method[1],method[3],dev[0],dev[1]))
+                        #hybrid connection has established connection, so it must be disconnected
                         if config_method == "hybrid":
                             print("Closing device connection.")
                             self.conn.disconnect()
                         return 1
+                    #append protocol structure
                     method[-1]["protocol"] = self.protocol
                     try:
                         deviceSet = inst(**method[-1])
                     except TypeError as e:
                         arg = str(e).split()
                         print("Method '{}' has no argument {}".format(method[3],arg[-1]))
+                        self.write2log("Method '{}' has no argument {}".format(method[3],arg[-1]))
+                        #same reason like above
                         if config_method == "hybrid":
                             print("Closing device connection.")
                             self.conn.disconnect()
                         return 1
-                #pouze method
+                #configuring method
                 else: #!!! pocitam s tim ze je pouze method a submethod, osetrit aby se nemohlo stat nic jinyho
                     try:
                         inst = getattr(objInst, method[2].strip())
                     except Exception as e:
                         print("Object '{}' has no method '{}'. Check file 'device_module/{}/{}'".format(method[1],method[2],dev[0],dev[1]))
+                        self.write2log("Object '{}' has no method '{}'. Check file 'device_module/{}/{}'".format(method[1],method[2],dev[0],dev[1]))
                         if config_method == "hybrid":
                             print("Closing device connection.")
                             self.conn.disconnect()
                         return 1
-                        
+                    #almost same like above in submethod configuring 
                     method[-1]["protocol"] = self.protocol
                     try:
                         deviceSet = inst(**method[-1])
                     except Exception as e:
                         arg = str(e).split()
                         print("Method '{}' has no argument {}".format(method[2],arg[-1]))
+                        self.write2log("Method '{}' has no argument {}".format(method[2],arg[-1]))
                         if config_method == "hybrid":
                             print("Closing device connection.")
                             self.conn.disconnect()
@@ -551,23 +556,26 @@ class Orchestrate:
                 if config_method == "hybrid":
                     if deviceSet == None:
                         self.conn.disconnect()
+                        print("Closing device connection...")
                         return 2
                     try:
                         self.conn.doCommand(deviceSet)
                     except Exception as e:
-                        print(e)
+                        print("Error: Unable to do commands.")
                         self.write2log(str(e))
                         return 1
 
             else:
                 return 3
 
-            #resetuj nastaveni pro conn a config
+            #reset local connection and configuration settings
             conn_method = None
             config_method = None
+        #final disconnection and result return
         try:
+            #!!! bude to odpojeni fungovat i pro manualni moduly?
             self.conn.disconnect()
             return "ok",dev[1],self.protocol["ip"]
         except Exception as e:
-            print("nastala vyjimka")
+            print("Error: Problem during disconnecting.")
             return 1

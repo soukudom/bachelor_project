@@ -49,8 +49,5 @@
 - group: 
     - name: ssh
     - interface:
-        - int2,6,5:
-            vlan:
-                mode: access
-                access: 10
-                
+        - int6:
+            description: ahoj 

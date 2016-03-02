@@ -55,7 +55,7 @@
                 mode: trunk
         # pridat prepinac aby to nerozbalovalo tuty sekvenci //advanced
         - int(1,10,2):
-                shutdown: yes
+                    shutdown: yes
 
 
 - group:

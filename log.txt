@@ -202,3 +202,13 @@ Authentication failed. Username: root, Password: Maozhi10
 Authentication failed. Username: root, Password: adf
 Authentication failed. Username: root, Password: adf
 File 'hosts2.ymlx' does not exist
+string indices must be integers
+list indices must be integers, not str
+string indices must be integers
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Username: root, Password: Maozhi10
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
