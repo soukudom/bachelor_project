@@ -49,5 +49,6 @@
 - group: 
     - name: ssh
     - interface:
-        - int6:
-            description: ahoj 
+        - int:
+            id: 12,13,14,15
+            description: nazdar 

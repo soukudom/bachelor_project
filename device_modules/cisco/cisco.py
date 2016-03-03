@@ -18,7 +18,6 @@ class Device:
         try:
             manufactor = obj.doCommand(value)
         except Exception as e:
-            print("vyjimka")
             print(e)
             return None
 

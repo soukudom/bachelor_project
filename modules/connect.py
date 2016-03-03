@@ -61,6 +61,7 @@ class SSH(Protocol):
 
     def disconnect(self):
         self.conn_pre.close()
+        return None
 
     def doCommand(self, commands):
         #bude umet cist sekvenci prikazu
@@ -244,7 +245,8 @@ class NETCONF(Protocol):
         self.ch.close()
         self.trans.close()
         self.socket.close()
-        return data
+        #return data
+        return None
 
 
 class SNMP(Protocol):
@@ -307,4 +309,4 @@ class SNMP(Protocol):
             self.method_type = tmp
 
     def disconnect(self):
-        pass
+        return None

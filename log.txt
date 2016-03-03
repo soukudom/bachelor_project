@@ -212,3 +212,87 @@ Authentication failed. Username: root, Password: Maozhi10
 Authentication failed. Connection protocol 'SSH'
 Authentication failed. Connection protocol 'SSH'
 Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+
+Authentication failed. Connection protocol 'SSH'
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+jdu importovat
+importovano 
+jdu importovat
+importovano 
+jdu importovat
+importovano <class 'device_modules.cisco.ciscoC2950.interface'>
+jdu importovat
+importovano <class 'device_modules.cisco.ciscoC2950.interface'>
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+#########################
+jdu importovat
+importovano <class 'device_modules.cisco.ciscoC2950.interface'>
+jdu importovat
+importovano <class 'device_modules.cisco.ciscoC2950.interface'>
+jdu importovat
+importovano <class 'device_modules.cisco.ciscoC2950.interface'>, SSH
+jdu importovat
+importovano <class 'device_modules.cisco.ciscoC2950.interface'>, SSH
+jdu importovat
+importovano <class 'device_modules.cisco.ciscoC2950.interface'>, SSH
+jdu importovat
+importovano <class 'device_modules.cisco.ciscoC2950.interface'>, SSH
+jdu importovat
+importovano <class 'device_modules.cisco.ciscoC2950.interface'>, SSH
+jdu importovat
+importovano <class 'device_modules.cisco.ciscoC2950.interface'>, SSH
+look for methods
+makeChange
+metdhos SSH, auto
+jdu importovat
+importovano <class 'device_modules.cisco.ciscoC2950.interface'>, SSH
+look for methods
+makeChange
+metdhos SSH, auto
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Module 'device_module/cisco/ciscoC2950' has not class '''
+Module 'device_module/cisco/ciscoC2950' has not class '''
+Module 'device_module/cisco/ciscoC2950' has not class '''
+Module 'device_module/cisco/ciscoC2950' has not class '''
+Object 'interface' has no method ''. Check file 'device_modules/cisco/ciscoC2950'
+Object 'interface' has no method ''. Check file 'device_modules/cisco/ciscoC2950'
+Authentication failed. Connection protocol 'SSH'
+Object 'interface' has no method '['n', 'e', 'c', 'o']'. Check file 'device_modules/cisco/ciscoC2950'
+Object 'interface' has no method '['n', 'e', 'c', 'o']'. Check file 'device_modules/cisco/ciscoC2950'
+Method 'int' has no argument list
+Method 'int' has no argument list
+Method 'int' has no argument str
+Method 'int' has no argument str
+Return type must be in format {vendor: list(ip_addresses)}
+Return type must be in format {vendor: list(ip_addresses)}
+Name of manufactor module 'deviice_modules.cisco.cisco' does not exist.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Name of manufactor module 'deviice_modules.cisco.cisco' does not exist.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Class 'Device' in 'cisco' module does not exist
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Method 'getDeviceName' does not exist in 'cisco' device module
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Object 'interface' has no method 'int'. Check file 'device_modules/cisco/ciscoC2950'
+Object 'interface' has no method 'int'. Check file 'device_modules/cisco/ciscoC2950'
+Object 'interface' has no method 'inat'. Check file 'device_modules/cisco/ciscoC2950'
+Object 'interface' has no method 'inat'. Check file 'device_modules/cisco/ciscoC2950'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
