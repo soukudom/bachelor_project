@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+#Author: Dominik Soukup, soukudom@fit.cvut.cz
+
 import yaml
 import getpass
 import sys
@@ -12,30 +14,19 @@ from abc import ABCMeta, abstractmethod
 
 class ParseFile(metaclass=ABCMeta):
     def __init__(self, filename):
-        #kontrola souboru, pokud jsou nacitany pomoci konfiguracniho souboru
+        #file checking if filename was loaded from settings file
         try:
-            #print("init testing")
             with open(filename, encoding="utf-8", mode="r"):
                 pass
         except PermissionError:
-            #print(
-            #    "File '{}' can not be opened. Not enough permissions.".format(
-            #        filename))
             raise Exception("File '{}' can not be opened. Not enough permissions.".format(
                     filename))
-            #sys.exit(1)
         except FileNotFoundError:
-            #print("File '{}' does not exist".format(filename))
             raise Exception("File '{}' does not exist".format(filename))
-            #sys.exit(1)
         except IsADirectoryError:
-            #print("File '{}' is a directory.".format(filename))
             raise Exception("File '{}' is a directory.".format(filename))
-            #sys.exit(1)
         except TypeError as e:
-            #print("Invalid file '{}'".format(filename))
             raise Exception("Invalid file '{}'".format(filename))
-            #sys.exit(1)
 
     @abstractmethod
     def parse(self, filter):
@@ -44,89 +35,90 @@ class ParseFile(metaclass=ABCMeta):
 
 class ParseDevice(ParseFile):
     def __init__(self, filename):
+        #calling parents constructor
         super().__init__(filename)
-        docu = ""
-        self.data = ""  # nactena data z configu
-        self.hosts = []  #  nalezena zarizeni
+        docu = ""       #parsed YAML file to Python structure
+        self.data = ""  #loaded data from device file
+        ########self.hosts = []  #discovered devices
+        #loads YAML data
         try:
             with open(filename, encoding="utf-8", mode="r") as f:
                 for i in f:
                     docu += i
             self.data = yaml.load(docu)
         except yaml.YAMLError as e:
-            print("Mistake in YAML syntax in '{}'".format(filename))
+            print("Error: Mistake in YAML syntax in '{}'".format(filename))
             print("For more infomation check log file")
             raise Exception(str(e))
-            #sys.exit(1)
 
-            #kontroluje spravnost ip address a rozbaluje zkratky
+    #checkes ip address format and unpack abbreviations
     def checkHost(self, hosts):
-        configHost = {
-        }  # vysledny slovnik s konkretnimy hosty, klicem prislusny vendor
-        #prochazim vybranou skupinu hostu
+        configHost = {}  #result dictionary with concrete hosts and vendor(vendor is key)
+        #go throught hosts
         for host in hosts:
-            #oddeleni nazvu vyrobce
+            #split vendor name
             host = host.split(":")
-            #kontrola tvaru ip adresy
+            #checks ip address form
             if re.match("^([1-9][0-9]{0,2}\.){3}[1-9][0-9]{0,2}$", host[0]):
+                #address is ok append to the ip pool
                 if len(host) == 2:
                     try:
                         if host[0] in configHost[host[1]]:
-                            print("duplicit ip address")
+                            print("Error: Duplicit ip address")
                             #sys.exit(1)
                             raise Exception("Duplicit ip address.")
                         configHost[host[1]].append(host[0])
+                    #if the record is new
                     except KeyError:
                         configHost[host[1]] = []
                         configHost[host[1]].append(host[0])
-
+                #manufactor was not inserted
                 else:
-                    print("The manufactor was not specified")
-                    #sys.exit(1)
-                    raise("The manufactor was not specified")
+                    print("Error: The manufactor was not specified in device file")
+                    raise("The manufactor was not specified in device file")
 
-            # pokud neproslo jedna se o nejakou sekvenci
+            #unpack some abbreviations
             else:
-                res = []  # vysledny seznam ip adres
-                tmp = ""  #pomocny retezev pro normalni casti ip adresy
-                # rozdeleni podle oktetu
+                res = []  #result ip address pool
+                tmp = ""  #help string for normat ip address part 
+                #split accordint to octet
                 parts = host[0].split(".")
-                #kontrola tvaru ip adresy
+                #check the form of ip address
                 if len(parts) != 4:
-                    print("invalid ip address, too less items")
-                    #exit(1)
+                    print("Error: Invalid ip address, too less items")
                     raise Exception("Invalid ip address, too less items.")
-                #kontrola jednotlivych oktetu ip adresy
+                #checking individual octets
                 for part in parts:
-                    #pokud jsem nalezl range
+                    #if range was found
                     if re.match(
                             "^\(\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?\)$",
                             str(part)):
-                        #odstranim zavorky a rozdelim po cislech
+                        #remove bracket and splits according to numbers
                         part = part.strip(")(").split(",")
-                        #jestli ve vysledne seznamu adresy jsou, tak je rozmnozim
+                        #if there are some ip already, add new octet to all
                         if res:
-                            # pomocne pole na uchovani novych adres
+                            #help list variable for genereting ip addresses
                             res2 = []
                             for ip in res:
                                 for i in range(
                                         int(part[0]), int(part[1]),
                                         int(part[2])):
                                     res2.append(ip + "." + str(i))
-                            #nahrada starych adres za nove
+                            #replace temp variable to original
                             res = res2
-                        #pokam mam jenom normalni adresu tak pridam rovnou do vysledneho seznamu
+                        #if there is only normal part of ip address, only add to result pool
                         elif tmp:
                             for i in range(
                                     int(part[0]), int(part[1]), int(part[2])):
                                 res.append(tmp + "." + str(i))
-                        #!!pridat vetev kdy jeste nemam ani tmp
+                        else:
+                        #!!!opravit kdy jeste nemam ani tmp
+                            print("mezni pripad2")
 
-                        #pokud jsem nasel sekvenci
-                        #podobny proces jako u range
+                    #sequece part
+                    #similar process to range abbreviation
                     elif "," in str(part):
                         part = part.split(",")
-
                         if res:
                             res2 = []
                             for ip in res:
@@ -134,8 +126,7 @@ class ParseDevice(ParseFile):
                                     try:
                                         int(i)
                                     except ValueError:
-                                        print("bad value in sekvence")
-                                        #exit(1)
+                                        print("Error: Bad value in sekvence")
                                         raise Exception("Bad value in sequece.")
                                     res2.append(ip + "." + str(i))
                             res = res2
@@ -144,17 +135,20 @@ class ParseDevice(ParseFile):
                                 try:
                                     int(i)
                                 except ValueError:
-                                    print("bad value in sekvence")
+                                    print("Error: Bad value in sekvence")
                                     #exit(1)
                                     raise Exception("Bad value in sequence.")
                                 res.append(tmp + "." + str(i))
-                    #pridani oktetu do pomocneho tmp
+                        #!!!opravit kdyz budu mit dva rozsahy adres
+                        else:
+                            print("mezni pripad")
+                    #normal octed, only added to tmp variable
                     elif type(part) == type(str()):
                         if tmp:
                             tmp = tmp + "." + part
                         else:
                             tmp = part
-
+                #append range to the ip pool
                 if len(host) == 2:
                     for ip in res:
                         try:
@@ -166,10 +160,9 @@ class ParseDevice(ParseFile):
                         except KeyError:
                             configHost[host[1]] = []
                             configHost[host[1]].append(ip)
-                #pokud nebyl zadan vyrobce
+                #manufactor was not inserted
                 else:
                     print("The manufactor was not specified")
-                    #sys.exit(1)
                     raise Exception("The manufactor was not specified.")
 
         return configHost

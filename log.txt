@@ -296,3 +296,49 @@ Object 'interface' has no method 'inat'. Check file 'device_modules/cisco/ciscoC
 Object 'interface' has no method 'inat'. Check file 'device_modules/cisco/ciscoC2950'
 Authentication failed. Connection protocol 'SSH'
 Authentication failed. Connection protocol 'SSH'
+'NoneType' object has no attribute 'send'
+'NoneType' object has no attribute 'send'
+'NoneType' object has no attribute 'send'
+'NoneType' object has no attribute 'send'
+'NoneType' object has no attribute 'send'
+'NoneType' object has no attribute 'send'
+'NoneType' object has no attribute 'send'
+'NoneType' object has no attribute 'send'
+Class 'Device' in 'cisco' module does not exist
+Bad format of manufactor name structure: 'None'
+Class 'Device' in 'cisco' module does not exist
+Bad format of manufactor name structure: 'None'
+Class 'Device' in 'cisco' module does not exist
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Missing compulsory class 'DefaultConnection' in device module.
+Missing compulsory class 'DefaultConnection' in device module.
+Module 'device_module/cisco/ciscoC2950' has not class 'interface''
+Module 'device_module/cisco/ciscoC2950' has not class 'interface''
+Missing compulsory class 'DefaultConnection' in device module.
+Missing compulsory class 'DefaultConnection' in device module.
+Missing compulsory class 'DefaultConnection' in device module.
+Missing compulsory class 'DefaultConnection' in device module.
+Missing compulsory class 'DefaultConnection' in device module.
+Missing compulsory class 'DefaultConnection' in device module.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+name 'writeIpAddress' is not defined
+name 'writeIpAddress' is not defined
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Bad format of manufactor name structure: 'None'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad value in sequence.

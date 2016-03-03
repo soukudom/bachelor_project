@@ -4,6 +4,7 @@
 #Autor: Dominik Soukup, soukudom@fit.cvut.cz
 #!!!pohrat si z chybovymi vypisy
 #!!!otestovat ty konfiguracni metody (auto,hybrid,manual)
+#!!!upravit vypisovy hlasky aby byly konkretnejsi
 import getpass
 import sys
 import os
@@ -124,7 +125,6 @@ class Orchestrate:
                     "community_string"]
             except KeyError as e:
                 print("Error: Community string has not been inserted.")
-                #self.write2log("Community string has not been inserted.")
                 sys.exit(2)
         else:
             self.protocol["community"] = arguments["community"]
@@ -198,7 +198,6 @@ class Orchestrate:
                 sys.exit(1)
                 
             #finds out the name of device module which is needed for dynamic import
-            print(hosts)
             for vendor in hosts:
                 #basic datatype check
                 if type(hosts[vendor]) != type(list()):
@@ -288,9 +287,9 @@ class Orchestrate:
                 "Authentication failed. Connection protocol '{}'".format(conn_method))
             return "Authentication failed.","Unknown",self.protocol["ip"]
 
-    #zmeni spojeni se zarizenim podle device modulu
-   # def makeChange(self, conn_method_def, config_method_def, conn_method,
+    #changes connection method according to device module value
     def makeChange(self,conn_method, config_method):
+        #!!!hlidat si disconnect jestli se odpojilo spravne
         #default is hybrid or auto and manual is needed 
         if (self.config_method_def == "hybrid" or
                 self.config_method_def == "auto") and config_method == "manual":
@@ -321,7 +320,6 @@ class Orchestrate:
 
 
         return (0,conn_method,config_method)
-    #!!!pohlidat si co muze vstupovat do resultu
     def printResult(self,result):
         #!!!pouzit naky specialni direktiry proto
         print("*"*20)
@@ -336,7 +334,6 @@ class Orchestrate:
         
 
     def doConfiguration(self):
-        #print("pocet procesu {}".format(self.globalSettings.settingsData["process_count"]))
         number_of_devices = len(self.configuration) #number of devices ready to be configured
         cnt = 0 #help variable for checking number of progress dots
         print("Number of devices:", number_of_devices)
@@ -394,14 +391,13 @@ class Orchestrate:
         #gets and checks default connection and configuration data
         importObj = self.importDefault(dev)
         #error occured
-        if type(importObj) == type(int):
-            if ret == 1:
+        if type(importObj) == type(int()):
+            if importObj == 1:
                 return "Missing compulsory values.",dev[1],self.protocol["ip"]
             #return importObj
 
         #connect to the device according to the method
         if self.config_method_def == "auto" or self.config_method_def == "hybrid":
-            #!!!otestovat jak se to chova - v pripade ze nepujde modul
             r = self.connect2device(self.conn_method_def)
             if r:
                 return r
@@ -410,12 +406,12 @@ class Orchestrate:
         for method in self.configuration[dev]:
             #prints progress of configuration
             print(" "*36,"\033[1A\033[0K: Configuring {} at device {}".format(method[1],dev[1]))
-#here zmena
             #class import
             objInst = self.classImport(importObj,method,dev)
             #error occured
             if type(objInst) == type(int()):
-                return objInst
+                #return objInst
+                return "Missing compulsory values.",dev[1],self.protocol["ip"]
     
             #finds out local connect and configuration values, these values are unnecessary
             try:
@@ -428,17 +424,10 @@ class Orchestrate:
             if tmp[0] != 0:
                 print("Error: Error during changing configuration method.")
                 self.write2log("Unable to change connection and configuration method. Error in makeChange method.")
-                return tmp[0]
+                return tmp[1]
 
             conn_method = tmp[1]
             config_method = tmp[2]
-
-            #pokud nebylo defaultni nastaveni upraveno, tak ho pouzij
-            #!!!nejsem si jistej jestli se to pouziva
-            #if conn_method == None:
-            #    conn_method = conn_method_def
-            #if config_method == None:
-            #    config_method = config_method_def
 
         #imports method or submethod for auto configuration module
         #auto is automatic configuration without Protocol structure
@@ -456,8 +445,10 @@ class Orchestrate:
             elif config_method == "manual" or config_method == "hybrid":
                 ret = self.importWithProtocol(objInst,method,dev)
                 #error occured
-                if ret:
-                    return ret
+                if ret == 1:
+                    return "Missing compulsory values.",dev[1],self.protocol["ip"]
+                elif ret == 2:
+                    return "Device module does not return any configuration data.",dev[1],protocol["ip"] 
             else:
                 #return 3
                 return "Configuration method is not valid.",dev[1], self.protocol["ip"]
@@ -469,7 +460,7 @@ class Orchestrate:
         try:
             #!!! bude to odpojeni fungovat i pro manualni moduly?
             self.conn.disconnect()
-            return "ok",dev[1],self.protocol["ip"]
+            return "OK",dev[1],self.protocol["ip"]
         except Exception as e:
             print("Error: Problem during disconnecting.")
             return 1
@@ -518,7 +509,6 @@ class Orchestrate:
                 print("Closing device connection.")
                 self.conn.disconnect()
                 return 1
-        #!!!podivat se jesli je jeste nejaka jina moznost nez method a submethod
         #configuring method
         else:
             try:
@@ -563,7 +553,6 @@ class Orchestrate:
             try:
                 inst = getattr(objInst, method[3])
             except Exception as e:
-                #!!! ve finalni verzi logy takovydleho typu zestrucnit
                 print("Object '{}' has no method '{}'. Check file 'device_module/{}/{}'".format(method[1],method[3],dev[0],dev[1]))
                 self.write2log("Object '{}' has no method '{}'. Check file 'device_module/{}/{}'".format(method[1],method[3],dev[0],dev[1]))
                 #hybrid connection has established connection, so it must be disconnected
