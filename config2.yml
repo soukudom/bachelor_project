@@ -47,8 +47,8 @@
 
 ---
 - group: 
-    - name: ssl:ssh 
+    - name: ssl :ssh 
     - interface:
         - int:
-            id: 10,11,12
-            description: hello 
+            id: 5 ,  6 , 7
+            description: ahoj 

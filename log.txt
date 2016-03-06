@@ -421,3 +421,29 @@ Authentication failed. Connection protocol 'SSH'
 Authentication failed. Connection protocol 'SSH'
 Authentication failed. Connection protocol 'SSH'
 Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+mapping values are not allowed here
+  in "<unicode string>", line 50, column 21:
+        - name:     ssl : ssh 
+                        ^
+mapping values are not allowed here
+  in "<unicode string>", line 50, column 17:
+        - name: ssl : ssh 
+                    ^
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+'int15, 16 ,17'
+'int15, 16 ,17'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'

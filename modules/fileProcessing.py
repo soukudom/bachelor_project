@@ -57,6 +57,9 @@ class ParseDevice(ParseFile):
         for host in hosts:
             #split vendor name
             host = host.split(":")
+            #delete whitespaces
+            host[0] = host[0].strip()
+            host[1] = host[1].strip()
             #checks ip address form
             if re.match("^([1-9][0-9]{0,2}\.){3}[1-9][0-9]{0,2}$", host[0]):
                 #address is ok append to the ip pool
@@ -182,6 +185,8 @@ class ParseDevice(ParseFile):
                 info = self.data
                 keys = group.split(":")
                 for i in keys:
+                    #delete whitespaces
+                    i = i.strip()
                     #if key is number the type int is needed to filtering
                     try:
                         i = int(i)
@@ -269,6 +274,7 @@ class ParseConfig(ParseFile):
                 tmp = re.search(
                     "\(\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?\)\s*?$",
                     name)
+                #if it is range
                 if tmp is not None:
                     index = tmp.group(0)
                     buffer = index.strip("()").split(",")
@@ -276,6 +282,7 @@ class ParseConfig(ParseFile):
                             int(buffer[0]), int(buffer[1]), int(buffer[2])):
                         ret.append(i)
                     return ret, name.split("(")[0], index #idNum, name, index
+                #if it is sequence
                 else:
                     tmp = re.search(
                         #!!! umi detekovat jen 3, dodelat to co to vraci
@@ -284,12 +291,11 @@ class ParseConfig(ParseFile):
                     if tmp is not None:
                         index = tmp.group(2)
                         ret = index.split(",")
-                        # print("sekvence",tmp.group(1),tmp.group(2))
                         return ret, tmp.group(1), index #idNum, name, index
                 break
         #if nothing is satisfactory false is returned
         if not buffer:
-            return False, None, "" #idNu, name, index
+            return False, None, "" #idNum, name, index
         #return founded number at the end of the function name
         else:
             tmp = "".join(buffer)
@@ -326,11 +332,14 @@ class ParseConfig(ParseFile):
             #        ret.append(''.join(i))
             #    return ret  #, True
 
-            #pokud se jedna pouze o sekvenci, tak vraci seznam
-            #!!pohlidat jestli je to spravnej tvar
             #sequence abbreviation 
             elif "," in str(value):
-                return value.split(",")  #, False
+                ret = value.split(",")
+                #delete whitespaces
+                for no,item in enumerate(ret):
+                    ret[no] = item.strip()
+                return ret  #, False
+                
 
             #if nothing in satisfactory, original is returned
             else:
@@ -346,9 +355,7 @@ class ParseConfig(ParseFile):
         subMethod = subMethod  # flag, which tells if the submethod name space is left
         idNumb = "" #variable which contains interface number - there is used for submethod
         delete = []  # values which are neccessary to delete
-        print(data)
         for i in data:
-            print("data is loop:",i)
             try:
                 # branch which parses list of tree
                 if type(i) == type(str()):
@@ -372,7 +379,7 @@ class ParseConfig(ParseFile):
                 elif list(i.keys())[0] == "group":
                     #if groupname is empty only add, in the other case add with :
                     if self.groupName == "":
-                        self.groupName = str(i["group"][0]["name"])
+                        self.groupName = str(i["group"][0]["name"]).strip()
                     else:
                         self.groupName += ":" + str(i["group"][0]["name"])
                     #save groupNumber, name and delete unnecessary group name
@@ -383,15 +390,15 @@ class ParseConfig(ParseFile):
                 # branch for parsing class and method name
                 else:
                     if self.className == "":
-                        self.className = list(i.keys())[0]
+                        self.className = list(i.keys())[0].strip()
                         self.rekurze(i[self.className], False, True, False,
                                      False, groupNumber, None)
 
                     elif self.methodName == "":
-                        self.methodName = list(i.keys())[0]
+                        self.methodName = list(i.keys())[0].strip()
                         idNum, name, index = self.checkId(self.methodName)
                         if idNum:
-                            self.methodName = name
+                            self.methodName = name.strip()
                             self.rekurze(i[self.methodName + index], False,
                                          False, True, False, groupNumber,
                                          idNum)
@@ -435,8 +442,8 @@ class ParseConfig(ParseFile):
         elif subMethod:
             data2 = deepcopy(data)
             data2["id"] = idNum  #idNum added here, because I wanto to have all data together in data variable
-            ret = [self.groupName, self.className, self.methodName,
-                   self.subMethodName, data2]
+            ret = [self.groupName.strip(), self.className.strip(), self.methodName.strip(),
+                   self.subMethodName.strip(), data2]
             self.methods.append(ret)
             data.clear()
 

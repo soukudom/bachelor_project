@@ -179,7 +179,7 @@ class Orchestrate:
 
         #goes through all method and prepare it for paralel processing
         for method in methods:
-            print(method)
+            print(method) #!!! print
             #partial filtering
             if not self.partial in method and self.partial != None:
                 continue
