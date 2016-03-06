@@ -342,3 +342,82 @@ Bad format of manufactor name structure: 'None'
 Bad format of manufactor name structure: 'None'
 Configuration closed by user.
 Bad value in sequence.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Bad format of manufactor name structure: 'None'
+local variable 'ip' referenced before assignment
+local variable 'ip' referenced before assignment
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Wrong key in device file
+###############################
+Wrong key in device file
+Wrong key in device file
+Wrong key in device file
+Wrong key in device file
+'name'
+Wrong key in device file
+Authentication failed. Connection protocol 'NETCONF'
+Authentication failed. Connection protocol 'SSH'
+Wrong key in device file
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+'dict_values' object does not support indexing
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Wrong key in device file.
+Wrong key in device file.
+'int10,11,12'
+Wrong key in device file.
+Wrong key in device file.
+Wrong key in device file.
+Wrong key in device file.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'

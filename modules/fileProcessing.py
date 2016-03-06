@@ -37,9 +37,8 @@ class ParseDevice(ParseFile):
     def __init__(self, filename):
         #calling parents constructor
         super().__init__(filename)
-        docu = ""       #parsed YAML file to Python structure
-        self.data = ""  #loaded data from device file
-        ########self.hosts = []  #discovered devices
+        docu = ""       #loaded data from device file
+        self.data = ""  #parsed YAML file to Python structure
         #loads YAML data
         try:
             with open(filename, encoding="utf-8", mode="r") as f:
@@ -65,7 +64,6 @@ class ParseDevice(ParseFile):
                     try:
                         if host[0] in configHost[host[1]]:
                             print("Error: Duplicit ip address")
-                            #sys.exit(1)
                             raise Exception("Duplicit ip address.")
                         configHost[host[1]].append(host[0])
                     #if the record is new
@@ -112,8 +110,8 @@ class ParseDevice(ParseFile):
                                     int(part[0]), int(part[1]), int(part[2])):
                                 res.append(tmp + "." + str(i))
                         else:
-                        #!!!opravit kdy jeste nemam ani tmp
-                            print("mezni pripad2")
+                            for i in range(int(part[0]),int(part[1]),int(part[2])):
+                                res.append(str(i))
 
                     #sequece part
                     #similar process to range abbreviation
@@ -136,15 +134,22 @@ class ParseDevice(ParseFile):
                                     int(i)
                                 except ValueError:
                                     print("Error: Bad value in sekvence")
-                                    #exit(1)
                                     raise Exception("Bad value in sequence.")
                                 res.append(tmp + "." + str(i))
-                        #!!!opravit kdyz budu mit dva rozsahy adres
                         else:
-                            print("mezni pripad")
+                            for i in part:
+                                res.append(str(i))
+
                     #normal octed, only added to tmp variable
                     elif type(part) == type(str()):
-                        if tmp:
+                        if res:
+                            #help list variable for genereting ip addresses
+                            res2 = []
+                            for ip in res:
+                                res2.append(ip + "." + part)
+                            #replace temp variable to original
+                            res = res2
+                        elif tmp:
                             tmp = tmp + "." + part
                         else:
                             tmp = part
@@ -153,8 +158,7 @@ class ParseDevice(ParseFile):
                     for ip in res:
                         try:
                             if ip in configHost[host[1]]:
-                                print("duplicit ip address")
-                                #sys.exit(1)
+                                print("Error: Duplicit ip address")
                                 raise Exception("Duplicit ip address.")
                             configHost[host[1]].append(ip)
                         except KeyError:
@@ -162,79 +166,72 @@ class ParseDevice(ParseFile):
                             configHost[host[1]].append(ip)
                 #manufactor was not inserted
                 else:
-                    print("The manufactor was not specified")
+                    print("Error: The manufactor was not specified")
                     raise Exception("The manufactor was not specified.")
-
+        print(configHost)
         return configHost
 
-    # vraci seznam zadanych zarizeni podle skupiny
+    #returns list of device according to the group
     def parse(self, group):
-        hosts = []
+        hosts = [] # list with host which was found
         try:
-            if group == "":  #nahrada "all":
-                info = self.data
+            if group == "":  #no filter was specified, all host will be returned:
+                info = self.data #loaded YAML data
+            #parses group hierarchy
             elif ":" in group:
                 info = self.data
                 keys = group.split(":")
                 for i in keys:
+                    #if key is number the type int is needed to filtering
                     try:
                         i = int(i)
                     except ValueError:
                         pass
 
                     info = info[i]
+            #normal single key filter
             else:
                 info = self.data[group]
-        except KeyError:
+        except KeyError as e:
             print("Wrong key")
-            #exit(1)
-            raise Exception("Wrong key in device file")
+            raise Exception("Wrong key in device file.")
         except TypeError:
             print("Bad device file format.")
-            #exit(1)
             raise Exception("Bad device file format.")
 
         try:
+            #recursive parsing
             while (type(list(info.values())[0])) == type(dict()):
+                #in case of group hierarchy
                 info = self.loop(info)
 
         except AttributeError:
+            #in case of simple group name
             if type(info[0]) == type(str()):
+                print("attribute error return", info)
                 return self.checkHost(info)
             else:
                 print("Bad device file format.")
-                #exit(1)
                 raise Exception("Bad device file format.")
         for szn in list(info.values()):
+            #in case of more ip addresse in group
             for sz in szn:
                 hosts.append(sz)
         return self.checkHost(hosts)
 
-    # rekurzivni pruchod
+    #recursive loop in case of hierarchy group
     def loop(self, info):
         it = info.values().__iter__()
         pom = it.__next__()
-        #print("metoda loop vraci ", pom)
         return pom
-
-    #def getManufactor(self,protocol,vendor):
-    #    #naimportuju defaultni parsovaci tridu a zavolam metodu
-    #    module = "device_modules.{}.{}".format(vendor,vendor)
-    #    importObj = importlib.import_module(module)
-    #    obj = getattr(importObj,"Device")
-    #    objInst = obj()
-    #    #manufactor = objInst.getDeviceName(ip_address,community,"get")
-    #    #print("ptam se na vendora: ",protocol)
-    #    manufactor = objInst.getDeviceName(protocol)
-    #    return manufactor
 
 
 class ParseConfig(ParseFile):
-    #nacte konfiguracni soubor, a provede kontrolu formatu yaml
+    #loads config file and does YAML format check
     def __init__(self, filename):
         super().__init__(filename)
-        docu = ""
-        self.data = ""
+        docu = ""       #temp varible which stores YAML file
+        self.data = ""  #parsed YAML file to Python structure  
         try:
             with open(filename, encoding="utf-8", mode="r") as f:
                 for i in f:
@@ -243,35 +240,31 @@ class ParseConfig(ParseFile):
         except Exception as e:
             print("Mistake in YAML syntax in '{}'".format(filename))
             print("For more infomation check log file")
-            #sys.exit(1)
             raise Exception(e)
-            #print(e) #!! pridat log file
 
-            #parsuje jednotlive casti kofiguracniho souboru, kontroluje syntaxy
+    #parses single parts of config file and checks syntax
     def parse(self, filter):
-        #print("metoda parse v config parseru")
-        self.groupName = ""  # nazev skupiny, ve ktere se aktualne nachazim
-        self.className = ""  # nazev tridy, kde se aktualne nachazim
-        self.methodName = ""  # nazev metody, kde se aktualne nachazim
-        self.subMethodName = ""  # nazev submetody, kde se aktualne nachazim
-        self.methods = []  # metody pro nastaveni
+        self.groupName = ""     # name of actual groupname in which I am during parsing
+        self.className = ""     # name of actual classname is which I am during parsing
+        self.methodName = ""    # name of actual methodname in which I am during parsing
+        self.subMethodName = "" # name of actual submethodname in which I am during parsing
+        self.methods = []       # final method which will be set up
 
-        # funkce ktere rekurzivne prochazi konfiguracni soubor
+        #recursive parse function
         self.rekurze(self.data, False, False, False, False, 0, None)
-        #print("metody",self.methods)
         return self.methods
 
-    #kotroluje a rozbaluje id hodnotu u jmena metody, cislo je tady aby se odlisilo vice metod najednou
+    #checkes and upackes id value
     def checkId(self, name):
-        ret = []  # vystupni seznam prvku
-        buffer = []  # vystupni seznam prvku
+        ret = []    #temp variable
+        buffer = [] #temp variable
 
-        # nejprve kontrola cisla na konci nazvu metody
+        #lookes for id at the end of name 
         for i in reversed(name):
             try:
                 int(i)
                 buffer.insert(0, i)
-            # pokud se nejedna o cislo, testuje se pritomnost range
+            #if it is not simple number, tests abbreviation
             except Exception as e:
                 tmp = re.search(
                     "\(\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?\)\s*?$",
@@ -282,86 +275,86 @@ class ParseConfig(ParseFile):
                     for i in range(
                             int(buffer[0]), int(buffer[1]), int(buffer[2])):
                         ret.append(i)
-                    # nasla se range a vraci se seznam
-                    #print("vracim:", ret, name.split("(")[0], index)
-                    return ret, name.split("(")[0], index
-                ###NEW !!ohlidat aby tam mohli bejt presne 3 cisla
+                    return ret, name.split("(")[0], index #idNum, name, index
                 else:
                     tmp = re.search(
-                        "(^[^0-9]*)([0-9][0-9]*,[0-9][0-9]*,[0-9][0-9]*$)",
+                        #!!! umi detekovat jen 3, dodelat to co to vraci
+                        "(^[^0-9]*)([0-9][0-9]*,[0-9][0-9]*,[0-9][0-9]*)",
                         name)
                     if tmp is not None:
                         index = tmp.group(2)
                         ret = index.split(",")
                         # print("sekvence",tmp.group(1),tmp.group(2))
-                        return ret, tmp.group(1), index
-                ##END NEW !!
+                        return ret, tmp.group(1), index #idNum, name, index
                 break
-        # jestlize nevyhovuje ani jeden vzor, tak se vraci priznak false
+        #if nothing is satisfactory false is returned
         if not buffer:
-            return False, None, ""
-        # vraci se nalezene cislo na konci nazvu funkce
+            return False, None, "" #idNu, name, index
+        #return founded number at the end of the function name
         else:
             tmp = "".join(buffer)
-            return int(tmp), name.split(tmp)[0], tmp
+            return int(tmp), name.split(tmp)[0], tmp #idNum, name, index
 
-    # rozbaluje zkracene hodnoty pro nastaveni
-    def unpack(self,
-               value):  #!!! doufam ze reg vyrazy, fungujou jeste otestovat
+    #unpackes abbreviation data
+    def unpack(self,value):
         ret = []  # navratova hodnota
 
-        #testuje pokud se jedna o sekvenci
+        #test the abbreviation
         try:
             value = value.strip()
+            #range abbreviation
             if re.match(
                     "^\(\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?,\s*?[1-9][0-9]*?\s*?\)$",
                     str(value)):
                 tmp = value.strip(")(").split(",")
                 for i in range(int(tmp[0]), int(tmp[1]), int(tmp[2])):
                     ret.append(i)
-                #print("rozbaluji range v hodnote", ret)
                 return ret  #, True
 
             # pokud se jedna o nazev se sekvenci
             elif re.search("\(.*?\)", str(value)):
-                buffer = []
-                # reg vyraz pro rozdelini retezce podle vice znaku
-                tmp = re.split("\(|\)", value)
-                for i in tmp[:-1]:
-                    if "," in i:
-                        buffer.append(i.split(","))
-                    else:
-                        buffer.append([i])
-                for i in product(*buffer):
-                    ret.append(''.join(i))
-                return ret  #, True
+                print("UNPACK S TADY S TOU ZKRATKOU JSEM NEPOCITAL")
+            #    buffer = []
+            #    # reg vyraz pro rozdelini retezce podle vice znaku
+            #    tmp = re.split("\(|\)", value)
+            #    for i in tmp[:-1]:
+            #        if "," in i:
+            #            buffer.append(i.split(","))
+            #        else:
+            #            buffer.append([i])
+            #    for i in product(*buffer):
+            #        ret.append(''.join(i))
+            #    return ret  #, True
 
             #pokud se jedna pouze o sekvenci, tak vraci seznam
             #!!pohlidat jestli je to spravnej tvar
+            #sequence abbreviation 
             elif "," in str(value):
                 return value.split(",")  #, False
 
-            #pokud nevyhovuje ani jeden vzor, tak vrati original
+            #if nothing in satisfactory, original is returned
             else:
                 return value  #, False
         except AttributeError:
             return value  #, False
 
     def rekurze(self, data, group, class_, method, subMethod, groupNum, idNum):
-        groupLevel = group  # flag, ktery rika jestli mam odpojovat skupinu
-        groupNumber = groupNum  # pocet prvku skupiny, pro odebirani
-        class_ = class_  # flag, ktery rika jestli vyskakuju ze tridy
-        method = method  # flag, ktery rika jeslti vyskakuju z metody
-        subMethod = subMethod  # flag, ktery mi rika jestli vyskakuju z podmetody
-        #idNum promena, ktera obsahuje identifikator rozhrani
-        #mohl bych ji sem taky pro prehlednost pridat
-        delete = []  # hodnoty, ktere je treba vymazat
-
+        groupLevel = group  #flag, which tells if group should be cut
+        groupNumber = groupNum  # number of cut items
+        class_ = class_  # flag which tells if the class space is left
+        method = method  # flag, which tells if the method name space is left
+        subMethod = subMethod  # flag, which tells if the submethod name space is left
+        idNumb = "" #variable which contains interface number - there is used for submethod
+        delete = []  # values which are neccessary to delete
+        print(data)
         for i in data:
+            print("data is loop:",i)
             try:
-                # vetev pro parsovani listu
+                # branch which parses list of tree
                 if type(i) == type(str()):
-                    # vetev pro dalsi cleneni funkci
+                    #branch for next level of hierarchy (in that config case is it submethod)
+                    #in that case submethod name will be longer 
+                    #ready for next improvements
                     if type(data[i]) == type(dict()):
                         delete.append(i)
                         if self.subMethodName == "":
@@ -369,25 +362,25 @@ class ParseConfig(ParseFile):
                         else:
                             self.subMethodName = self.subMethodName + "_" + str(
                                 i)
-                        #!! pokud chci naky hodnoty preposlat do subMethody tak musim pridat tady, takle muzu dorucit treba mac adresu
+                        #DATA FORWARDING from method to submethod
+                        #if is neccessary to send data from method to submethod, it can be done here
                         self.rekurze(data[i], False, False, False, True,
                                      groupNumber, idNum)
                     data[i] = self.unpack(data[i])
-                    #print("ukladam",i,data[i])
                     continue
-                # vetev pro parsovani nazvu group
+                #branch for parsing group name
                 elif list(i.keys())[0] == "group":
-
+                    #if groupname is empty only add, in the other case add with :
                     if self.groupName == "":
                         self.groupName = str(i["group"][0]["name"])
                     else:
                         self.groupName += ":" + str(i["group"][0]["name"])
-
+                    #save groupNumber, name and delete unnecessary group name
                     groupNumber = len(str(i["group"][0]["name"]).split(":"))
                     del i["group"][0]["name"]
                     self.rekurze(i["group"], True, False, False, False,
                                  groupNumber, None)
-                # vetev pro parsovani nazvu tridy a metody
+                # branch for parsing class and method name
                 else:
                     if self.className == "":
                         self.className = list(i.keys())[0]
@@ -407,26 +400,23 @@ class ParseConfig(ParseFile):
                                          True, False, groupNumber, idNum)
 
             except IndexError:
-                #print("vyjimka index error")
                 continue
-        # uprava potrebnych hodnot po skonceni cyklu
+        # data modify at the end of cycle
         if class_:
             self.className = ""
             class_ = False
             return
 
         elif method:
-            #mazani nepotrebnych klicu z subMethod
+            #deleting unnecessary keys form submethod
             for l in delete:
                 del data[l]
-            #abych si nepremazaval klic kdyz uz tam je
+            #save id number to data variable
             try:
                 data["id"]
             except:
-                data[
-                    "id"] = idNum  #pridal jsem aby byly vsechny argumenty pohromade
-            #!odstranit to idnum melo by fungovat
-            #ret = [self.groupName,self.className,self.methodName, self.subMethodName, idNum ,data]
+                #idNum added here, because I want to have all data together in data variable
+                data["id"] = idNum
             ret = [self.groupName, self.className, self.methodName,
                    self.subMethodName, data]
             self.methods.append(ret)
@@ -436,7 +426,6 @@ class ParseConfig(ParseFile):
             return
 
         elif groupLevel:
-            #print("cislo skupiny",groupNumber)
             tmp = self.groupName.rsplit(":", groupNumber)
             if len(tmp) == 1 or groupNumber == len(self.groupName.split(":")):
                 self.groupName = ""
@@ -445,10 +434,7 @@ class ParseConfig(ParseFile):
 
         elif subMethod:
             data2 = deepcopy(data)
-            data2[
-                "id"] = idNum  #pridal jsem aby byly vsechny argumenty pohromade
-            #!odstranit to idnum # melo by fungovat 
-            #ret = [self.groupName,self.className, self.methodName,self.subMethodName, idNum ,data2]
+            data2["id"] = idNum  #idNum added here, because I wanto to have all data together in data variable
             ret = [self.groupName, self.className, self.methodName,
                    self.subMethodName, data2]
             self.methods.append(ret)
@@ -462,16 +448,16 @@ class ParseConfig(ParseFile):
             subMethod = False
 
 
-    #zjisti nastaveni aplikace
+#finds out the global setting for program
 class ParseSettings(ParseFile):
     def __init__(self, filename):
         super().__init__(filename)
         self.filename = filename
-        self.settingsData = {}
+        self.settingsData = {} #parsed YAML file to Python structure
 
+    #loads data from file
     def parse(self, filter):
-        #nacteni dat ze souboru
-        docu = ""
+        docu = "" #loaded data from YAML file 
         try:
             with open(self.filename, encoding="utf-8", mode="r") as f:
                 for line in f:
@@ -480,7 +466,6 @@ class ParseSettings(ParseFile):
 
         except yaml.YAMLError as e:
             print("Bad YAML formating in '{}'".format(self.filename))
-            #sys.exit(1)
             raise Exception("Bad YAML formatting in '{}'".format(self.filename))
 
         #kontrola udaju
