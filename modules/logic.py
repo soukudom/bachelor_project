@@ -1,7 +1,7 @@
 #!/usr/vin/env python3
 # -*- coding: utf-8 -*-
 
-#Autor: Dominik Soukup, soukudom@fit.cvut.cz
+#Author: Dominik Soukup, soukudom@fit.cvut.cz
 #!!!pohrat si z chybovymi vypisy
 #!!!otestovat ty konfiguracni metody (auto,hybrid,manual)
 #!!!upravit vypisovy hlasky aby byly konkretnejsi

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-#Autor: Dominik Soukup, soukudom@fit.cvut.cz
+#Author: Dominik Soukup, soukudom@fit.cvut.cz
 
 import sys
 import os

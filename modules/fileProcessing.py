@@ -256,7 +256,8 @@ class ParseConfig(ParseFile):
         self.methods = []       # final method which will be set up
 
         #recursive parse function
-        self.rekurze(self.data, False, False, False, False, 0, None)
+        #self.rekurze(self.data, False, False, False, False, 0, None)
+        self.loop(self.data, False, False, False, False, 0, None)
         return self.methods
 
     #checkes and upackes id value
@@ -347,7 +348,8 @@ class ParseConfig(ParseFile):
         except AttributeError:
             return value  #, False
 
-    def rekurze(self, data, group, class_, method, subMethod, groupNum, idNum):
+    #def rekurze(self, data, group, class_, method, subMethod, groupNum, idNum):
+    def loop(self, data, group, class_, method, subMethod, groupNum, idNum):
         groupLevel = group  #flag, which tells if group should be cut
         groupNumber = groupNum  # number of cut items
         class_ = class_  # flag which tells if the class space is left
@@ -371,7 +373,9 @@ class ParseConfig(ParseFile):
                                 i)
                         #DATA FORWARDING from method to submethod
                         #if is neccessary to send data from method to submethod, it can be done here
-                        self.rekurze(data[i], False, False, False, True,
+                        #self.rekurze(data[i], False, False, False, True,
+                        #             groupNumber, idNum)
+                        self.loop(data[i], False, False, False, True,
                                      groupNumber, idNum)
                     data[i] = self.unpack(data[i])
                     continue
@@ -385,13 +389,17 @@ class ParseConfig(ParseFile):
                     #save groupNumber, name and delete unnecessary group name
                     groupNumber = len(str(i["group"][0]["name"]).split(":"))
                     del i["group"][0]["name"]
-                    self.rekurze(i["group"], True, False, False, False,
+                    #self.rekurze(i["group"], True, False, False, False,
+                    #             groupNumber, None)
+                    self.loop(i["group"], True, False, False, False,
                                  groupNumber, None)
                 # branch for parsing class and method name
                 else:
                     if self.className == "":
                         self.className = list(i.keys())[0].strip()
-                        self.rekurze(i[self.className], False, True, False,
+                        #self.rekurze(i[self.className], False, True, False,
+                        #             False, groupNumber, None)
+                        self.loop(i[self.className], False, True, False,
                                      False, groupNumber, None)
 
                     elif self.methodName == "":
@@ -399,11 +407,16 @@ class ParseConfig(ParseFile):
                         idNum, name, index = self.checkId(self.methodName)
                         if idNum:
                             self.methodName = name.strip()
-                            self.rekurze(i[self.methodName + index], False,
+                            #self.rekurze(i[self.methodName + index], False,
+                            #             False, True, False, groupNumber,
+                            #             idNum)
+                            self.loop(i[self.methodName + index], False,
                                          False, True, False, groupNumber,
                                          idNum)
                         else:
-                            self.rekurze(i[self.methodName], False, False,
+                            #self.rekurze(i[self.methodName], False, False,
+                            #             True, False, groupNumber, idNum)
+                            self.loop(i[self.methodName], False, False,
                                          True, False, groupNumber, idNum)
 
             except IndexError:
