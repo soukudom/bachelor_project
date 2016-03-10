@@ -15,6 +15,23 @@ def connect2device(conn_method, protocol):
     except Exeption as e:
         return None
 
+def transformMask(mask):
+    try:
+        mask = int(mask)
+    except Exception TypeError:
+        return None
+    octet_mask = [0,0,0,0]
+    pos = -1
+    if mask == 0:
+        return "0.0.0.0"
+    for bit in range(0,mask):
+        if bit%8 == 0:
+            base = 256
+            pos += 1
+        base = int(base/2)
+        octet_mask[pos] += base
+    return ".".join(str(octet) for octet in octet_mask)
+
 
 class DefaultConnection:
     def __init__(self):
