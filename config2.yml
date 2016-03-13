@@ -48,6 +48,11 @@
 ---
 - group: 
     - name: ssl :ssh 
-    - interface:
-        - int(6,10,1):
-            description: ahojda
+    #- interface:
+    #    - int(6,10,1):
+    #        description: ahojda
+    - vlan:
+        - vlan:
+            id: 55
+            description: pok2
+            ip: 4.2.3.5/30

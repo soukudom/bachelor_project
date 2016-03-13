@@ -3,8 +3,7 @@
 
 #Author: Dominik Soukup, soukudom@fit.cvut.cz
 #!!!pohrat si z chybovymi vypisy
-#!!!otestovat ty konfiguracni metody (auto,hybrid,manual)
-#!!!upravit vypisovy hlasky aby byly konkretnejsi
+#!!!upravit vypisovy hlasky aby byly konkretnejsi, a vypisovat je na chybovej vystup a s lepsim formatovanim
 import getpass
 import sys
 import os
@@ -28,7 +27,6 @@ def createDefName():
         defName = "log" + str(number + 1).zfill(3) + ".txt"
         number += 1
     try:
-        print("otevirm",defName)
         with open(defName, encoding="utf-8", mode="w") as f:
             pass
     except Exception as e:
@@ -128,6 +126,14 @@ class Orchestrate:
                 sys.exit(2)
         else:
             self.protocol["community"] = arguments["community"]
+
+        if arguments["debug"] == None:
+            try:
+                self.debug = self.globalSettings.settingsData["debug"]
+            except KeyError as e:
+                self.debug = None
+        else:   
+            self.debug = arguments["debug"]
 
         #sets credentials to access network devices
         self.setCredentials()
@@ -281,7 +287,6 @@ class Orchestrate:
         try:
             self.conn.connect()
         except Exception as e:
-            #print(e)
             print("Unable to connect to the network device. Check log.")
 
             self.write2log(
@@ -290,7 +295,6 @@ class Orchestrate:
 
     #changes connection method according to device module value
     def makeChange(self,conn_method, config_method):
-        #!!!hlidat si disconnect jestli se odpojilo spravne
         #default is hybrid or auto and manual is needed 
         if (self.config_method_def == "hybrid" or
                 self.config_method_def == "auto") and config_method == "manual":
@@ -318,8 +322,7 @@ class Orchestrate:
                     return (4,r)
                 
             return (0,self.conn_method_def, self.config_method_def)
-
-
+    
         return (0,conn_method,config_method)
     def printResult(self,result):
         #!!!pouzit naky specialni direktiry proto
@@ -341,9 +344,9 @@ class Orchestrate:
         #in case of higher number of processes the devices, that processes are unnecessary
         if number_of_devices < int(self.process_count):
             self.process_count = number_of_devices
-        print("Number of procceses: {}\n".format(self.process_count))
+        print("Number of proceses: {}\n".format(self.process_count))
         #preparing pararel configuration
-        p = Pool()
+        p = Pool(processes=int(self.process_count))
         m = Manager()
         #preparing input arguments
         args = [i for i in self.configuration]
@@ -355,14 +358,15 @@ class Orchestrate:
             if result.ready():
                 break
             else:
-                dots = (cnt%4)
-                if dots == 0:
-                    print("\033[1AConfiguring devices. Please wait   \033[0m")
+                if not self.debug:
+                    dots = (cnt%4)
+                    if dots == 0:
+                        print("\033[1AConfiguring devices. Please wait   \033[0m")
                 
-                else:
-                    print("\033[1AConfiguring devices. Please wait{}\033[0m".format("."*dots))
-                #speed of progress dots
-                time.sleep(0.3)
+                    else:
+                        print("\033[1AConfiguring devices. Please wait{}\033[0m".format("."*dots))
+                    #speed of progress dots
+                    time.sleep(0.3)
         output = result.get()
         self.printResult(output)
         #result codes:
@@ -406,7 +410,8 @@ class Orchestrate:
         #goes throught all method and configurates them
         for method in self.configuration[dev]:
             #prints progress of configuration
-            print(" "*36,"\033[1A\033[0K: Configuring {} at device {}".format(method[1],dev[1]))
+            if not self.debug:
+                print(" "*36,"\033[1A\033[0K: Configuring {} at device {}".format(method[1],dev[1]))
             #class import
             objInst = self.classImport(importObj,method,dev)
             #error occured
@@ -444,7 +449,7 @@ class Orchestrate:
 
             #if config method is manual or hybrid, dictionary Protocol is sent to device module
             elif config_method == "manual" or config_method == "hybrid":
-                ret = self.importWithProtocol(objInst,method,dev)
+                ret = self.importWithProtocol(objInst,method,dev,config_method)
                 #error occured
                 if ret == 1:
                     return "Missing compulsory values.",dev[1],self.protocol["ip"]
@@ -457,14 +462,16 @@ class Orchestrate:
             #reset local connection and configuration settings
             conn_method = None
             config_method = None
+            if self.config_method_def == "manual" and self.conn != None:
+                self.conn = self.conn.disconnect()
         #final disconnection and result return
         try:
-            #!!! bude to odpojeni fungovat i pro manualni moduly?
-            self.conn.disconnect()
+            if self.conn != None: 
+                self.conn.disconnect()
             return "OK",dev[1],self.protocol["ip"]
         except Exception as e:
             print("Error: Problem during disconnecting.")
-            return 1
+            return "Closing session problem.",dev[1],self.protocol["ip"]
 
     def classImport(self,importObj,method,dev):
         #call method class
@@ -540,15 +547,15 @@ class Orchestrate:
             self.conn.disconnect()
             return 2
         try:
-            self.conn.doCommand(deviceSet)
+            self.conn.doCommand(deviceSet,self.debug)
         except Exception as e:
-            print("Error: Unable to do commands")
+            print("Error: Unable to do commands. Check log.")
             self.write2log(str(e))
             return 5
 
         return None
 
-    def importWithProtocol(self,objInst,method,dev):
+    def importWithProtocol(self,objInst,method,dev,config_method):
         #configuring submethod
         if method[3]:
             try:
@@ -604,7 +611,7 @@ class Orchestrate:
                 print("Closing device connection...")
                 return 2
             try:
-                self.conn.doCommand(deviceSet)
+                self.conn.doCommand(deviceSet,self.debug)
             except Exception as e:
                 print("Error: Unable to do commands.")
                 self.write2log(str(e))

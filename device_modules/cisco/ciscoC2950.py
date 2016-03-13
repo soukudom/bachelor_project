@@ -18,7 +18,7 @@ def connect2device(conn_method, protocol):
 def transformMask(mask):
     try:
         mask = int(mask)
-    except Exception TypeError:
+    except TypeError:
         return None
     octet_mask = [0,0,0,0]
     pos = -1
@@ -42,9 +42,10 @@ class DefaultConnection:
 class vlan:
     def __init__(self):
         self.method = "SSH"
+        self.connection = "auto"
         self.result = ["configure terminal"]
 
-    def vlan(self, id="", description="", ip="", shutdown=""):
+    def vlan(self, id="", description="", ip="", shutdown="",protocol=""):
         #slozite id
         if type(id) == type(list()):
             while id:
@@ -59,17 +60,22 @@ class vlan:
                             description))
                 if ip:
                     if type(ip) == type(list()):
-                        tmp = ip[0]
-                        tmp = tmp.split("/")
-                        if str(tmp[1]) == str(24):
-                            tmp[1] = "255.255.255.0"
-                        self.result.append("ip address {} {}".format(tmp[0],
-                                                                     tmp[1]))
-                        ip = ip[1:]
+                        print("volam slozitou ip. device modul")
+                        #tmp = ip[0]
+                        #tmp = tmp.split("/")
+                        #    
+                        #if str(tmp[1]) == str(24):
+                        #    tmp[1] = "255.255.255.0"
+                        #self.result.append("ip address {} {}".format(tmp[0],
+                        #                                             tmp[1]))
+                        #ip = ip[1:]
                     else:
                         ip = ip.split("/")
-                        if str(ip[1]) == str(24):
-                            ip[1] = "255.255.255.0"
+                        ip[1] = transformMask(ip[1])
+                        if ip[1] == None:
+                           return None 
+                        #if str(ip[1]) == str(24):
+                        #    ip[1] = "255.255.255.0"
                         self.result.append("ip address {} {}".format(ip[0], ip[
                             1]))
                 id = id[1:]
@@ -81,8 +87,9 @@ class vlan:
                 self.result.append("description {}".format(description))
             if ip:
                 ip = ip.split("/")
-                if str(ip[1]) == str(24):
-                    ip[1] = "255.255.255.0"
+                ip[1] = transformMask(ip[1])
+                if ip[1] == None:
+                    return None
                 self.result.append("ip address {} {}".format(ip[0], ip[1]))
 
         return self.result

@@ -27,7 +27,7 @@ class Protocol(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def doCommand(self, command):
+    def doCommand(self, command, debug):
         pass
 
 
@@ -72,7 +72,9 @@ class SSH(Protocol):
         self.conn_pre.close()
         return None
 
-    def doCommand(self, commands):
+    def doCommand(self, commands, debug=""):
+        sleep_time = 0 # temp variable for timeout checking
+
         #commands are list of commands
         rec = "" #temp variable
         if type(commands) != type(list()):
@@ -80,14 +82,21 @@ class SSH(Protocol):
         for command in commands:
             command = command.strip().strip("'")
             self.conn.send(command + '\n')
+            if debug:
+                print("Sending:",command)
             #waiting until response is not recieved
             while not self.conn.recv_ready():
                 time.sleep(0.3)
+                sleep_time += 0.3
+                if sleep_time > self.timeout:
+                    raise Exception("Error: Timeout reached during device configuring.")
 
             while self.conn.recv_ready():
                 #reads response
                 ot = self.conn.recv(
                     5000)
+                if debug:
+                    print("Receiving:",ot)
                 rec += str(ot)
                 time.sleep(0.3)
             else:
@@ -169,6 +178,9 @@ class NETCONF(Protocol):
         #waits until any respond is received
         while not self.ch.recv_ready():
             time.sleep(0.1)
+            sleep_time += 0.1
+            if sleep_time > self.timeout:
+                raise Exception("Error: Timeout reached during device configuring.")
 
         while self.ch.recv_ready():
             data = self.ch.recv(2048).decode("utf-8")
@@ -180,7 +192,9 @@ class NETCONF(Protocol):
         else:
             return data
 
-    def doCommand(self, command):
+    def doCommand(self, command, debug=""):
+        sleep_time = 0 # temp variable for timeout checking
+
         if type(command) != type(str()):
             raise Exception("Bad datatype. Datatype str is needed.")
         #raises message id according to rfc
@@ -201,12 +215,17 @@ class NETCONF(Protocol):
 
         #send created message
         self.ch.send(message)
+        #debug message
+        if debug:
+            print("Sending:",message)
         #waiting for response
         while not self.ch.recv_ready():
             time.sleep(0.1)
         while self.ch.recv_ready():
             data += self.ch.recv(2048).decode("utf-8")
-
+        #debug message
+        if debug:
+            print("Receiving:",data)
         retVal = self.checkReply(data, None)
 
         if retVal == 1:
@@ -253,7 +272,7 @@ class SNMP(Protocol):
         self.method_type = protocol["method_type"]  #snmp method type
         self.timeout = protocol["timeout"]          #connection timeout
 
-    def doCommand(self, mibVariables):
+    def doCommand(self, mibVariables, debug=""):
         #mibVariables are list of snmp commands
         if type(mibVariables) != type(list()):
             raise Exception("Bad datatype. List is needed.")
@@ -267,7 +286,9 @@ class SNMP(Protocol):
                     variable = cmdgen.MibVariable("SNMPv2-MIB", mibVariable, 0)
 
                 cmdGen = cmdgen.CommandGenerator()
-
+                #debug message
+                if debug:
+                    print("Sending:",variable)
                 errorIndication, errorStatus, errorIndex, varBinds = cmdGen.getCmd(
                     cmdgen.CommunityData(self.community),# security data, for snmp1,2 object which contains community string
                     #object which represents network path to device

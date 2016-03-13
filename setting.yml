@@ -11,6 +11,7 @@ device_file: hosts2.yml     # path to the device configuration file
 log_file: log.txt           # program log file
 process_count: 2            # number of processes
 timeout: 5                  # timeout for network configuration protocols       
+debug: False                # debug messages 
 
 
 

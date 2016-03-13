@@ -8,3 +8,100 @@ Authentication failed. Connection protocol 'SSH'
 Authentication failed. Connection protocol 'SSH'
 Bad format of manufactor name structure: 'None'
 Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Method 'vlan' has no argument 'protocol'
+Method 'vlan' has no argument 'protocol'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Authentication failed. Connection protocol 'SSH'
+Unable to change connection and configuration method. Error in makeChange method.
+Authentication failed. Connection protocol 'SSH'
+Unable to change connection and configuration method. Error in makeChange method.
+Authentication failed. Connection protocol 'SSH'
+Unable to change connection and configuration method. Error in makeChange method.
+Authentication failed. Connection protocol 'SSH'
+Unable to change connection and configuration method. Error in makeChange method.
+Authentication failed. Connection protocol 'SSH'
+Unable to change connection and configuration method. Error in makeChange method.
+Authentication failed. Connection protocol 'SSH'
+Unable to change connection and configuration method. Error in makeChange method.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Authentication failed. Connection protocol 'SSH'
+Erorr: Timeout reached during device configuring.
+Authentication failed. Connection protocol 'SSH'

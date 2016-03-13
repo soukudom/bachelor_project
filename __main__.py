@@ -100,6 +100,10 @@ parser.add_argument("-c",
                     "--community",
                     help="Community string for snmp",
                     default=None)
+parser.add_argument("-d",
+                    "--debug",
+                    help="Debug messages",
+                    default=None)
 
 args = parser.parse_args()
 #pokud neni zadoni nic, tak vyhodit help
