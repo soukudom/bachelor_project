@@ -1,59 +1,64 @@
 #!/usr/bin/env python3
+import device_modules.cisco.ciscoC2950 as c
+from lxml import etree
+
+
 
 class DefaultConnection:
-    def __init__:
+    def __init__(self):
         self.method = "NETCONF"
         self.connection = "auto"
 
+def makeNetconf(commands):
+    root = etree.Element("edit-config")
+    child = etree.SubElement(root,"target")
+    etree.SubElement(child,"running")
+    child2 = etree.SubElement(root,"config")
+    child21 = etree.SubElement(child2,"cli-config-data")
+    for cmd in commands:
+        if cmd == "configure terminal" or cmd == "end":
+            continue
+        child211 = etree.SubElement(child21,"cmd")
+        child211.text = cmd
+    res = (etree.tostring(root,encoding="utf-8").decode("utf-8"))
+    return res
 
-class vlan:
+def changeInterfaceName(configuration):
+    for no,i in enumerate(configuration):
+        if "interface" in i:
+            tmp = i.split("/")
+            configuration[no] = "interface GigabitEthernet1/0/{}".format(tmp[1])
+
+    return configuration
+
+
+class vlan(c.vlan):
     def __init__(self):
-        self.method = "netconf"
+        self.interfaceCount = 28
+        self.result = []
 
     def vlan(self,id="",description="",ip="",shutdown=""):
-        self.result = ""
+        self.result = super().vlan(id,description,ip,shutdown)
+        self.result = makeNetconf(self.result)
         return self.result 
 
-class interface:
+class interface(c.interface):
     def __init__(self):
-        self.method = "netconf"
-    
-    def int(self, id="", description = "", shutdown="",):
-        self.result = ""
-        print("jsem v metode int")
-        #result = ["configure terminal"]
-        #pokud je zadany id range
-        if type(id) == type(list()):
-            print("slozite id")
-            while id:
-                self.result.append("interface FastEthernet 0/{}".format(id[0])) 
-                if description:
-                    if type(description) == type(list()):
-                        self.result.append("description {}".format(description[0]))
-                        description = description[1:]
-                    else:
-                        self.result.append("description {}".format(description))
-                if shutdown:
-                    self.result.append("shutdown")
-                else:
-                    self.result.append("no shutdown")
-                id = id[1:]
-        #pouze jednoduche id
-        else: 
-            print("jednoduche id")
-            if id:
-                self.result.append("interface FastEthernet 0/{}".format(id)) 
-            if description:
-                self.result.append("description {}".format(description))
-            #if shutdown != "":
-            #shutdown vraci yes nebo no
-            if shutdown:
-                self.result.append("shutdown")
-            else:
-                self.result.append("no shutdown")
-        print("result je",self.result)
-        #return self.result 
+      #  super().__init__()
+        self.method = "NETCONF"
+        self.interfaceCount = 28
+        self.result = []
 
+    def int(self,id="",description="",shutdown=""):
+        self.result = super().int(id,description,shutdown)
+        #for no,i in enumerate(result):
+        #    if "interface" in i:
+        #        tmp = i.split("/")
+        #        result[no] = "interface GigabitEthernet1/0/{}".format(tmp[1])
+        changeInterfaceName(self.result)
+        self.result = makeNetconf(self.result)
+        print(self.result)
+        return self.result
     
     def int_vlan(self,id="",mode="",allowed="", access=""):
         self.result = ""

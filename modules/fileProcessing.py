@@ -171,21 +171,19 @@ class ParseDevice(ParseFile):
                 else:
                     print("Error: The manufactor was not specified")
                     raise Exception("The manufactor was not specified.")
-        print(configHost)
         return configHost
 
     #returns list of device according to the group
     def parse(self, group):
+        print("nactena data jsou ", self.data)
         hosts = [] # list with host which was found
         parsed_info = {} #parsed data form device file
         try:
             if group == "":  #no filter was specified, all host will be returned:
-                info = self.data #loaded YAML data
-                print("nacetl jsem info",info)
+                info = deepcopy(self.data) #loaded YAML data
             #parses group hierarchy
             elif ":" in group:
-                print("nacetl jsem skupinu se slozitym group",group)
-                info = self.data
+                info = deepcopy(self.data)
                 keys = group.split(":")
                 for i in keys:
                     #delete whitespaces
@@ -199,8 +197,7 @@ class ParseDevice(ParseFile):
                     info = info[i]
             #normal single key filter
             else:
-                print("nacetl jsem skupinu s group",group)
-                info = self.data[group]
+                info = deepcopy(self.data[group])
         except KeyError as e:
             print("Wrong key")
             raise Exception("Wrong key in device file or character ':' missing.")
@@ -221,7 +218,6 @@ class ParseDevice(ParseFile):
                 #in case of group hierarchy
                 if ((type(list(info.values())[0])) == type(dict())):
                     tmp,key = self.loop(info)
-                    print("pridavam",tmp)
                     parsed_info.update(tmp)
                     del info[key]
                 #in case of flat item
@@ -246,7 +242,6 @@ class ParseDevice(ParseFile):
             #in case of more ip addresse in group
             for sz in szn:
                 hosts.append(sz)
-        print("kontrola hosts",hosts)
         return self.checkHost(hosts)
 
     #recursive loop in case of hierarchy group
@@ -255,7 +250,6 @@ class ParseDevice(ParseFile):
         #pom = it.__next__()
         it = info.items().__iter__()
         key,pom = it.__next__()
-        print("VRACIM",pom,key)
         return pom,key
 
 
@@ -483,7 +477,6 @@ class ParseConfig(ParseFile):
 
         elif subMethod:
             data2 = deepcopy(data)
-            print("ID DATA",data)
             data2["id"] = idNum  #idNum added here, because I wanto to have all data together in data variable
             ret = [self.groupName.strip(), self.className.strip(), self.methodName.strip(),
                    self.subMethodName.strip(), data2]

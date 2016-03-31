@@ -214,13 +214,14 @@ class Orchestrate:
             print(method) #!!! print
             #partial filtering
             if not self.partial in method and self.partial != None:
+                print("preskakuju")
                 continue
             try:
                 #parse device file with concrete groupname
                 #hosts format is {vendor: list(ip_addresses)}
                 hosts = self.device.parse(method[0])
+                print("cilovy hosti",hosts)
             except Exception as e:
-                raise e #!!! smazat
                 print("Error during parsing device file. Check the log file.")
                 self.write2log(str(e))
                 sys.exit(1)
@@ -275,8 +276,7 @@ class Orchestrate:
                         self.configuration[manufactor].append(method)
                     except:
                         self.configuration[manufactor] = [method]
-                    print("pridavam",self.configuration)
-
+            print(self.configuration)
 
     def getManufactor(self, vendor):
         #imports default parse class for specific vendor

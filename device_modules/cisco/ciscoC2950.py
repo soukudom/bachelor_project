@@ -103,6 +103,7 @@ class interface:
         #self.connection = "hybrid"
 
     def int(self, id="", description="", shutdown=""):
+        print("metoda interface cisco2950")
         #pokud je zadany id range
         if type(id) == type(list()):
             while id:
@@ -201,10 +202,8 @@ class interface:
                      channel="",
                      mode="",
                      protocol=""):
-        print("metoda agregate", id, channel, mode , protocol)
         if type(id) == type(list()):
             while id:
-                print("slozity id")
                 self.result.append("interface FastEthernet 0/{}".format(id[0]))
                 if channel and mode:
                     self.result.append("channel-group {} mode {}".format(channel,mode))
@@ -213,7 +212,6 @@ class interface:
                 id = id[1:]
             
         else:
-            print("jednoduchy id")
             if id:
                 self.result.append("interface FastEthernet 0/{}".format(id))
             if channel and mode:

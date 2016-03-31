@@ -43,6 +43,7 @@ class SSH(Protocol):
         self.conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy()) #does not care about known host
 
     def connect(self):
+        print("protocol SSH")
         try:
             #configure console
             self.conn_pre.connect(self.ip,
@@ -150,6 +151,7 @@ class NETCONF(Protocol):
         return 1
 
     def connect(self):
+        print("protocol NETCONF")
         #creates hello message
         root = etree.Element("hello")
         child = etree.SubElement(root, "capabilities")
@@ -159,11 +161,12 @@ class NETCONF(Protocol):
             root,
             xml_declaration=True,
             encoding="utf-8").decode("utf-8") + self.ending
-
+        print("postavil jsem hello message")
         #build socket at port 22
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.ip, 22))
 
+        print("postavil jsem socket")
         #set socket to transport and connect
         self.trans = paramiko.Transport(self.socket)
         self.trans.connect(username=self.username, password=self.password)
@@ -175,15 +178,21 @@ class NETCONF(Protocol):
         self.name = self.ch.set_name("netconf")
         self.ch.invoke_subsystem("netconf")
         self.ch.send(helloMessage)
+        print("poslal jsem hello message")
         #waits until any respond is received
-        while not self.ch.recv_ready():
-            time.sleep(0.1)
-            sleep_time += 0.1
-            if sleep_time > self.timeout:
-                raise Exception("Error: Timeout reached during device configuring.")
-
+       # while not self.ch.recv_ready():
+       #     print("cyklus while")
+       #     time.sleep(0.1)
+       #     sleep_time += 0.1
+       #     print("dalsi radek")
+       #     if sleep_time > self.timeout:
+       #         print("vyjimka")
+       #         raise Exception("Error: Timeout reached during device configuring.")
+       # print("dostal jsem nejaka data")
+        time.sleep(0.5)
         while self.ch.recv_ready():
             data = self.ch.recv(2048).decode("utf-8")
+        print("obdrzel jsem data",data)
         #check message
         retVal = self.checkReply(data, "hello")
         if retVal == 1:
