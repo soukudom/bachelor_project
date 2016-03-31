@@ -2,8 +2,6 @@
 import device_modules.cisco.ciscoC2950 as c
 from lxml import etree
 
-
-
 class DefaultConnection:
     def __init__(self):
         self.method = "NETCONF"
@@ -42,6 +40,8 @@ class vlan(c.vlan):
         self.result = makeNetconf(self.result)
         return self.result 
 
+    #def delete_vlan(self):
+
 class interface(c.interface):
     def __init__(self):
       #  super().__init__()
@@ -51,39 +51,25 @@ class interface(c.interface):
 
     def int(self,id="",description="",shutdown=""):
         self.result = super().int(id,description,shutdown)
-        #for no,i in enumerate(result):
-        #    if "interface" in i:
-        #        tmp = i.split("/")
-        #        result[no] = "interface GigabitEthernet1/0/{}".format(tmp[1])
         changeInterfaceName(self.result)
         self.result = makeNetconf(self.result)
-        print(self.result)
         return self.result
     
     def int_vlan(self,id="",mode="",allowed="", access=""):
-        self.result = ""
+        self.result = super().int_vlan(id,mode,allowed,access)
+        changeInterfaceName(self.result)
+        self.result = makeNetconf(self.result)
         return self.result 
     
-    def int_agregate(self,id="",protocol="",channel="",mode=""):
-        self.result = ""
-        return self.result 
-
-    def default(self, id="", shutdown="", description=""):
-        self.result = ""
+    def int_agregate(self,id="",channel="",mode="",protocol=""):
+        self.result = super().int_agregate(id,channel,mode,protocol)
+        changeInterfaceName(self.result)
+        self.result = makeNetconf(self.result)
         return self.result 
     
-    def default_vlan(self,id="", mode="", access="", allowed=""):
-        self.result = ""
+    def delete_int(self, id=""):
+        self.result = super().delete_int(id)
+        changeInterfaceName(self.result)
+        self.result = makeNetconf(self.result)
         return self.result 
 
-    def mac(self, id="", description = "", shutdown=""):
-        self.result = ""
-        return self.result 
-    
-    def mac_vlan(self, id="", mode="", allowed="", access=""):
-        self.result = ""
-        return self.result 
-
-    def mac_agregate(self,id="",protocol="",channel="", mode=""):
-        self.result = ""
-        return self.result 
