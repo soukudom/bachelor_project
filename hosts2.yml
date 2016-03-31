@@ -11,7 +11,9 @@
 ssl  :
     ssh   :
         - 10.10.110.230:cisco
+    ssh2 :
         - 10.10.110.231:cisco
+#        - 10.10.110.233:cisco
 #    - 10.10.110.61:cisco
 
 netconf:

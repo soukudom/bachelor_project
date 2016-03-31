@@ -88,8 +88,8 @@ parser.add_argument("-p",
                     "--partial",
                     help="Filter for specific group name.",
                     default=None)
-parser.add_argument("-np",
-                    "--numberOfProcess",
+parser.add_argument("-pc",
+                    "--processCount",
                     help="Number of running processes",
                     default=1)
 parser.add_argument("-t",
@@ -103,7 +103,8 @@ parser.add_argument("-c",
 parser.add_argument("-d",
                     "--debug",
                     help="Debug messages",
-                    default=None)
+                    action="store_true")
+                    #default=None)
 
 args = parser.parse_args()
 #pokud neni zadoni nic, tak vyhodit help

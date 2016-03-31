@@ -46,13 +46,16 @@
 
 
 ---
-- group: 
-    - name: ssl :ssh 
     #- interface:
-    #    - int(6,10,1):
-    #        description: ahojda
+    #    - int6:
+    #        description: nazdar
+- vlan:
     - vlan:
-        - vlan:
-            id: 55
-            description: pok2
-            ip: 4.2.3.5/30
+        id: 69
+        description: pok69
+        ip: 4.2.3.5/30
+#- group:
+#    - name: ssl:ssh2
+#    - interface:
+#        - int(12,15,1):
+#            description: XXXXXXX

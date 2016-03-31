@@ -37,56 +37,69 @@ def createDefName():
 
 class Orchestrate:
     def __init__(self, arguments):
-        #fining out settings file filename
-        if not arguments["settingsFile"]:
-            print(
-                "Settings file not specified. Using default name: 'setting.yml'")
-            settingsFile = "setting.yml"
-        else:
-            settingsFile = arguments["settingsFile"]
-
-        self.settingsFile = settingsFile    #settings filename with global configuration data
+        #finding out settings file filename
         factory_tmp = factory.Factory()     #creation factory object  
         self.configuration = {}             #dictionary with device configuration data
         self.protocol = {}                  #dictionary with data necessary for configuration protocols
         self.conn = None                    #connection handler
-        self.partial = arguments["partial"] #name for group filtering
+        #self.partial = arguments["partial"] #name for group filtering
 
-        self.globalSettings = factory_tmp.getSettingsProcessing(
-            self.settingsFile
-        )                                   #creation settings parse object from factory
-        #run file parsing
-        self.globalSettings.parse("")       
+        if arguments["settingsFile"]:
+            self.settingsFile = arguments["settingsFile"]    #settings filename with global configuration data
+            self.globalSettings = factory_tmp.getSettingsProcessing(
+                self.settingsFile
+            )                                   #creation settings parse object from factory
+            self.globalSettings.parse("")       
+        
+            if type(self.globalSettings.settingsData) != type(dict()):
+                print("Error: Bad settings file '{}' format.".format(self.settingsFile))
+                #self.write2log("Bad settings file format. Please read manual for help.")
+                sys.exit(1)
 
-        if type(self.globalSettings.settingsData) != type(dict()):
-            print("Error: Bad settings file '{}' format.".format(self.settingsFile))
-            #self.write2log("Bad settings file format. Please read manual for help.")
-            sys.exit(1)
+        if not arguments["partial"]:
+            try:
+                self.partial = self.globalSettings.settingsData["partial"]
+            except KeyError as e:
+                #print("Error: Config file has not been inserted.") 
+                #sys.exit(2)
+                self.partial = None
+            except AttributeError as e:
+                #print("Error: Unable to get compulsory config data")
+                #sys.exit(2)
+                self.partial = None
+        else:
+            self.partial = arguments["partial"] #name for group filtering
 
         #Checking data from settings file. Data from command line has higher priority
         if not arguments["configFile"]:
             try:
-                configFile = self.globalSettings.settingsData["config_file"]
+                configFile = self.globalSettings.settingsData["configFile"]
             except KeyError as e:
                 print("Error: Config file has not been inserted.")
                 #self.write2log("Config file has not been inserted. It is necessary to specify filename in settings file or in commandline.")
+                sys.exit(2)
+            except AttributeError as e:
+                print("Error: Unable to get compulsory config data")
                 sys.exit(2)
         else:
             configFile = arguments["configFile"]
 
         if not arguments["deviceFile"]:
             try:
-                deviceFile = self.globalSettings.settingsData["device_file"]
+                deviceFile = self.globalSettings.settingsData["deviceFile"]
             except KeyError as e:
                 print("Error: Device file has not been inserted.")
                 #self.write2log("Device file has not been inserted. It is necessary to specify filename int settings file or in commandline")
+                sys.exit(2)
+            except AttributeError as e:
+                print("Error: Unable to get compulsory config data")
                 sys.exit(2)
         else:
             deviceFile = arguments["deviceFile"]
 
         if not arguments["log"]:
             try:
-                self.logFile = self.globalSettings.settingsData["log_file"]
+                self.logFile = self.globalSettings.settingsData["log"]
             except KeyError as e:
                 print("Log file has not been inserted")
                 print("Creating default log file...")
@@ -95,18 +108,23 @@ class Orchestrate:
                     print("Can not create log file.")
                     sys.exit(2)
                 print("Log file '{}' has been created.".format(self.logFile))
+            except AttributeError as e:
+                print("Error: Unable to get compulsory config data")
+                sys.exit(2)
                     
         else:
             self.logFile = arguments["log"]
 
-        if arguments["numberOfProcess"] == 1:
+        if arguments["processCount"] == 1:
             try:
                 self.process_count = self.globalSettings.settingsData[
-                    "process_count"]
+                    "processCount"]
             except KeyError as e:
                 self.process_count = 1
+            except AttributeError as e:
+                self.process_count = 1
         else:
-            self.process_count = arguments["numberOfProcess"]
+            self.process_count = arguments["processCount"]
 
         if arguments["timeout"] == 5:
             try:
@@ -114,15 +132,20 @@ class Orchestrate:
                     "timeout"]
             except KeyError as e:
                 self.protocol["timeout"] = 5
+            except AttributeError as e:
+                self.protocol["timeout"] = 5
         else:
             self.protocol["timeout"] = arguments["timeout"]
 
         if not arguments["community"]:
             try:
                 self.protocol["community"] = self.globalSettings.settingsData[
-                    "community_string"]
+                    "community"]
             except KeyError as e:
                 print("Error: Community string has not been inserted.")
+                sys.exit(2)
+            except AttributeError as e:
+                print("Error: Unable to get compulsory config data")
                 sys.exit(2)
         else:
             self.protocol["community"] = arguments["community"]
@@ -132,6 +155,9 @@ class Orchestrate:
                 self.debug = self.globalSettings.settingsData["debug"]
             except KeyError as e:
                 self.debug = None
+            except AttributeError as e:
+                print("Error: Unable to get compulsory config data")
+                sys.exit(2)
         else:   
             self.debug = arguments["debug"]
 
@@ -194,6 +220,7 @@ class Orchestrate:
                 #hosts format is {vendor: list(ip_addresses)}
                 hosts = self.device.parse(method[0])
             except Exception as e:
+                raise e #!!! smazat
                 print("Error during parsing device file. Check the log file.")
                 self.write2log(str(e))
                 sys.exit(1)
@@ -213,7 +240,7 @@ class Orchestrate:
                     sys.exit(1)
 
                 for host in hosts[vendor]:
-                    #prepares necessary information for snmp prtocol
+                    #prepares necessary information for snmp protocol
                     self.protocol["ip"] = host
                     self.protocol["method_type"] = "get"
                     #returns name of manufactor module
@@ -248,6 +275,7 @@ class Orchestrate:
                         self.configuration[manufactor].append(method)
                     except:
                         self.configuration[manufactor] = [method]
+                    print("pridavam",self.configuration)
 
 
     def getManufactor(self, vendor):

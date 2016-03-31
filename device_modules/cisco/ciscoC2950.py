@@ -105,6 +105,7 @@ class interface:
     def int(self, id="", description="", shutdown=""):
         #pokud je zadany id range
         if type(id) == type(list()):
+            print("slozity id")
             while id:
                 self.result.append("interface FastEthernet 0/{}".format(id[0]))
                 if description:
@@ -122,6 +123,7 @@ class interface:
                 id = id[1:]
         #pouze jednoduche id
         else:
+            print("jednoduchy id")
             if id:
                 self.result.append("interface FastEthernet 0/{}".format(id))
             if description:

@@ -177,11 +177,14 @@ class ParseDevice(ParseFile):
     #returns list of device according to the group
     def parse(self, group):
         hosts = [] # list with host which was found
+        parsed_info = {} #parsed data form device file
         try:
             if group == "":  #no filter was specified, all host will be returned:
                 info = self.data #loaded YAML data
+                print("nacetl jsem info",info)
             #parses group hierarchy
             elif ":" in group:
+                print("nacetl jsem skupinu se slozitym group",group)
                 info = self.data
                 keys = group.split(":")
                 for i in keys:
@@ -196,6 +199,7 @@ class ParseDevice(ParseFile):
                     info = info[i]
             #normal single key filter
             else:
+                print("nacetl jsem skupinu s group",group)
                 info = self.data[group]
         except KeyError as e:
             print("Wrong key")
@@ -206,29 +210,53 @@ class ParseDevice(ParseFile):
 
         try:
             #recursive parsing
-            while (type(list(info.values())[0])) == type(dict()):
+
+            #while ((type(list(info.values())[0])) == type(dict())):
+            #    #in case of group hierarchy
+             #   parsed_info,key = self.loop(info)
+             #   del info[key]
+             #   #print("novy infor je",info, type(list(info.values())[0]))
+            #parsing data structure from device file
+            while info:
                 #in case of group hierarchy
-                info = self.loop(info)
+                if ((type(list(info.values())[0])) == type(dict())):
+                    tmp,key = self.loop(info)
+                    print("pridavam",tmp)
+                    parsed_info.update(tmp)
+                    del info[key]
+                #in case of flat item
+                elif ((type(list(info.values())[0])) == type(list())):
+                    tmp,key = self.loop(info)
+                    tmp2 = {key:tmp}
+                    parsed_info.update(tmp2)
+                    del info[key]
 
         except AttributeError:
             #in case of simple group name
-            if type(info[0]) == type(str()):
-                print("attribute error return", info)
-                return self.checkHost(info)
+            if type(parsed_info[0]) == type(str()):
+                print("attribute error return", parsed_info)
+                return self.checkHost(parsed_info)
             else:
                 print("Bad device file format.")
                 raise Exception("Bad device file format.")
-        for szn in list(info.values()):
+        #if the above while is completely skipped
+        if not parsed_info:
+            parsed_info = info
+        for szn in list(parsed_info.values()):
             #in case of more ip addresse in group
             for sz in szn:
                 hosts.append(sz)
+        print("kontrola hosts",hosts)
         return self.checkHost(hosts)
 
     #recursive loop in case of hierarchy group
     def loop(self, info):
-        it = info.values().__iter__()
-        pom = it.__next__()
-        return pom
+        #it = info.values().__iter__()
+        #pom = it.__next__()
+        it = info.items().__iter__()
+        key,pom = it.__next__()
+        print("VRACIM",pom,key)
+        return pom,key
 
 
 class ParseConfig(ParseFile):
@@ -355,7 +383,7 @@ class ParseConfig(ParseFile):
         class_ = class_  # flag which tells if the class space is left
         method = method  # flag, which tells if the method name space is left
         subMethod = subMethod  # flag, which tells if the submethod name space is left
-        idNumb = "" #variable which contains interface number - there is used for submethod
+        #idNum = "" #variable which contains interface number - there is used for submethod
         delete = []  # values which are neccessary to delete
         for i in data:
             try:

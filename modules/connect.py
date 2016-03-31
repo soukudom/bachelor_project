@@ -327,6 +327,7 @@ class SNMP(Protocol):
             raise Exception("SNMP can not connect to the device")
         finally:
             self.method_type = tmp
+        return ""
 
     def disconnect(self):
         return None
