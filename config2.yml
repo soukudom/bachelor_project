@@ -49,11 +49,24 @@
     #- interface:
     #    - int6:
     #        description: nazdar
-- vlan:
-    - vlan:
-        id: 69
-        description: pok69
-        ip: 4.2.3.5/30
+- group:
+    - name: ssl:ssh
+    - interface:
+        - int:
+            id: 10,11,12
+            vlan:
+                mode: trunk
+                allowed: 10
+            agregate:
+                channel: 2
+                mode: auto
+                protocol: pagp
+            shutdown: no
+#- vlan:
+#    - vlan:
+#        id: 69
+#        description: pok69
+#        ip: 4.2.3.5/30
 #- group:
 #    - name: ssl:ssh2
 #    - interface:

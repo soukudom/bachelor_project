@@ -203,7 +203,7 @@ class ParseDevice(ParseFile):
                 info = self.data[group]
         except KeyError as e:
             print("Wrong key")
-            raise Exception("Wrong key in device file.")
+            raise Exception("Wrong key in device file or character ':' missing.")
         except TypeError:
             print("Bad device file format.")
             raise Exception("Bad device file format.")
@@ -233,9 +233,9 @@ class ParseDevice(ParseFile):
 
         except AttributeError:
             #in case of simple group name
-            if type(parsed_info[0]) == type(str()):
-                print("attribute error return", parsed_info)
-                return self.checkHost(parsed_info)
+            if type(info[0]) == type(str()):
+                print("attribute error return", info)
+                return self.checkHost(info)
             else:
                 print("Bad device file format.")
                 raise Exception("Bad device file format.")
@@ -333,7 +333,6 @@ class ParseConfig(ParseFile):
     #unpackes abbreviation data
     def unpack(self,value):
         ret = []  # navratova hodnota
-
         #test the abbreviation
         try:
             value = value.strip()
@@ -403,6 +402,8 @@ class ParseConfig(ParseFile):
                         #if is neccessary to send data from method to submethod, it can be done here
                         #self.rekurze(data[i], False, False, False, True,
                         #             groupNumber, idNum)
+                        if not idNum:
+                            idNum = self.unpack(data["id"])
                         self.loop(data[i], False, False, False, True,
                                      groupNumber, idNum)
                     data[i] = self.unpack(data[i])
@@ -482,6 +483,7 @@ class ParseConfig(ParseFile):
 
         elif subMethod:
             data2 = deepcopy(data)
+            print("ID DATA",data)
             data2["id"] = idNum  #idNum added here, because I wanto to have all data together in data variable
             ret = [self.groupName.strip(), self.className.strip(), self.methodName.strip(),
                    self.subMethodName.strip(), data2]

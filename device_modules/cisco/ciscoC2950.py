@@ -105,7 +105,6 @@ class interface:
     def int(self, id="", description="", shutdown=""):
         #pokud je zadany id range
         if type(id) == type(list()):
-            print("slozity id")
             while id:
                 self.result.append("interface FastEthernet 0/{}".format(id[0]))
                 if description:
@@ -123,7 +122,6 @@ class interface:
                 id = id[1:]
         #pouze jednoduche id
         else:
-            print("jednoduchy id")
             if id:
                 self.result.append("interface FastEthernet 0/{}".format(id))
             if description:
@@ -196,27 +194,36 @@ class interface:
                 self.result.append("switchport access vlan {}".format(access))
 
         self.result.append("end")
-        #print("int_vlan je", self.result)
         return self.result
 
     def int_agregate(self,
                      id="",
-                     protocol2="",
                      channel="",
                      mode="",
                      protocol=""):
-        if type(id) == type(list):
+        print("metoda agregate", id, channel, mode , protocol)
+        if type(id) == type(list()):
             while id:
-                pass
-        if id:
-            self.result.append("interface FastEthernet 0/{}".format(id))
-        if channel and mode:
-            mode = "on"
-            self.result.append("channel-group {} mode {}".format(channel,
+                print("slozity id")
+                self.result.append("interface FastEthernet 0/{}".format(id[0]))
+                if channel and mode:
+                    self.result.append("channel-group {} mode {}".format(channel,mode))
+                if protocol:
+                    self.result.append("channel-protocol {}".format(protocol))
+                id = id[1:]
+            
+        else:
+            print("jednoduchy id")
+            if id:
+                self.result.append("interface FastEthernet 0/{}".format(id))
+            if channel and mode:
+                mode = "on"
+                self.result.append("channel-group {} mode {}".format(channel,
                                                                  mode))
-        if protocol:
-            self.result.append("channel-protocol {}".format(protocol))
+            if protocol:
+                self.result.append("channel-protocol {}".format(protocol))
 
+        self.result.append("end")
         return self.result
 
         #def default(self, id="", shutdown="", description=""):
