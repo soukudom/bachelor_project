@@ -610,7 +610,7 @@ class Orchestrate:
                     self.conn.disconnect()
                 return 1
         #configuring method
-        else: #!!! pocitam s tim ze je pouze method a submethod, osetrit aby se nemohlo stat nic jinyho
+        else: 
             try:
                 inst = getattr(objInst, method[2].strip())
             except Exception as e:

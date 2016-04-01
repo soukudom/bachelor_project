@@ -308,7 +308,9 @@ class ParseConfig(ParseFile):
                 #if it is sequence
                 else:
                     tmp = re.search(
-                        #!!! umi detekovat jen 3, dodelat to co to vraci
+                        #!!! it is able to detect only three sequence numbers
+                        #but I decided left this as correct feature
+                        #for longer sequence id key may be used
                         "(^[^0-9]*)([0-9][0-9]*,[0-9][0-9]*,[0-9][0-9]*)",
                         name)
                     if tmp is not None:

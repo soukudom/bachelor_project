@@ -417,3 +417,22 @@ Configuration closed by user.
 Authentication failed. Connection protocol 'NETCONF'
 Authentication failed. Connection protocol 'SSH'
 Authentication failed. Connection protocol 'SSH'
+while parsing a block collection
+  in "<unicode string>", line 55, column 9:
+            - int:
+            ^
+expected <block end>, but found '?'
+  in "<unicode string>", line 57, column 9:
+            vlan:
+            ^
+while parsing a block collection
+  in "<unicode string>", line 55, column 9:
+            - int:
+            ^
+expected <block end>, but found '?'
+  in "<unicode string>", line 60, column 9:
+            agregate:
+            ^
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'NETCONF'

@@ -43,7 +43,6 @@ class SSH(Protocol):
         self.conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy()) #does not care about known host
 
     def connect(self):
-        print("protocol SSH")
         try:
             #configure console
             self.conn_pre.connect(self.ip,

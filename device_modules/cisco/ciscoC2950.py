@@ -45,6 +45,7 @@ class vlan:
         self.connection = "auto"
         self.result = ["configure terminal"]
 
+    #!!! ten argument protocol a shutdown je tam asi navic
     def vlan(self, id="", description="", ip="", shutdown="",protocol=""):
         #slozite id
         if type(id) == type(list()):

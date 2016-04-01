@@ -53,15 +53,15 @@
     - name: ssl
     - interface:
         - int:
-            id: 10,11,12
-       # vlan:
-       #     mode: trunk
-       #     allowed: 10
-       # agregate:
-       #     channel: 2
-       #     mode: auto
-       #     protocol: pagp
-            shutdown: no
+            id: 15,5,18
+            vlan:
+                mode: trunk
+                allowed: 10
+            agregate:
+                channel: 3
+                mode: auto
+                protocol: pagp
+            #shutdown: no
     - vlan:
         - vlan:
             id: 89
