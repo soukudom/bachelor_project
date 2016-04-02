@@ -35,12 +35,15 @@ class vlan(c.vlan):
         self.interfaceCount = 28
         self.result = []
 
-    def vlan(self,id="",description="",ip="",shutdown=""):
+    def vlan(self,id="",description="",ip=""):
         self.result = super().vlan(id,description,ip,shutdown)
         self.result = makeNetconf(self.result)
         return self.result 
 
-    #def delete_vlan(self):
+    def delete_vlan(self,id):
+        self.result = super().delete_vlan(id)
+        self.result. = makeNetconf(self.result)
+        return selr.result
 
 class interface(c.interface):
     def __init__(self):

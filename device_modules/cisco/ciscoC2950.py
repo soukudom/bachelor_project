@@ -46,7 +46,7 @@ class vlan:
         self.result = ["configure terminal"]
 
     #!!! ten argument protocol a shutdown je tam asi navic
-    def vlan(self, id="", description="", ip="", shutdown="",protocol=""):
+    def vlan(self, id="", description="", ip=""):
         #slozite id
         if type(id) == type(list()):
             while id:
@@ -80,6 +80,16 @@ class vlan:
                 self.result.append("ip address {} {}".format(ip[0], ip[1]))
 
         return self.result
+
+    def delete_vlan(self,id):
+        if type(id) == type(list()):
+            while id:
+                self.result.append("no vlan {}".format(id[0]))
+                self.result.append("no interface vlan {}".format(id[0]))
+                id = id[1:]
+        else:
+            self.result.append("no vlan {}".format(id))
+            self.result.append("no interface vlan {}".format(id))
 
 
 class interface:
@@ -200,6 +210,11 @@ class interface:
 
         self.result.append("end")
         return self.result
+
+class save:
+    def __init__(self):
+        self.method = "SSH"
+        self.result = ["copy running-config startup-config"]
 
         #def default(self, id="", shutdown="", description=""):
         #    #result = ["configure terminal"]
