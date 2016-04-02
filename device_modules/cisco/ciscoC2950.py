@@ -38,6 +38,23 @@ class DefaultConnection:
         self.method = "SSH"
         self.connection = "auto"  #jestli se pripojuje modul nebo se to ma udelat automaticky
 
+#!!!do vlan potrebuju pridat name
+#!!!potrebuju udelat tridu agregate ktera bude vytvaret port-channel
+#!!!otestovat co se stane kdyz se posere nejakej modul -> vrati None nebo vyjimku
+class agregate:
+    def __init__(self):
+        self.result = ["configure terminal"]
+    
+    def channel(self,id=""):
+        if type(id) == type(list()):
+            while id:
+                self.result.append("interface port-channel {}".format(id[0]))
+                    id = id[1:]
+        else:
+            self.result.append("interface port-channel {}".format(id))
+        self.result.append("end")
+        return self.result
+
 
 class vlan:
     def __init__(self):
@@ -45,12 +62,26 @@ class vlan:
         self.connection = "auto"
         self.result = ["configure terminal"]
 
+    def vlan(self,id="",name=""):
+        if type(id) == type(list()):
+            while id:
+                self.result.append("vlan {}".format(id[0]))
+                if name:
+                    if type(name) == type(list()):
+                        self.result.append("name {}".format(name[0]))
+                        name = name[1:0]
+                    else:
+                        self.result.append("name {}".format(name))
+                id = id[1:]
+            self.result.append("end")
+            return self.result
+
     #!!! ten argument protocol a shutdown je tam asi navic
-    def vlan(self, id="", description="", ip=""):
+    def int_vlan(self, id="", description="", ip=""):
         #slozite id
         if type(id) == type(list()):
             while id:
-                self.result.append("interface vlan {}".format(id))
+                self.result.append("interface vlan {}".format(id[0]))
                 if description:
                     if type(description) == type(list()):
                         self.result.append("description {}".format(description[
@@ -78,7 +109,7 @@ class vlan:
                 if ip[1] == None:
                     return None
                 self.result.append("ip address {} {}".format(ip[0], ip[1]))
-
+        self.result.append("end")
         return self.result
 
     def delete_vlan(self,id):
@@ -90,7 +121,8 @@ class vlan:
         else:
             self.result.append("no vlan {}".format(id))
             self.result.append("no interface vlan {}".format(id))
-
+        self.result.append("end")
+        return self.result
 
 class interface:
     def __init__(self):
@@ -136,6 +168,7 @@ class interface:
                 self.result.append("shutdown")
                 self.result.append("no switchport mode")
                 self.result.append("no switchport trunk allowed vlan")
+                self.result.append("no channel-group")
                 id = id[1:]
         else:
             if id:
@@ -144,6 +177,7 @@ class interface:
                 self.result.append("shutdown")
                 self.result.append("no switchport mode")
                 self.result.append("no switchport trunk allowed vlan")
+                self.result.append("no channel-group")
         self.result.append("end")
         return self.result
 
@@ -202,7 +236,6 @@ class interface:
             if id:
                 self.result.append("interface FastEthernet 0/{}".format(id))
             if channel and mode:
-                mode = "on"
                 self.result.append("channel-group {} mode {}".format(channel,
                                                                  mode))
             if protocol:
