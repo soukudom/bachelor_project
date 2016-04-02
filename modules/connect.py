@@ -91,6 +91,7 @@ class SSH(Protocol):
                 if sleep_time > self.timeout:
                     raise Exception("Error: Timeout reached during device configuring.")
 
+            sleep_time = 0
             while self.conn.recv_ready():
                 #reads response
                 ot = self.conn.recv(
@@ -177,7 +178,6 @@ class NETCONF(Protocol):
         self.name = self.ch.set_name("netconf")
         self.ch.invoke_subsystem("netconf")
         self.ch.send(helloMessage)
-        print("poslal jsem hello message")
         #waits until any respond is received
        # while not self.ch.recv_ready():
        #     print("cyklus while")
@@ -191,7 +191,6 @@ class NETCONF(Protocol):
         time.sleep(0.5)
         while self.ch.recv_ready():
             data = self.ch.recv(2048).decode("utf-8")
-        print("obdrzel jsem data",data)
         #check message
         retVal = self.checkReply(data, "hello")
         if retVal == 1:
@@ -229,6 +228,11 @@ class NETCONF(Protocol):
         #waiting for response
         while not self.ch.recv_ready():
             time.sleep(0.1)
+            sleep_time += 0.1
+            if sleep_time > self.timeout:
+                raise Exception("Error: Timeout reached during device configuring.")
+
+        sleep_time = 0
         while self.ch.recv_ready():
             data += self.ch.recv(2048).decode("utf-8")
         #debug message

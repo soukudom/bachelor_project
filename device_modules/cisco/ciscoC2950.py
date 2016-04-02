@@ -38,9 +38,6 @@ class DefaultConnection:
         self.method = "SSH"
         self.connection = "auto"  #jestli se pripojuje modul nebo se to ma udelat automaticky
 
-#!!!do vlan potrebuju pridat name
-#!!!potrebuju udelat tridu agregate ktera bude vytvaret port-channel
-#!!!otestovat co se stane kdyz se posere nejakej modul -> vrati None nebo vyjimku
 class agregate:
     def __init__(self):
         self.result = ["configure terminal"]
@@ -49,11 +46,22 @@ class agregate:
         if type(id) == type(list()):
             while id:
                 self.result.append("interface port-channel {}".format(id[0]))
-                    id = id[1:]
+                id = id[1:]
         else:
             self.result.append("interface port-channel {}".format(id))
         self.result.append("end")
         return self.result
+    
+    def delete_channel(self,id=""):
+        if type(id) == type(list()):
+            while id:
+                self.result.append("no interface port-channel {}".format(id[0]))
+                id = id[1:]
+        else:
+            self.result.append("no interface port-channel {}".format(id))
+        self.result.append("end")
+        return self.result
+    
 
 
 class vlan:
@@ -69,14 +77,17 @@ class vlan:
                 if name:
                     if type(name) == type(list()):
                         self.result.append("name {}".format(name[0]))
-                        name = name[1:0]
+                        name = name[1:]
                     else:
                         self.result.append("name {}".format(name))
                 id = id[1:]
-            self.result.append("end")
-            return self.result
+        else:
+            self.result.append("vlan {}".format(id))
+            if name:
+                self.result.append("name {}".format(name))
+        self.result.append("end")
+        return self.result
 
-    #!!! ten argument protocol a shutdown je tam asi navic
     def int_vlan(self, id="", description="", ip=""):
         #slozite id
         if type(id) == type(list()):
@@ -90,7 +101,7 @@ class vlan:
                     else:
                         self.result.append("description {}".format(
                             description))
-                if ip:
+                if ip and type(ip) == type(str()):
                     ip = ip.split("/")
                     ip[1] = transformMask(ip[1])
                     if ip[1] == None:
@@ -167,6 +178,7 @@ class interface:
                 self.result.append("no description")
                 self.result.append("shutdown")
                 self.result.append("no switchport mode")
+                self.result.append("no switchport access vlan")
                 self.result.append("no switchport trunk allowed vlan")
                 self.result.append("no channel-group")
                 id = id[1:]
@@ -176,6 +188,7 @@ class interface:
                 self.result.append("no description")
                 self.result.append("shutdown")
                 self.result.append("no switchport mode")
+                self.result.append("no switchport access vlan")
                 self.result.append("no switchport trunk allowed vlan")
                 self.result.append("no channel-group")
         self.result.append("end")
@@ -246,8 +259,10 @@ class interface:
 
 class save:
     def __init__(self):
-        self.method = "SSH"
         self.result = ["copy running-config startup-config"]
+
+    def save_config(self,id=""):
+        return self.result
 
         #def default(self, id="", shutdown="", description=""):
         #    #result = ["configure terminal"]

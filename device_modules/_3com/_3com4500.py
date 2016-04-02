@@ -36,11 +36,23 @@ class agregate:
         if type(id) == type(list()):
             while id: 
                 self.result.append("link-aggregation group {} mode static".format(id[0]))
-                    id = id[1:]
+                id = id[1:]
         else:
             self.result.append("link-aggregation group {} mode static".format(id))
         self.result.append("return")
         return self.result
+
+    def delete_channel(self,id=""):
+        if type(id) == type(list()):
+            while id: 
+                self.result.append("undo link-aggregation group {}".format(id[0]))
+                id = id[1:]
+        else:
+            self.result.append("undo link-aggregation group {}".format(id))
+        self.result.append("return")
+        return self.result
+
+        
 
 class vlan:
     def __init__(self):
@@ -53,7 +65,7 @@ class vlan:
                 if name:
                     if type(name) == type(list()):
                         self.result.append("name {}".format(name[0]))
-                        name = name[1:0]
+                        name = name[1:]
                     else:
                         self.result.append("name {}".format(name))
                 id = id[1:]
@@ -71,7 +83,7 @@ class vlan:
                         description[1:]
                     else:
                         self.result.append("description {}".format(description))
-                if ip:
+                if ip and type(ip) == type(str()):
                     ip = ip.split("/")
                     ip[1] = transformMask(ip[1])
                     if ip[1] == None:
@@ -89,8 +101,8 @@ class vlan:
                 if ip[1] == None:
                     return None
                 self.result.append("ip address {} {}".format(ip[0],ip[1]))
-            self.result.append("return")
-            return self.result
+        self.result.append("return")
+        return self.result
 
     def delete_vlan(self,id):
         if type(id) == type(list()):
@@ -115,7 +127,7 @@ class interface:
                         self.result.append("description {}".format(description[0]))
                         description = description[1:]
                     else:
-                        self.result.append("description {}".format(description[0]))
+                        self.result.append("description {}".format(description))
                 if shutdown:
                     self.result.append("shutdown")
                 else:
@@ -139,16 +151,20 @@ class interface:
         if type(id) == type(list()):
             while id:
                 self.result.append("interface Ethernet1/0/{}".format(id[0]))
-                self.result.append("undo shutdown")
-                self.result.append("undo lacp")
-                self.result.append("undo port link-type")
+                self.result.append("undo description")
+                self.result.append("undo lacp enable")
+                self.result.append("undo port link-type") 
+                self.result.append("undo port link-aggregation group")
+                self.result.append("shutdown")
                 id = id[1:]
         else:
             if id:
                 self.result.append("interface Ethernet1/0/{}".format(id))
-                self.result.append("undo shutdown")
-                self.result.append("undo lacp")
+                self.result.append("undo description")
+                self.result.append("undo lacp enable")
                 self.result.append("undo port link-type")
+                self.result.append("undo port link-aggregation group")
+                self.result.append("shutdown")
         self.result.append("return")
         return self.result
 
@@ -178,7 +194,7 @@ class interface:
             if access:
                 self.result.append("port access vlan {}".format(access))
 
-        self.result.append("end")
+        self.result.append("return")
         return self.result
 
 

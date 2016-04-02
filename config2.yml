@@ -1,74 +1,57 @@
-#---
-#- group: 
-#    - name: ssh
+
+---
+#- group:
+#    - name: cisco:cli
 #    - interface:
-#        - int(2,10,2):
-#            description: AAAAAAAAAAAAAAAAAAAAAAAAAAAa
-#            shutdown: no
+#        - delete_int:
+#            id: (2,24,1)
+#        - int:
+#            id: 15,5,18
 #            vlan:
 #                mode: trunk
 #                allowed: 10
-#            #agregate:
-#            #    protocol: lacp
-#            #    channel: 1
-#            #    mode: negotiate
-#        #- int9:
-#        #    description: YYYYY
-#        - delete_int:
-#            id: (2,24,1)
+#            agregate:
+ #               channel: 3
+  #              mode: auto
+#                protocol: pagp
+#            shutdown: no
 #    - vlan:
-#        - vlan:
-#            id: 111
-#            description: private
-                
-#- group:
-#    - name: netconf
-#    - interface:
-#        - int5:
-#           shutdown: no
-    
+ #       - delete_vlan:
+ #           id: 20,45,47,69,78,88,123,2,25,45,55,59,67,69,78,89,111,100
+#            name: xxxVlanx
+#        - int_vlan:
+#            id: 78
+#            description: intVlanint
+#            ip: 4.2.3.5/30
+#    - agregate:
+#        - delete_channel:
+#            id: (1,6,1)
 
-#- group:
-#    - name: sin:48 
-
-#---
-#- interface:
-#    - int5:
-#        description: label
-#        shutdown: no
-    
-#- vlan:
-#    - vlan:
-#        id: 100
- #       description: dej
-
-#delete vlan, interface - udelat volbu except
-
-
----
-    #- interface:
-    #    - int6:
-    #        description: nazdar
 - group:
-    - name: ssl
-    - interface:
-        - int:
-            id: 15,5,18
-            vlan:
-                mode: trunk
-                allowed: 10
-            agregate:
-                channel: 3
-                mode: auto
-                protocol: pagp
-            #shutdown: no
+    - name: _3com
+    - agregate:
+        #- channel:
+        - delete_channel:
+            id: 12
+
     - vlan:
-        - vlan:
-            id: 89
-            description: pok89
-            ip: 4.2.3.5/30
-#- group:
-#    - name: ssl:ssh2
-#    - interface:
-#        - int(12,15,1):
-#            description: XXXXXXX
+        #- vlan:
+        - delete_vlan:
+            id: 50,60,70,80
+       # - int_vlan:
+       #     id: 50,60
+       #     description: intVlanint
+       #     ip: 4.2.3.5/30
+    - interface:
+        - delete_int:
+            id: (2,24,1)
+      #  - int:
+      #      id: 12
+      #      description: XXXXXXX
+      #      vlan:
+      #          mode: trunk
+      #          allowed: 20
+      #      agregate:
+      #          channel: 3
+      #          mode: auto
+      #          protocol: lacp

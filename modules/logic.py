@@ -135,7 +135,7 @@ class Orchestrate:
             except AttributeError as e:
                 self.protocol["timeout"] = 5
         else:
-            self.protocol["timeout"] = arguments["timeout"]
+            self.protocol["timeout"] = int(arguments["timeout"])
 
         if not arguments["community"]:
             try:
@@ -181,7 +181,7 @@ class Orchestrate:
             print("Error: Con not get configuration parse object from factory. Check the log file")
             self.write2log(str(e))
             sys.exit(2)
-
+        print(self.protocol)
         #prepare configuration data for configuring
         self.buildConfiguration()
         #run configuration
@@ -189,7 +189,12 @@ class Orchestrate:
 
     def setCredentials(self):
         username = input("Type your username:")             #username for authentication
-        password = getpass.getpass("Type your password:")   #password for authentication
+        #if input is read from user 
+        if sys.stdin.isatty():
+            password = getpass.getpass("Type your password:")   #password for authentication
+        #if input is inserted form cmd command
+        else:
+            password = sys.stdin.readline().rstrip()
         #save gained data to protocol dictionary
         self.protocol["username"] = username
         self.protocol["password"] = password
@@ -471,7 +476,7 @@ class Orchestrate:
                 if ret == 1:
                     return "Missing compulsory values.",dev[1],self.protocol["ip"]
                 elif ret == 2:
-                    return "Device module does not return any configuration data.",dev[1],protocol["ip"]
+                    return "Device module does not return any configuration data.",dev[1],self.protocol["ip"]
                 elif ret == 5:
                     return "Unable to do command.",dev[1], self.protocol["ip"]
 
@@ -544,7 +549,11 @@ class Orchestrate:
                     3], arg[-1]))
                 print("Closing device connection.")
                 self.conn.disconnect()
-                return 1
+                return 1 
+            except Exception as e:
+                print("Error: device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
+                self.conn.disconnect()
+                return 2
         #configuring method
         else:
             try:
@@ -569,6 +578,10 @@ class Orchestrate:
                 print("Closing device connection.")
                 self.conn.disconnect()
                 return 1
+            except Exception as e:
+                print("Error: device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
+                self.conn.disconnect()
+                return 2
         #checks if deviceSet (list of network device command) are empty
         #these command are returned by device module
         if deviceSet == None:
@@ -608,7 +621,11 @@ class Orchestrate:
                 if config_method == "hybrid":
                     print("Closing device connection.")
                     self.conn.disconnect()
-                return 1
+                return 1 
+            except Exception as e:
+                print("Error: device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
+                self.conn.disconnect()
+                return 2
         #configuring method
         else: 
             try:

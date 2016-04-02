@@ -1,0 +1,81 @@
+Wrong key in device file or character ':' missing.
+Wrong key in device file or character ':' missing.
+Wrong key in device file or character ':' missing.
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Method 'vlan' has no argument 'description'
+Method 'vlan' has no argument 'description'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Authentication failed. Connection protocol 'SSH'
+Error: Timeout reached during device configuring.
+Error: Timeout reached during device configuring.
+Bad format of manufactor name structure: 'None'
+Bad format of manufactor name structure: 'None'
+Bad format of manufactor name structure: 'None'
+Error: Timeout reached during device configuring.
+Error: Timeout reached during device configuring.
+Bad format of manufactor name structure: 'None'
+Bad format of manufactor name structure: 'None'
+Bad format of manufactor name structure: 'None'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Error: Timeout reached during device configuring.
+Error: Timeout reached during device configuring.
+Bad format of manufactor name structure: 'None'
+Name of manufactor module 'device_modules.3com.3com' does not exist.
+Bad format of manufactor name structure: 'None'
+Name of manufactor module 'device_modules.3com.3com' does not exist.
+Bad format of manufactor name structure: 'None'
+Name of manufactor module 'device_modules.3com.3com' does not exist.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Name of manufactor module 'device_modules._3com._3com' does not exist.
+Bad format of manufactor name structure: 'None'
+Name of manufactor module 'device_modules._3com._3com' does not exist.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Name of manufactor module 'device_modules._3com._3com' does not exist.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Bad format of manufactor name structure: 'None'
+Bad format of manufactor name structure: 'None'
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Configuration closed by user.
+Bad format of manufactor name structure: 'None'
+Authentication failed. Connection protocol 'SSH'
