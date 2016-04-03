@@ -360,9 +360,12 @@ class Orchestrate:
         print("*"*80)
         for res in result:
             print("*"*30)
-            print("* Device: {}".format(res[1]))
-            print("* Ip address: {}".format(res[2]))
-            print("* Status: {}".format(res[0]))
+            print("* \033[1mDevice:\033[0m {}".format(res[1]))
+            print("* \033[1mIp address:\033[0m {}".format(res[2]))
+            if res[0] == "OK":
+                print("* \033[1mStatus:\033[0m \033[32m{}\033[0m".format(res[0]))
+            else:
+                print("* \033[1mStatus:\033[0m \033[31m{}\033[0m".format(res[0]))
             print("*"*30)
         
         print("*"*80)

@@ -83,7 +83,7 @@ class SSH(Protocol):
             command = command.strip().strip("'")
             self.conn.send(command + '\n')
             if debug:
-                print("Sending:",command)
+                print("\033[34mSending:\033[0m",command)
             #waiting until response is not recieved
             while not self.conn.recv_ready():
                 time.sleep(0.3)
@@ -97,7 +97,7 @@ class SSH(Protocol):
                 ot = self.conn.recv(
                     5000)
                 if debug:
-                    print("Receiving:",ot)
+                    print("\033[31mReceiving:\033[0m",ot)
                 rec += str(ot)
                 time.sleep(0.3)
             else:
@@ -221,7 +221,7 @@ class NETCONF(Protocol):
         self.ch.send(message)
         #debug message
         if debug:
-            print("Sending:",message)
+            print("\033[33mSending:\033[0m",message)
         #waiting for response
         while not self.ch.recv_ready():
             time.sleep(0.1)
@@ -234,7 +234,7 @@ class NETCONF(Protocol):
             data += self.ch.recv(2048).decode("utf-8")
         #debug message
         if debug:
-            print("Receiving:",data)
+            print("\033[31mReceiving:\033[0m",data)
         retVal = self.checkReply(data, None)
 
         if retVal == 1:
@@ -297,7 +297,7 @@ class SNMP(Protocol):
                 cmdGen = cmdgen.CommandGenerator()
                 #debug message
                 if debug:
-                    print("Sending:",variable)
+                    print("\033[34mSending:\033[0m",variable)
                 errorIndication, errorStatus, errorIndex, varBinds = cmdGen.getCmd(
                     cmdgen.CommunityData(self.community),# security data, for snmp1,2 object which contains community string
                     #object which represents network path to device
