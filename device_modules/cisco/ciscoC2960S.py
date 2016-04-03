@@ -29,6 +29,18 @@ def changeInterfaceName(configuration):
 
     return configuration
 
+class agregate(c.agregate):
+    def __init__(self):
+        self.result = []
+
+    def channel(self,id=""):
+        self.result = super().channel(id)
+        self.result = makeNetconf(self.result)
+        return self.result
+
+    def delete_channel(self,id=""):
+        pass
+
 
 class vlan(c.vlan):
     def __init__(self):
@@ -36,6 +48,11 @@ class vlan(c.vlan):
         self.result = []
 
     def vlan(self,id="",description="",ip=""):
+        self.result = super().vlan(id,description,ip,shutdown)
+        self.result = makeNetconf(self.result)
+        return self.result 
+
+    def int_vlan(self,id="",description="",ip=""):
         self.result = super().vlan(id,description,ip,shutdown)
         self.result = makeNetconf(self.result)
         return self.result 
@@ -76,3 +93,9 @@ class interface(c.interface):
         self.result = makeNetconf(self.result)
         return self.result 
 
+class save(c.save):
+    def __init__(self):
+        self.result = []
+
+    def save_config(self,id="")
+        pass

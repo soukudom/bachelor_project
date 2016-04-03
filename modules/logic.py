@@ -181,7 +181,6 @@ class Orchestrate:
             print("Error: Con not get configuration parse object from factory. Check the log file")
             self.write2log(str(e))
             sys.exit(2)
-        print(self.protocol)
         #prepare configuration data for configuring
         self.buildConfiguration()
         #run configuration
@@ -216,16 +215,14 @@ class Orchestrate:
 
         #goes through all method and prepare it for paralel processing
         for method in methods:
-            print(method) #!!! print
+            #print(method) #!!! print
             #partial filtering
             if not self.partial in method and self.partial != None:
-                print("preskakuju")
                 continue
             try:
                 #parse device file with concrete groupname
                 #hosts format is {vendor: list(ip_addresses)}
                 hosts = self.device.parse(method[0])
-                print("cilovy hosti",hosts)
             except Exception as e:
                 print("Error during parsing device file. Check the log file.")
                 self.write2log(str(e))
@@ -281,7 +278,6 @@ class Orchestrate:
                         self.configuration[manufactor].append(method)
                     except:
                         self.configuration[manufactor] = [method]
-            print(self.configuration)
 
     def getManufactor(self, vendor):
         #imports default parse class for specific vendor
@@ -358,16 +354,20 @@ class Orchestrate:
     
         return (0,conn_method,config_method)
     def printResult(self,result):
-        #!!!pouzit naky specialni direktiry proto
-        print("*"*20)
+        print()
+        print("*"*80)
+        print("*****"*5 + "SUMMARY".center(30) + "*****"*5)
+        print("*"*80)
         for res in result:
-            print("*"*5)
-            print("Device: {}".format(res[1]))
-            print("Ip address: {}".format(res[2]))
-            print("Status: {}".format(res[0]))
-            print("*"*5)
+            print("*"*30)
+            print("* Device: {}".format(res[1]))
+            print("* Ip address: {}".format(res[2]))
+            print("* Status: {}".format(res[0]))
+            print("*"*30)
         
-        print("*"*20)
+        print("*"*80)
+        print("*****"*5 + "END".center(30) + "*****"*5)
+        print("*"*80)
         
 
     def doConfiguration(self):
@@ -424,7 +424,7 @@ class Orchestrate:
         self.config_method_def = None   #default configuration method
         conn_method = None              #local connection method
         config_method = None            #local configuration method
-        self.protocol["ip"] = dev[2]    #ip refresh #!!!uprava kvuli kontrolovani prubehu, zkontrolovat
+        self.protocol["ip"] = dev[2]    #ip refresh 
 
         #gets and checks default connection and configuration data
         importObj = self.importDefault(dev)

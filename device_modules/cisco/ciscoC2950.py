@@ -260,8 +260,9 @@ class interface:
 class save:
     def __init__(self):
         self.result = ["copy running-config startup-config"]
-
+    #!!!zjisti jestli ten parametr id povinej
     def save_config(self,id=""):
+        self.result.append("\n")
         return self.result
 
         #def default(self, id="", shutdown="", description=""):

@@ -175,7 +175,6 @@ class ParseDevice(ParseFile):
 
     #returns list of device according to the group
     def parse(self, group):
-        print("nactena data jsou ", self.data)
         hosts = [] # list with host which was found
         parsed_info = {} #parsed data form device file
         try:
@@ -230,7 +229,6 @@ class ParseDevice(ParseFile):
         except AttributeError:
             #in case of simple group name
             if type(info[0]) == type(str()):
-                print("attribute error return", info)
                 return self.checkHost(info)
             else:
                 print("Bad device file format.")

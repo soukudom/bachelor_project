@@ -219,3 +219,11 @@ class interface:
         self.result.append("return")
         return self.result
 
+class save:
+    def __init__(self):
+        self.result = ["save"]
+
+    def save_config(self,id=""):
+        self.result.append("y")
+        self.result.append("\n")
+        return self.result

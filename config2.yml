@@ -1,12 +1,12 @@
 
 ---
-#- group:
-#    - name: cisco:cli
-#    - interface:
+- group:
+    - name: cisco:cli
+    - interface:
 #        - delete_int:
 #            id: (2,24,1)
-#        - int:
-#            id: 15,5,18
+        - int:
+            id: 15,5,18
 #            vlan:
 #                mode: trunk
 #                allowed: 10
@@ -14,7 +14,7 @@
  #               channel: 3
   #              mode: auto
 #                protocol: pagp
-#            shutdown: no
+            shutdown: no
 #    - vlan:
  #       - delete_vlan:
  #           id: 20,45,47,69,78,88,123,2,25,45,55,59,67,69,78,89,111,100
@@ -29,24 +29,25 @@
 
 - group:
     - name: _3com
-    - agregate:
+    #- agregate:
         #- channel:
-        - delete_channel:
-            id: 12
+    #    - delete_channel:
+    #        id: 12
 
-    - vlan:
+    #- vlan:
         #- vlan:
-        - delete_vlan:
-            id: 50,60,70,80
+     #   - delete_vlan:
+     #       id: 50,60,70,80
        # - int_vlan:
        #     id: 50,60
        #     description: intVlanint
        #     ip: 4.2.3.5/30
     - interface:
-        - delete_int:
-            id: (2,24,1)
-      #  - int:
-      #      id: 12
+      #  - delete_int:
+      #      id: (2,24,1)
+        - int:
+            id: 12
+            shutdown: no
       #      description: XXXXXXX
       #      vlan:
       #          mode: trunk
