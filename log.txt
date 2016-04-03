@@ -79,3 +79,55 @@ Bad format of manufactor name structure: 'None'
 Configuration closed by user.
 Bad format of manufactor name structure: 'None'
 Authentication failed. Connection protocol 'SSH'
+Bad format of manufactor name structure: 'None'
+list indices must be integers, not str
+'NoneType' object is not iterable
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="3" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="3" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="2" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+while parsing a block collection
+  in "<unicode string>", line 73, column 9:
+            - int:
+            ^
+expected <block end>, but found '?'
+  in "<unicode string>", line 79, column 9:
+            -int :
+            ^
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="2" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+Error: Timeout reached during device configuring.
+Bad format of manufactor name structure: 'None'
+Error: Timeout reached during device configuring.
+Error: Timeout reached during device configuring.
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="4" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="4" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="2" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="2" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="2" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="2" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="2" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="2" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+Bad datatype. Datatype str is needed.
+Bad datatype. Datatype str is needed.
+Bad datatype. Datatype str is needed.
+Bad datatype. Datatype str is needed.
+Bad datatype. Datatype str is needed.
+Bad datatype. Datatype str is needed.
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="2" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="2" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+NETCONF: Problem with configuring command. <?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="2" xmlns="urn:ietf:params:netconf:base:1.0"><rpc-error><error-type>protocol</error-type><error-tag>operation-failed</error-tag><error-severity>error</error-severity></rpc-error></rpc-reply>]]>]]>
+
+Authentication failed. Connection protocol 'NETCONF'

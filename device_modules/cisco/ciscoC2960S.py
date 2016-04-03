@@ -25,7 +25,10 @@ def changeInterfaceName(configuration):
     for no,i in enumerate(configuration):
         if "interface" in i:
             tmp = i.split("/")
-            configuration[no] = "interface GigabitEthernet1/0/{}".format(tmp[1])
+            if "default" in tmp[0]:
+                configuration[no] = "default interface GigabitEthernet1/0/{}".format(tmp[1])
+            else:
+                configuration[no] = "interface GigabitEthernet1/0/{}".format(tmp[1])
 
     return configuration
 
@@ -39,7 +42,9 @@ class agregate(c.agregate):
         return self.result
 
     def delete_channel(self,id=""):
-        pass
+        self.result = super().delete_channel(id)
+        self.result = makeNetconf(self.result)
+        return self.result
 
 
 class vlan(c.vlan):
@@ -47,25 +52,25 @@ class vlan(c.vlan):
         self.interfaceCount = 28
         self.result = []
 
-    def vlan(self,id="",description="",ip=""):
-        self.result = super().vlan(id,description,ip,shutdown)
+    def vlan(self,id="",name=""):
+        self.result = super().vlan(id,name)
         self.result = makeNetconf(self.result)
         return self.result 
 
     def int_vlan(self,id="",description="",ip=""):
-        self.result = super().vlan(id,description,ip,shutdown)
+        self.result = super().int_vlan(id,description,ip)
         self.result = makeNetconf(self.result)
         return self.result 
 
     def delete_vlan(self,id):
         self.result = super().delete_vlan(id)
-        self.result. = makeNetconf(self.result)
+        self.result = makeNetconf(self.result)
         return selr.result
 
 class interface(c.interface):
     def __init__(self):
-      #  super().__init__()
         self.method = "NETCONF"
+        self.connection = "auto"
         self.interfaceCount = 28
         self.result = []
 
@@ -93,9 +98,10 @@ class interface(c.interface):
         self.result = makeNetconf(self.result)
         return self.result 
 
-class save(c.save):
+class save():
     def __init__(self):
         self.result = []
 
-    def save_config(self,id="")
-        pass
+    def save_config(self,id=""):
+        self.result = "<copy-config><target><startup/></target><source><running/></source></copy-config>"
+        return self.result

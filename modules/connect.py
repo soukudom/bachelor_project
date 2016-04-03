@@ -151,7 +151,6 @@ class NETCONF(Protocol):
         return 1
 
     def connect(self):
-        print("protocol NETCONF")
         #creates hello message
         root = etree.Element("hello")
         child = etree.SubElement(root, "capabilities")
@@ -161,12 +160,10 @@ class NETCONF(Protocol):
             root,
             xml_declaration=True,
             encoding="utf-8").decode("utf-8") + self.ending
-        print("postavil jsem hello message")
         #build socket at port 22
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.ip, 22))
 
-        print("postavil jsem socket")
         #set socket to transport and connect
         self.trans = paramiko.Transport(self.socket)
         self.trans.connect(username=self.username, password=self.password)

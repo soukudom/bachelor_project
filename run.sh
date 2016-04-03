@@ -1,3 +1,3 @@
 #!/bin/bash
 
-printf "root\nMazohi10\n" |  ./__main__.py -sf settings.yml
+printf "root\nMazohi10\n" |  ./__main__.py -sf settings.yml -d -t 5

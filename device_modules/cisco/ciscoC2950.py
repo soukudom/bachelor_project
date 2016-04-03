@@ -174,23 +174,27 @@ class interface:
     def delete_int(self, id=""):
         if type(id) == type(list()):
             while id:
+                self.result.append("default interface FastEthernet 0/{}".format(id[0]))
                 self.result.append("interface FastEthernet 0/{}".format(id[0]))
-                self.result.append("no description")
+        #        self.result.append("no description")
                 self.result.append("shutdown")
-                self.result.append("no switchport mode")
-                self.result.append("no switchport access vlan")
-                self.result.append("no switchport trunk allowed vlan")
-                self.result.append("no channel-group")
+        #        self.result.append("no switchport mode")
+        #        self.result.append("no switchport access vlan")
+        #        self.result.append("no switchport trunk allowed vlan")
+        #        self.result.append("no channel-protocol")
+        #        self.result.append("no channel-group")
                 id = id[1:]
         else:
             if id:
+                self.result.append("default interface FastEthernet 0/{}".format(id))
                 self.result.append("interface FastEthernet 0/{}".format(id))
-                self.result.append("no description")
+         #       self.result.append("no description")
                 self.result.append("shutdown")
-                self.result.append("no switchport mode")
-                self.result.append("no switchport access vlan")
-                self.result.append("no switchport trunk allowed vlan")
-                self.result.append("no channel-group")
+         #       self.result.append("no switchport mode")
+         #       self.result.append("no switchport access vlan")
+         #       self.result.append("no switchport trunk allowed vlan")
+         #       self.result.append("no channel-protocol")
+          #      self.result.append("no channel-group")
         self.result.append("end")
         return self.result
 
@@ -260,7 +264,6 @@ class interface:
 class save:
     def __init__(self):
         self.result = ["copy running-config startup-config"]
-    #!!!zjisti jestli ten parametr id povinej
     def save_config(self,id=""):
         self.result.append("\n")
         return self.result
