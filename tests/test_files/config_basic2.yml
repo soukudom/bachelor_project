@@ -1,0 +1,8 @@
+
+---
+- group:
+    - name: cisco
+    - interface:
+        - int:
+            id: 15
+            shutdown: no

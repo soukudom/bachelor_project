@@ -49,12 +49,12 @@
       #  - delete_int:
       #      id: (2,24,1)
         - int:
-            id: 12
+            id: 12,15,6
             shutdown: no
-      #      description: XXXXXXX
-      #      vlan:
-      #          mode: trunk
-      #          allowed: 20
+            description: XXXXXXX
+            vlan:
+                mode: trunk
+                allowed: 20
       #      agregate:
       #          channel: 3
       #          mode: auto

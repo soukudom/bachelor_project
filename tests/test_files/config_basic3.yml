@@ -1,0 +1,8 @@
+
+---
+- group:
+    - name: cisco:netconf
+    - interface:
+        - int:
+            id: 15
+            shutdown: no

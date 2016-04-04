@@ -69,9 +69,13 @@ class vlan:
                     else:
                         self.result.append("name {}".format(name))
                 id = id[1:]
-            self.result.append("return")
-            return self.result
-
+        else:
+            self.result.append("vlan {}".format(id))
+            if name:
+                self.result.append("name {}".format(name))
+        self.result.append("return")
+        return self.result
+            
 
     def int_vlan(self, id="",description="",ip=""):
         if type(id) == type(list()):

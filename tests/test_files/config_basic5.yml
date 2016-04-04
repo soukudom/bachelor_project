@@ -1,0 +1,18 @@
+
+---
+- group:
+    - name: _3com
+    - vlan:
+        - vlan:
+            id: 60
+            name: test
+        - int_vlan:
+            id: 60
+            description: test_int
+    - interface:
+        - int:
+            id: 15
+            shutdown: no
+            vlan:
+                mode: access
+                access: 60

@@ -4,6 +4,7 @@
 #Author: Dominik Soukup, soukudom@fit.cvut.cz
 #!!!pohrat si z chybovymi vypisy
 #!!!upravit vypisovy hlasky aby byly konkretnejsi, a vypisovat je na chybovej vystup a s lepsim formatovanim
+#!!!pokud se nepovede config tak v printResults vracet jinej navratovej kod
 import getpass
 import sys
 import os
@@ -97,10 +98,11 @@ class Orchestrate:
         else:
             deviceFile = arguments["deviceFile"]
 
+        print(arguments)
         if not arguments["log"]:
             try:
                 self.logFile = self.globalSettings.settingsData["log"]
-            except KeyError as e:
+            except AttributeError as e:
                 print("Log file has not been inserted")
                 print("Creating default log file...")
                 self.logFile = createDefName()
@@ -108,7 +110,7 @@ class Orchestrate:
                     print("Can not create log file.")
                     sys.exit(2)
                 print("Log file '{}' has been created.".format(self.logFile))
-            except AttributeError as e:
+            except KeyError as e:
                 print("Error: Unable to get compulsory config data")
                 sys.exit(2)
                     
@@ -258,16 +260,17 @@ class Orchestrate:
 
                     if manufactor == None:
                         print(
-                            "Getting manufactor name of '{}' no success".format(
+                            "Error: Getting manufactor name of '{}' no success. Skipping...".format(
                                 host))
-                        option = input(
-                            "Would you like to go to next device? [Y/n]")
-                        if option == "Y":
-                            continue
-                        else:
-                            print("Closing configuration...")
-                            self.write2log("Configuration closed by user.")
-                            sys.exit(3)
+                        self.write2log("Skipping device '{}', because module name was not found. Could be SNMP mistake or network temporary disconnection.".format(host))
+                        #option = input(
+                        #    "Would you like to go to next device? [Y/n]")
+                        #if option == "Y":
+                        continue
+                       # else:
+                       #     print("Closing configuration...")
+                       #     self.write2log("Configuration closed by user.")
+                       #     sys.exit(3)
 
                     #appends ip address of device to vendor name structure 
                     manufactor.append(host)
@@ -554,6 +557,7 @@ class Orchestrate:
                 self.conn.disconnect()
                 return 1 
             except Exception as e:
+                raise
                 print("Error: device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
                 self.conn.disconnect()
                 return 2
@@ -582,6 +586,7 @@ class Orchestrate:
                 self.conn.disconnect()
                 return 1
             except Exception as e:
+                raise
                 print("Error: device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
                 self.conn.disconnect()
                 return 2
@@ -626,6 +631,7 @@ class Orchestrate:
                     self.conn.disconnect()
                 return 1 
             except Exception as e:
+                raise
                 print("Error: device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
                 self.conn.disconnect()
                 return 2

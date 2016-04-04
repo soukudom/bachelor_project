@@ -1,0 +1,14 @@
+---
+#YAML global settings file
+#data are in key: value format
+
+community: sin              # community string
+configFile: tests/test_files/config10.yml    # path to the main configuration file
+deviceFile: tests/test_files/hosts.yml       # path to the device configuration file 
+log: log.txt                # program log file
+processCount: 5             # number of processes
+timeout: 5                  # timeout for network configuration protocols       
+debug: False                # debug messages 
+
+
+

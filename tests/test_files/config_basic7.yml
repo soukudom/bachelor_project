@@ -1,0 +1,16 @@
+
+---
+- group:
+    - name: cisco:cli
+    - vlan:
+       - vlan68:
+            name: vlan68
+- group:
+    - name: _3com
+    - interface:
+        - int5,6,7:
+            description: name
+    - interface(10,20,3):                 
+            description: otherName
+            
+            

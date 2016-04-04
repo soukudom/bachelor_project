@@ -1,0 +1,7 @@
+
+---
+- group:
+- interface:
+    - int:
+        id: 15
+        shutdown: no

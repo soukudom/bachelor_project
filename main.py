@@ -82,8 +82,8 @@ parser.add_argument("-sf",
 parser.add_argument("-l",
                     "--log",
                     help="File with logs",
-                    type=checkExist,
-                    default=None)
+                    type=checkExist, 
+                    default=None )
 parser.add_argument("-p",
                     "--partial",
                     help="Filter for specific group name.",

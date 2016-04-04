@@ -1,0 +1,13 @@
+
+---
+- group:
+    - name: cisco:cli
+    - interface:
+        - int:
+            id: 15,14,18,10
+            shutdown: no
+- group:
+    - name: cisco:netconf
+    - interface:
+        - delete_int:
+            id: (8,16,2)  

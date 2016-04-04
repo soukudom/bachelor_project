@@ -1,0 +1,22 @@
+
+---
+- group:
+    - name: cisco:netconf
+    #set vlans
+    - vlan:
+        - vlan:
+            id: 40,30,31,29,90
+        - int_vlan:
+            id: 40
+            description: intVlanint
+
+    #set agregation interface
+    - agregate:
+        - delete_channel:
+            id: (1,3,1)
+        - channel:
+            id: (1,5,1)
+
+    - save:
+        - save_config:
+            id: 1

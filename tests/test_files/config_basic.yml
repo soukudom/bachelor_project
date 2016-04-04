@@ -1,0 +1,6 @@
+
+---
+- interface:
+    - int:
+        id: 5
+        shutdown: no
