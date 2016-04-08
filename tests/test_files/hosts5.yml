@@ -1,0 +1,5 @@
+---
+cisco  :
+    netconf   :
+        - 10.10.110.233:CISCO
+

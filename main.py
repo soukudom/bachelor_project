@@ -12,15 +12,6 @@ import modules.logic
 #   2: input parameters error
 #   5: internal error
 
-#def getDefName(path):
-#    defName = "log.txt"
-#    number = 0
-#    content = os.listdir(path)
-#    while defName in content:
-#        defName = "log" + str(number + 1).zfill(3) + ".txt"
-#        number += 1
-#    return defName
-
 
 #def CheckPrivilege(val):
 #    path, name = os.path.split(val)
@@ -107,10 +98,6 @@ parser.add_argument("-d",
                     #default=None)
 
 args = parser.parse_args()
-#pokud neni zadoni nic, tak vyhodit help
-#if len(sys.argv) == 1:
-#    parser.print_help()
-#    sys.exit(1)
 
 #convert input data to dictionary
 data = vars(args)

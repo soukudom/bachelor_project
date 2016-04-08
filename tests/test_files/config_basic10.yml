@@ -1,0 +1,13 @@
+
+---
+- group:
+    - name: _3com
+    #set vlans
+    - vlan:
+        - vlan:
+            id: 40,30,31,29,90
+            name: user(A,B)x(1,2)
+        - int_vlan:
+            id: 40
+            description: intVlanint
+

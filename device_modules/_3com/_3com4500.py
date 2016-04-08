@@ -26,7 +26,7 @@ def transformMask(mask):
 
 class DefaultConnection:
     def __init__(self):
-        self.method = "SSH"
+        self.method = "CLI"
         self.connection = "auto"
 
 class agregate:

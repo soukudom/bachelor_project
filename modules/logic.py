@@ -4,7 +4,6 @@
 #Author: Dominik Soukup, soukudom@fit.cvut.cz
 #!!!pohrat si z chybovymi vypisy
 #!!!upravit vypisovy hlasky aby byly konkretnejsi, a vypisovat je na chybovej vystup a s lepsim formatovanim
-#!!!pokud se nepovede config tak v printResults vracet jinej navratovej kod
 import getpass
 import sys
 import os
@@ -14,12 +13,23 @@ import modules.connect as connect
 from paramiko.ssh_exception import AuthenticationException
 from multiprocessing import Pool, Process, Manager
 import time
+import signal
+
 
 #exit codes:
 #   1: file formating error
 #   2: file/parameter missing error
 #   3: closed by user 
+#   4: no devices to configure
 
+def signal_int(signal, frame):
+    print("\033[91m\033[1mInterupted\033[0m")
+    sys.exit(3)
+
+signal.signal(signal.SIGINT, signal_int)
+
+# \fn creates unique name for log.txt
+# \return file name
 def createDefName():
     defName = "log.txt"
     number = 0
@@ -35,15 +45,16 @@ def createDefName():
         return None
     return defName
 
-
+# \cl connects all together
 class Orchestrate:
+    # \fn implicit method
+    # \param argumets: values from command line 
     def __init__(self, arguments):
         #finding out settings file filename
         factory_tmp = factory.Factory()     #creation factory object  
         self.configuration = {}             #dictionary with device configuration data
         self.protocol = {}                  #dictionary with data necessary for configuration protocols
         self.conn = None                    #connection handler
-        #self.partial = arguments["partial"] #name for group filtering
 
         if arguments["settingsFile"]:
             self.settingsFile = arguments["settingsFile"]    #settings filename with global configuration data
@@ -53,20 +64,15 @@ class Orchestrate:
             self.globalSettings.parse("")       
         
             if type(self.globalSettings.settingsData) != type(dict()):
-                print("Error: Bad settings file '{}' format.".format(self.settingsFile))
-                #self.write2log("Bad settings file format. Please read manual for help.")
+                print("\033[31mError\033[0m: Bad settings file '{}' format.".format(self.settingsFile))
                 sys.exit(1)
 
         if not arguments["partial"]:
             try:
                 self.partial = self.globalSettings.settingsData["partial"]
             except KeyError as e:
-                #print("Error: Config file has not been inserted.") 
-                #sys.exit(2)
                 self.partial = None
             except AttributeError as e:
-                #print("Error: Unable to get compulsory config data")
-                #sys.exit(2)
                 self.partial = None
         else:
             self.partial = arguments["partial"] #name for group filtering
@@ -76,11 +82,10 @@ class Orchestrate:
             try:
                 configFile = self.globalSettings.settingsData["configFile"]
             except KeyError as e:
-                print("Error: Config file has not been inserted.")
-                #self.write2log("Config file has not been inserted. It is necessary to specify filename in settings file or in commandline.")
+                print("\033[31mError\033[0m: Config file has not been inserted.")
                 sys.exit(2)
             except AttributeError as e:
-                print("Error: Unable to get compulsory config data")
+                print("\033[31mError\033[0m: Unable to get compulsory config data")
                 sys.exit(2)
         else:
             configFile = arguments["configFile"]
@@ -89,16 +94,14 @@ class Orchestrate:
             try:
                 deviceFile = self.globalSettings.settingsData["deviceFile"]
             except KeyError as e:
-                print("Error: Device file has not been inserted.")
-                #self.write2log("Device file has not been inserted. It is necessary to specify filename int settings file or in commandline")
+                print("\033[31mError\033[0m: Device file has not been inserted.")
                 sys.exit(2)
             except AttributeError as e:
-                print("Error: Unable to get compulsory config data")
+                print("\033[31mError\033[0m: Unable to get compulsory config data")
                 sys.exit(2)
         else:
             deviceFile = arguments["deviceFile"]
 
-        print(arguments)
         if not arguments["log"]:
             try:
                 self.logFile = self.globalSettings.settingsData["log"]
@@ -111,7 +114,7 @@ class Orchestrate:
                     sys.exit(2)
                 print("Log file '{}' has been created.".format(self.logFile))
             except KeyError as e:
-                print("Error: Unable to get compulsory config data")
+                print("\033[31mError\033[0m: Unable to get compulsory config data")
                 sys.exit(2)
                     
         else:
@@ -144,10 +147,10 @@ class Orchestrate:
                 self.protocol["community"] = self.globalSettings.settingsData[
                     "community"]
             except KeyError as e:
-                print("Error: Community string has not been inserted.")
+                print("\033[31mError\033[0m: Community string has not been inserted.")
                 sys.exit(2)
             except AttributeError as e:
-                print("Error: Unable to get compulsory config data")
+                print("\033[31mError\033[0m: Unable to get compulsory config data")
                 sys.exit(2)
         else:
             self.protocol["community"] = arguments["community"]
@@ -158,7 +161,7 @@ class Orchestrate:
             except KeyError as e:
                 self.debug = None
             except AttributeError as e:
-                print("Error: Unable to get compulsory config data")
+                print("\033[31mError\033[0m: Unable to get compulsory config data")
                 sys.exit(2)
         else:   
             self.debug = arguments["debug"]
@@ -171,7 +174,7 @@ class Orchestrate:
                 deviceFile
             )                               #creation device parse object from factory
         except Exception as e:
-            print("Error: Can not get device parse object from factory. Check the log file.")
+            print("\033[31mError\033[0m: Can not get device parse object from factory. Check the log file.")
             self.write2log(str(e))
             sys.exit(2)
             
@@ -180,7 +183,7 @@ class Orchestrate:
                 configFile
             )                               #creation configuraton parse object from factory
         except Exception as e:
-            print("Error: Con not get configuration parse object from factory. Check the log file")
+            print("\033[31mError\033[0m: Can not get configuration parse object from factory. Check the log file")
             self.write2log(str(e))
             sys.exit(2)
         #prepare configuration data for configuring
@@ -188,6 +191,7 @@ class Orchestrate:
         #run configuration
         self.doConfiguration()
 
+    # \fn sets username and password for authentication on device
     def setCredentials(self):
         username = input("Type your username:")             #username for authentication
         #if input is read from user 
@@ -200,18 +204,19 @@ class Orchestrate:
         self.protocol["username"] = username
         self.protocol["password"] = password
 
+    # \fn builds configuration structure from parsed data
     def buildConfiguration(self):
         try:
             methods = self.config.parse("")  #parse configuration file
         except Exception as e:
             print(e)
-            print("Error during parsing configuration file. Check the log file.")
+            print("\033[31mError\033[0m: during parsing configuration file. Check the log file.")
             self.write2log(str(e))
             sys.exit(1)
 
         #basic data type check
         if type(methods) != type(list()):
-            print("Error during parsing configuration file. Check the log file.")
+            print("\033[31mError\033[0m: during parsing configuration file. Check the log file.")
             self.write2log("Return type must be list not {}".format(type(methods)))
             sys.exit(1)
 
@@ -226,13 +231,13 @@ class Orchestrate:
                 #hosts format is {vendor: list(ip_addresses)}
                 hosts = self.device.parse(method[0])
             except Exception as e:
-                print("Error during parsing device file. Check the log file.")
+                print("\033[31mError\033[0m: during parsing device file. Check the log file.")
                 self.write2log(str(e))
                 sys.exit(1)
 
             #basic datatype check
             if type(hosts) != type(dict()):
-                print("Error during parsing device file. Check the log file.")
+                print("\033[31mError\033[0m: during parsing device file. Check the log file.")
                 self.write2log("Return type must be dict not {}".format(type(hosts)))
                 sys.exit(1)
                 
@@ -240,7 +245,7 @@ class Orchestrate:
             for vendor in hosts:
                 #basic datatype check
                 if type(hosts[vendor]) != type(list()):
-                    print("Error during parsing device file. Check the log file.")
+                    print("\033[31mError\033[0m: during parsing device file. Check the log file.")
                     self.write2log("Return type must be in format {vendor: list(ip_addresses)}")
                     sys.exit(1)
 
@@ -260,7 +265,7 @@ class Orchestrate:
 
                     if manufactor == None:
                         print(
-                            "Error: Getting manufactor name of '{}' no success. Skipping...".format(
+                            "\033[31mError\033[0m: Getting manufactor name of '{}' no success. Skipping...".format(
                                 host))
                         self.write2log("Skipping device '{}', because module name was not found. Could be SNMP mistake or network temporary disconnection.".format(host))
                         #option = input(
@@ -282,6 +287,9 @@ class Orchestrate:
                     except:
                         self.configuration[manufactor] = [method]
 
+    # \fn gets name of device module
+    # \param vendor: name of vendor of the device
+    # \return device module name
     def getManufactor(self, vendor):
         #imports default parse class for specific vendor
         module = "device_modules.{}.{}".format(vendor, vendor)
@@ -289,7 +297,7 @@ class Orchestrate:
         try:
             importObj = importlib.import_module(module)
         except ImportError as e:
-            print("Error during importing '{}'".format(module))
+            print("\033[31mError\033[0m during importing '{}'".format(module))
             self.write2log("Name of manufactor module '{}' does not exist.".format(module))
             return None
         #import default class about vendor devices
@@ -312,9 +320,16 @@ class Orchestrate:
         return manufactor
 
 
+    # \fn connects to the device
+    # \fn conn_method: name of connection protocol
     def connect2device(self, conn_method):
         #finds out the type of connection method
-        conn = getattr(connect, conn_method)
+        try:
+            conn = getattr(connect, conn_method)
+        except AttributeError as e:
+            print("\033[31mError\033[0m: Unknow connection method '{}'.",conn_method)
+            self.write2log("Unknow connection method '{}' in device file".format(conn_method))
+            return "Connection failed.", "Unknown", self.protocol["ip"]
         self.conn = conn(self.protocol)
         try:
             self.conn.connect()
@@ -325,7 +340,9 @@ class Orchestrate:
                 "Authentication failed. Connection protocol '{}'".format(conn_method))
             return "Authentication failed.","Unknown",self.protocol["ip"]
 
-    #changes connection method according to device module value
+    # \fn changes connection method according to device module value
+    # \param conn_method: connection protocol name
+    # \param config_method: name of type of configuration :method
     def makeChange(self,conn_method, config_method):
         #default is hybrid or auto and manual is needed 
         if (self.config_method_def == "hybrid" or
@@ -356,6 +373,9 @@ class Orchestrate:
             return (0,self.conn_method_def, self.config_method_def)
     
         return (0,conn_method,config_method)
+
+    # \fn prints summary result
+    # \fn result: list of result data
     def printResult(self,result):
         print()
         print("*"*80)
@@ -376,6 +396,7 @@ class Orchestrate:
         print("*"*80)
         
 
+    # \fn does paralel device configuration 
     def doConfiguration(self):
         number_of_devices = len(self.configuration) #number of devices ready to be configured
         cnt = 0 #help variable for checking number of progress dots
@@ -384,6 +405,10 @@ class Orchestrate:
         if number_of_devices < int(self.process_count):
             self.process_count = number_of_devices
         print("Number of proceses: {}\n".format(self.process_count))
+        if number_of_devices == 0:
+            print("\033[31mError\033[0m: No devices for configuration")
+            print("Closing program...")
+            sys.exit(4)
         #preparing pararel configuration
         p = Pool(processes=int(self.process_count))
         m = Manager()
@@ -415,6 +440,8 @@ class Orchestrate:
             #4: Connection problem
             #5: Unable do command
 
+    # \fn writes log message to log file
+    # \param message: log message
     def write2log(self, message):
         try:
             #opens log file and writes message
@@ -423,8 +450,12 @@ class Orchestrate:
                 log.write("\n")
 
         except Exception as e:
-            print("Error: unable to access to log file '{}'".format(self.logfile))
+            print("\033[31mError\033[0m: unable to access to log file '{}'".format(self.logfile))
 
+    # \fn does configuration on device
+    # \param dev: list of configuration data
+    # \return result of operation
+    # function for one process
     def configureDevice(self, dev):
         self.conn_method_def = None     #default connection method
         self.config_method_def = None   #default configuration method
@@ -467,7 +498,7 @@ class Orchestrate:
             #changes connection settings according to local conf. and connect values
             tmp = self.makeChange(conn_method,config_method)
             if tmp[0] != 0:
-                print("Error: Error during changing configuration method.")
+                print("\033[31mError\033[0m: Error during changing configuration method.")
                 self.write2log("Unable to change connection and configuration method. Error in makeChange method.")
                 return tmp[1]
 
@@ -477,18 +508,18 @@ class Orchestrate:
         #imports method or submethod for auto configuration module
         #auto is automatic configuration without Protocol structure
             if config_method == "auto":
-                ret = self.importAuto(objInst,method,dev)
+                ret = self.importAuto(objInst,method,dev,conn_method,config_method)
                 #an error occured
                 if ret == 1:
                     return "Missing compulsory values.",dev[1],self.protocol["ip"]
                 elif ret == 2:
                     return "Device module does not return any configuration data.",dev[1],self.protocol["ip"]
                 elif ret == 5:
-                    return "Unable to do command.",dev[1], self.protocol["ip"]
+                    return "Unable to do some of commands.",dev[1], self.protocol["ip"]
 
             #if config method is manual or hybrid, dictionary Protocol is sent to device module
             elif config_method == "manual" or config_method == "hybrid":
-                ret = self.importWithProtocol(objInst,method,dev,config_method)
+                ret = self.importWithProtocol(objInst,method,dev,config_method,conn_method)
                 #error occured
                 if ret == 1:
                     return "Missing compulsory values.",dev[1],self.protocol["ip"]
@@ -509,15 +540,20 @@ class Orchestrate:
                 self.conn.disconnect()
             return "OK",dev[1],self.protocol["ip"]
         except Exception as e:
-            print("Error: Problem during disconnecting.")
+            print("\033[31mError\033[0m: Problem during disconnecting.")
             return "Closing session problem.",dev[1],self.protocol["ip"]
 
+    # \fn dynamicaly imports class from device module
+    # \param importObj: instace of imported module
+    # \param method: name of class name
+    # \param dev: device module name
+    # \return class instance or return code
     def classImport(self,importObj,method,dev):
         #call method class
         try:
             obj = getattr(importObj, method[1])
         except AttributeError as e:
-            print("\nError: Module 'device_module/{}/{}' has not class '{}'".format(
+            print("\n\033[31mError\033[0m: Module 'device_module/{}/{}' has not class '{}'".format(
                 dev[0], dev[1], method[1]))
             self.write2log("Module 'device_module/{}/{}' has not class '{}''".format(dev[0],dev[1],method[1]))
             print("\nClosing device connection...")
@@ -528,8 +564,17 @@ class Orchestrate:
 
         return objInst
 
-
-    def importAuto(self,objInst,method,dev):
+    # \fn dynamicaly imports method in auto mode
+    # \param objInst: class instace 
+    # \param method: method name
+    # \param dev: device module name
+    # \param conn_method: name of connection protocol
+    # \param config_method: configuring mode
+    # \return return code or none
+    def importAuto(self,objInst,method,dev,conn_method,config_method):
+        # check connection status
+        if self.conn is None:
+            self.connect2device(conn_method)
         #configurint submethod
         if method[3]:
             try:
@@ -558,7 +603,7 @@ class Orchestrate:
                 return 1 
             except Exception as e:
                 raise
-                print("Error: device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
+                print("\033[31mError\033[0m: device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
                 self.conn.disconnect()
                 return 2
         #configuring method
@@ -587,7 +632,7 @@ class Orchestrate:
                 return 1
             except Exception as e:
                 raise
-                print("Error: device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
+                print("\033[31mError\033[0m: device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
                 self.conn.disconnect()
                 return 2
         #checks if deviceSet (list of network device command) are empty
@@ -598,13 +643,23 @@ class Orchestrate:
         try:
             self.conn.doCommand(deviceSet,self.debug)
         except Exception as e:
-            print("Error: Unable to do commands. Check log.")
+            print("\033[31mError\033[0m: Unable to do some of commands. Check log.")
             self.write2log(str(e))
             return 5
 
         return None
 
-    def importWithProtocol(self,objInst,method,dev,config_method):
+    # \fn dynamicaly imports method in hybrid or manual mode
+    # \param objInst: class instace 
+    # \param method: method name
+    # \param dev: device module name
+    # \param conn_method: name of connection protocol
+    # \param config_method: configuring mode
+    # \return return code or none
+    def importWithProtocol(self,objInst,method,dev,config_method,conn_method):
+        #checkes connection status
+        if self.conn is None and config_method == "hybrid":
+            self.connect2device(conn_method)
         #configuring submethod
         if method[3]:
             try:
@@ -632,7 +687,7 @@ class Orchestrate:
                 return 1 
             except Exception as e:
                 raise
-                print("Error: device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
+                print("\033[31mError\033[0m: device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
                 self.conn.disconnect()
                 return 2
         #configuring method
@@ -667,18 +722,22 @@ class Orchestrate:
             try:
                 self.conn.doCommand(deviceSet,self.debug)
             except Exception as e:
-                print("Error: Unable to do commands.")
+                print("ERROR",e)
+                print("\033[31mError\033[0m: Unable to do some of commands. Check log.")
                 self.write2log(str(e))
                 return 1
         return None
 
+    # \fn dynamicaly imports default class
+    # \param dev: device module name
+    # \return return code or instace of module
     def importDefault(self,dev):
-        #build device modul name for import
+        #build device module name for import
         module = "device_modules.{}.{}".format(dev[0], dev[1])
         try:
             importObj = importlib.import_module(module)
         except ImportError as e:
-            print("Error during importing defaut device module '{}'".format(module))
+            print("\033[31mError\033[0m: during importing defaut device module '{}'".format(module))
             self.write2log("Device module '{}' does not exits".format(module))
             return 1
         #imports default class to get default configuratin device data

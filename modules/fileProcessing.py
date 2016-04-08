@@ -11,8 +11,10 @@ from itertools import product
 from copy import deepcopy
 from abc import ABCMeta, abstractmethod
 
-
+# \cl abstract parsing class
 class ParseFile(metaclass=ABCMeta):
+    # \fn implicit method
+    # \param filename: name of file
     def __init__(self, filename):
         #file checking if filename was loaded from settings file
         try:
@@ -28,12 +30,17 @@ class ParseFile(metaclass=ABCMeta):
         except TypeError as e:
             raise Exception("Invalid file '{}'".format(filename))
 
+    # \fn parses file
+    # \param filter: name of namespace
     @abstractmethod
     def parse(self, filter):
         pass
 
-
+# \cl parses device file
 class ParseDevice(ParseFile):
+    
+    # \fn implicit method
+    # \param filename: name of file
     def __init__(self, filename):
         #calling parents constructor
         super().__init__(filename)
@@ -46,11 +53,13 @@ class ParseDevice(ParseFile):
                     docu += i
             self.data = yaml.load(docu)
         except yaml.YAMLError as e:
-            print("Error: Mistake in YAML syntax in '{}'".format(filename))
+            print("\033[31mError\033[0m: Mistake in YAML syntax in '{}'".format(filename))
             print("For more infomation check log file")
             raise Exception(str(e))
 
-    #checkes ip address format and unpack abbreviations
+    # \fn checkes ip address format and unpack abbreviations
+    # \param hosts: list of host in format ip:vendor
+    # \returns list of ip addresses or exception
     def checkHost(self, hosts):
         configHost = {}  #result dictionary with concrete hosts and vendor(vendor is key)
         #go throught hosts
@@ -66,7 +75,7 @@ class ParseDevice(ParseFile):
                 if len(host) == 2:
                     try:
                         if host[0] in configHost[host[1]]:
-                            print("Error: Duplicit ip address")
+                            print("\033[31mError\033[0m: Duplicit ip address")
                             raise Exception("Duplicit ip address.")
                         configHost[host[1]].append(host[0])
                     #if the record is new
@@ -75,7 +84,7 @@ class ParseDevice(ParseFile):
                         configHost[host[1]].append(host[0])
                 #manufactor was not inserted
                 else:
-                    print("Error: The manufactor was not specified in device file")
+                    print("\033[31mError\033[0m: The manufactor was not specified in device file")
                     raise("The manufactor was not specified in device file")
 
             #unpack some abbreviations
@@ -86,7 +95,7 @@ class ParseDevice(ParseFile):
                 parts = host[0].split(".")
                 #check the form of ip address
                 if len(parts) != 4:
-                    print("Error: Invalid ip address, too less items")
+                    print("\033[31mError\033[0m: Invalid ip address, too less items")
                     raise Exception("Invalid ip address, too less items.")
                 #checking individual octets
                 for part in parts:
@@ -127,7 +136,7 @@ class ParseDevice(ParseFile):
                                     try:
                                         int(i)
                                     except ValueError:
-                                        print("Error: Bad value in sekvence")
+                                        print("\033[31mError\033[0m: Bad value in sekvence")
                                         raise Exception("Bad value in sequece.")
                                     res2.append(ip + "." + str(i))
                             res = res2
@@ -136,7 +145,7 @@ class ParseDevice(ParseFile):
                                 try:
                                     int(i)
                                 except ValueError:
-                                    print("Error: Bad value in sekvence")
+                                    print("\033[31mError\033[0m: Bad value in sekvence")
                                     raise Exception("Bad value in sequence.")
                                 res.append(tmp + "." + str(i))
                         else:
@@ -161,7 +170,7 @@ class ParseDevice(ParseFile):
                     for ip in res:
                         try:
                             if ip in configHost[host[1]]:
-                                print("Error: Duplicit ip address")
+                                print("\033[31mError\033[0m: Duplicit ip address")
                                 raise Exception("Duplicit ip address.")
                             configHost[host[1]].append(ip)
                         except KeyError:
@@ -169,11 +178,13 @@ class ParseDevice(ParseFile):
                             configHost[host[1]].append(ip)
                 #manufactor was not inserted
                 else:
-                    print("Error: The manufactor was not specified")
+                    print("\033[31mError\033[0m: The manufactor was not specified")
                     raise Exception("The manufactor was not specified.")
         return configHost
 
-    #returns list of device according to the group
+    # \fn parses file
+    # \param group: name of namespace
+    # \return list of device according to the group or exception
     def parse(self, group):
         hosts = [] # list with host which was found
         parsed_info = {} #parsed data form device file
@@ -206,12 +217,6 @@ class ParseDevice(ParseFile):
 
         try:
             #recursive parsing
-
-            #while ((type(list(info.values())[0])) == type(dict())):
-            #    #in case of group hierarchy
-             #   parsed_info,key = self.loop(info)
-             #   del info[key]
-             #   #print("novy infor je",info, type(list(info.values())[0]))
             #parsing data structure from device file
             while info:
                 #in case of group hierarchy
@@ -242,16 +247,19 @@ class ParseDevice(ParseFile):
                 hosts.append(sz)
         return self.checkHost(hosts)
 
-    #recursive loop in case of hierarchy group
+    # \fn recersive parsing
+    # \param info: loaded data from file
     def loop(self, info):
-        #it = info.values().__iter__()
-        #pom = it.__next__()
         it = info.items().__iter__()
         key,pom = it.__next__()
         return pom,key
 
 
+# \cl parses configuration file
 class ParseConfig(ParseFile):
+
+    # \fn implicit method
+    # \param filename: name of file
     #loads config file and does YAML format check
     def __init__(self, filename):
         super().__init__(filename)
@@ -267,7 +275,9 @@ class ParseConfig(ParseFile):
             print("For more infomation check log file")
             raise Exception(e)
 
-    #parses single parts of config file and checks syntax
+    # \fn parses configuration file
+    # \param filter: name of namespace
+    # \return list of method to be configured
     def parse(self, filter):
         self.groupName = ""     # name of actual groupname in which I am during parsing
         self.className = ""     # name of actual classname is which I am during parsing
@@ -280,7 +290,8 @@ class ParseConfig(ParseFile):
         self.loop(self.data, False, False, False, False, 0, None)
         return self.methods
 
-    #checkes and upackes id value
+    # \fn checkes and upackes id value
+    # \return name: tuple (idNum,name,index)
     def checkId(self, name):
         ret = []    #temp variable
         buffer = [] #temp variable
@@ -324,7 +335,9 @@ class ParseConfig(ParseFile):
             tmp = "".join(buffer)
             return int(tmp), name.split(tmp)[0], tmp #idNum, name, index
 
-    #unpackes abbreviation data
+    # \fn unpackes abbreviation data
+    # \param value: abbreviated value
+    # \return list of unpacked data
     def unpack(self,value):
         ret = []  # navratova hodnota
         #test the abbreviation
@@ -339,20 +352,21 @@ class ParseConfig(ParseFile):
                     ret.append(i)
                 return ret  #, True
 
-            # pokud se jedna o nazev se sekvenci
+            #name with range abbreviation
             elif re.search("\(.*?\)", str(value)):
-                print("UNPACK S TADY S TOU ZKRATKOU JSEM NEPOCITAL")
-            #    buffer = []
-            #    # reg vyraz pro rozdelini retezce podle vice znaku
-            #    tmp = re.split("\(|\)", value)
-            #    for i in tmp[:-1]:
-            #        if "," in i:
-            #            buffer.append(i.split(","))
-            #        else:
-            #            buffer.append([i])
-            #    for i in product(*buffer):
-            #        ret.append(''.join(i))
-            #    return ret  #, True
+                buffer = []
+                #split according to brackets, there can be more brackets
+                tmp = re.split("\(|\)", value)
+                for i in reversed(tmp):
+                    if "," in i:
+                        buffer.append(i.split(","))
+                    else:
+                        buffer.append([i])
+                buffer.reverse()
+                #string combining
+                for i in product(*buffer):
+                    ret.append(''.join(i))
+                return ret  #, True
 
             #sequence abbreviation 
             elif "," in str(value):
@@ -369,7 +383,14 @@ class ParseConfig(ParseFile):
         except AttributeError:
             return value  #, False
 
-    #def rekurze(self, data, group, class_, method, subMethod, groupNum, idNum):
+    # \fn recursion parsing method 
+    # \param data: values from configuration file
+    # \param group: name of actual group name (in current recursion level)
+    # \param class_: name of actual class name
+    # \param method: name of actual method
+    # \param subMethod: name of actual subMethod
+    # \param idNum: id values for next recursion level
+    # \return none
     def loop(self, data, group, class_, method, subMethod, groupNum, idNum):
         groupLevel = group  #flag, which tells if group should be cut
         groupNumber = groupNum  # number of cut items
@@ -412,8 +433,6 @@ class ParseConfig(ParseFile):
                     #save groupNumber, name and delete unnecessary group name
                     groupNumber = len(str(i["group"][0]["name"]).split(":"))
                     del i["group"][0]["name"]
-                    #self.rekurze(i["group"], True, False, False, False,
-                    #             groupNumber, None)
                     self.loop(i["group"], True, False, False, False,
                                  groupNumber, None)
                 # branch for parsing class and method name
@@ -430,15 +449,10 @@ class ParseConfig(ParseFile):
                         idNum, name, index = self.checkId(self.methodName)
                         if idNum:
                             self.methodName = name.strip()
-                            #self.rekurze(i[self.methodName + index], False,
-                            #             False, True, False, groupNumber,
-                            #             idNum)
                             self.loop(i[self.methodName + index], False,
                                          False, True, False, groupNumber,
                                          idNum)
                         else:
-                            #self.rekurze(i[self.methodName], False, False,
-                            #             True, False, groupNumber, idNum)
                             self.loop(i[self.methodName], False, False,
                                          True, False, groupNumber, idNum)
 
@@ -491,14 +505,20 @@ class ParseConfig(ParseFile):
             subMethod = False
 
 
+# \cl parses device file
 #finds out the global setting for program
 class ParseSettings(ParseFile):
+
+    # \fn implicit method
+    # \param filename: name of file
     def __init__(self, filename):
         super().__init__(filename)
         self.filename = filename
         self.settingsData = {} #parsed YAML file to Python structure
 
-    #loads data from file
+    # \fn parses settings file
+    # \param fileter: name of namespace
+    # \return dict with settings data or exception
     def parse(self, filter):
         docu = "" #loaded data from YAML file 
         try:
@@ -511,7 +531,7 @@ class ParseSettings(ParseFile):
             print("Bad YAML formating in '{}'".format(self.filename))
             raise Exception("Bad YAML formatting in '{}'".format(self.filename))
 
-        #kontrola udaju
+        #ip address check
         #address, mask = self.settingsData["network"].split("/")
         ##print("testuju", type(address.strip()),"*")
         #if not re.match("^([1-9][0-9]{0,2}\.){3}[0-9]{0,3}$", address.strip()):

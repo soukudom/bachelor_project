@@ -11,27 +11,31 @@ import socket
 from abc import ABCMeta, abstractmethod
 from lxml import etree
 
-#!otestovat pokud zarizeni danej protokol nepodporuje
-
-
+# \cl protocol abstract class
 class Protocol(metaclass=ABCMeta):
+    # \fn implicit method
+    # \param Protocol: dictionary with network atributes
     def __init__(self, protocol):
         pass
-
+    
+    # \fn connects to the device
     @abstractmethod
     def connect(self):
         pass
 
+    # \fn diconnects from the device
     @abstractmethod
     def disconnect(self):
         pass
 
+    # \fn does commands on the device
     @abstractmethod
     def doCommand(self, command, debug):
         pass
 
-
-class SSH(Protocol):
+# \cl CLI configuration class
+# \param Protocol: dictionary with network atributes 
+class CLI(Protocol):
     def __init__(self, protocol):  
         self.username = protocol["username"]    #username for authentication
         self.password = protocol["password"]    #password for authentication
@@ -42,6 +46,8 @@ class SSH(Protocol):
         self.conn_pre = paramiko.SSHClient()    #remote console configuration
         self.conn_pre.set_missing_host_key_policy(paramiko.AutoAddPolicy()) #does not care about known host
 
+    # \fn connects on the device
+    # \return connection prompt
     def connect(self):
         try:
             #configure console
@@ -67,11 +73,17 @@ class SSH(Protocol):
             time.sleep(0.3)
         return output
 
+    # \fn disconnects from the device
+    # \return none
     def disconnect(self):
         #closes connection
         self.conn_pre.close()
         return None
 
+    # \fn does commands on the device
+    # \param commands: command string
+    # \param debug: sets debug mode
+    # \return received data or exception
     def doCommand(self, commands, debug=""):
         sleep_time = 0 # temp variable for timeout checking
 
@@ -106,6 +118,8 @@ class SSH(Protocol):
         return self.result
 
 
+# \cl NETCONF configuration class
+# \param Protocol: dictionary with network atributes 
 class NETCONF(Protocol):
     def __init__(self, protocol):
         self.ip = protocol["ip"]                #ip address of device
@@ -150,6 +164,8 @@ class NETCONF(Protocol):
                     return 0
         return 1
 
+    # \fn connects on the device
+    # \return connection prompt or raise exception
     def connect(self):
         #creates hello message
         root = etree.Element("hello")
@@ -196,6 +212,10 @@ class NETCONF(Protocol):
         else:
             return data
 
+    # \fn does commands on the device
+    # \param commands: command string
+    # \param debug: sets debug mode
+    # \return received data or exception
     def doCommand(self, command, debug=""):
         sleep_time = 0 # temp variable for timeout checking
 
@@ -221,7 +241,7 @@ class NETCONF(Protocol):
         self.ch.send(message)
         #debug message
         if debug:
-            print("\033[33mSending:\033[0m",message)
+            print("\033[34mSending:\033[0m",message)
         #waiting for response
         while not self.ch.recv_ready():
             time.sleep(0.1)
@@ -244,6 +264,8 @@ class NETCONF(Protocol):
             return data
 
 
+    # \fn disconnects from the device
+    # \return none
     def disconnect(self):
         #same message building like above
         self.message_id += 1
@@ -274,6 +296,8 @@ class NETCONF(Protocol):
         return None
 
 
+# \cl SNMP configuration class
+# \param Protocol: dictionary with network atributes 
 class SNMP(Protocol):
     def __init__(self, protocol):
         self.ip = protocol["ip"]                    #ip address of device
@@ -281,6 +305,10 @@ class SNMP(Protocol):
         self.method_type = protocol["method_type"]  #snmp method type
         self.timeout = protocol["timeout"]          #connection timeout
 
+    # \fn does commands on the device
+    # \param commands: command string
+    # \param debug: sets debug mode
+    # \return none or exception
     def doCommand(self, mibVariables, debug=""):
         #mibVariables are list of snmp commands
         if type(mibVariables) != type(list()):
@@ -324,6 +352,8 @@ class SNMP(Protocol):
                 print("Error: Operation is not implemented")
                 raise Exception("Operation '{}' is not implemented".format(self.method_type))
 
+    # \fn connects on the device
+    # \return empty string or raise exception
     def connect(self):
         #checkes up username and password by trying get the sysDescr variable
         tmp = self.method_type
@@ -338,5 +368,7 @@ class SNMP(Protocol):
             self.method_type = tmp
         return ""
 
+    # \fn disconnects from the device
+    # \return none
     def disconnect(self):
         return None

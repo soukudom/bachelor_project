@@ -1,0 +1,12 @@
+
+---
+- group:
+    - name: cisco:cli
+    - vlan:
+        - vlan:
+            id: 60
+            name: hokPok
+    - interface:
+        - int:
+            id: 8
+            shutdown: yes

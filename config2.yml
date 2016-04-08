@@ -37,24 +37,25 @@
     #    - delete_channel:
     #        id: 12
 
-    #- vlan:
-        #- vlan:
+    - vlan:
+        - vlan:
      #   - delete_vlan:
-     #       id: 50,60,70,80
+            id: 50,60,70,80
+            name: (1,2)usr(10,15,1)X
        # - int_vlan:
        #     id: 50,60
        #     description: intVlanint
        #     ip: 4.2.3.5/30
-    - interface:
+    #- interface:
       #  - delete_int:
       #      id: (2,24,1)
-        - int:
-            id: 12,15,6
-            shutdown: no
-            description: XXXXXXX
-            vlan:
-                mode: trunk
-                allowed: 20
+      #  - int:
+      #      id: 12,15,6
+      #      shutdown: no
+      #      description: XXXXXXX
+      #      vlan:
+      #          mode: trunk
+      #          allowed: 20
       #      agregate:
       #          channel: 3
       #          mode: auto
