@@ -15,7 +15,6 @@ from multiprocessing import Pool, Process, Manager
 import time
 import signal
 
-
 #exit codes:
 #   1: file formating error
 #   2: file/parameter missing error
@@ -222,7 +221,6 @@ class Orchestrate:
 
         #goes through all method and prepare it for paralel processing
         for method in methods:
-            #print(method) #!!! print
             #partial filtering
             if not self.partial in method and self.partial != None:
                 continue
@@ -268,14 +266,7 @@ class Orchestrate:
                             "\033[31mError\033[0m: Getting manufactor name of '{}' no success. Skipping...".format(
                                 host))
                         self.write2log("Skipping device '{}', because module name was not found. Could be SNMP mistake or network temporary disconnection.".format(host))
-                        #option = input(
-                        #    "Would you like to go to next device? [Y/n]")
-                        #if option == "Y":
                         continue
-                       # else:
-                       #     print("Closing configuration...")
-                       #     self.write2log("Configuration closed by user.")
-                       #     sys.exit(3)
 
                     #appends ip address of device to vendor name structure 
                     manufactor.append(host)
@@ -469,7 +460,6 @@ class Orchestrate:
         if type(importObj) == type(int()):
             if importObj == 1:
                 return "Missing compulsory values.",dev[1],self.protocol["ip"]
-            #return importObj
 
         #connect to the device according to the method
         if self.config_method_def == "auto" or self.config_method_def == "hybrid":
@@ -526,7 +516,6 @@ class Orchestrate:
                 elif ret == 2:
                     return "Device module does not return any configuration data.",dev[1],protocol["ip"] 
             else:
-                #return 3
                 return "Configuration method is not valid.",dev[1], self.protocol["ip"]
 
             #reset local connection and configuration settings

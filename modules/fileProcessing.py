@@ -184,7 +184,7 @@ class ParseDevice(ParseFile):
 
     # \fn parses file
     # \param group: name of namespace
-    # \return list of device according to the group or exception
+    # \return dictionary of device according to the group or exception
     def parse(self, group):
         hosts = [] # list with host which was found
         parsed_info = {} #parsed data form device file
@@ -518,7 +518,7 @@ class ParseSettings(ParseFile):
 
     # \fn parses settings file
     # \param fileter: name of namespace
-    # \return dict with settings data or exception
+    # \return dictionary with settings data or exception
     def parse(self, filter):
         docu = "" #loaded data from YAML file 
         try:
