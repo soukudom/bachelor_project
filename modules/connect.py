@@ -61,12 +61,8 @@ class CLI(Protocol):
             raise Exception("Authentication failed")
         #invoke command line
         self.conn = self.conn_pre.invoke_shell()
+        #waits until connection is not established
         time.sleep(0.5)
-        ##!!! z nakyho duvodu to nefunguje jestu protestovat
-        #wait until connection is not established
-        #while not self.con.recv_ready():
-        #    print("neni ready")
-        #    time.sleep(0.3)
 
         while self.conn.recv_ready():
             output = self.conn.recv(2048)
@@ -192,15 +188,7 @@ class NETCONF(Protocol):
         self.ch.invoke_subsystem("netconf")
         self.ch.send(helloMessage)
         #waits until any respond is received
-       # while not self.ch.recv_ready():
-       #     print("cyklus while")
-       #     time.sleep(0.1)
-       #     sleep_time += 0.1
-       #     print("dalsi radek")
-       #     if sleep_time > self.timeout:
-       #         print("vyjimka")
-       #         raise Exception("Error: Timeout reached during device configuring.")
-       # print("dostal jsem nejaka data")
+
         time.sleep(0.5)
         while self.ch.recv_ready():
             data = self.ch.recv(2048).decode("utf-8")
