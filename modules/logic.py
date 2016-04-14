@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #Author: Dominik Soukup, soukudom@fit.cvut.cz
-#!!!pohrat si z chybovymi vypisy
-#!!!upravit vypisovy hlasky aby byly konkretnejsi, a vypisovat je na chybovej vystup a s lepsim formatovanim
+
 import getpass
 import sys
 import os

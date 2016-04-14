@@ -97,7 +97,7 @@ class CLI(Protocol):
                 time.sleep(0.3)
                 sleep_time += 0.3
                 if sleep_time > self.timeout:
-                    raise Exception("Error: Timeout reached during device configuring.")
+                    raise Exception("\033[31mError\033[0m: Timeout reached during device configuring.")
 
             sleep_time = 0
             while self.conn.recv_ready():
@@ -209,6 +209,11 @@ class NETCONF(Protocol):
 
         if type(command) != type(str()):
             raise Exception("Bad datatype. Datatype str is needed.")
+        
+        #if type(command) != type(list()):
+        #    raise Exception("Bad datatype. Datatype str is needed.")
+        #for command in commands:
+            
         #raises message id according to rfc
         self.message_id += 1
         data = ""  #variable which contains received data
@@ -235,7 +240,7 @@ class NETCONF(Protocol):
             time.sleep(0.1)
             sleep_time += 0.1
             if sleep_time > self.timeout:
-                raise Exception("Error: Timeout reached during device configuring.")
+                raise Exception("\033[31mError\033[0m: Timeout reached during device configuring.")
 
         sleep_time = 0
         while self.ch.recv_ready():
@@ -246,7 +251,7 @@ class NETCONF(Protocol):
         retVal = self.checkReply(data, None)
 
         if retVal == 1:
-            print("Error: in netconf message. Check log.")
+            print("\033[31mError\033[0m: in netconf message. Check log.")
             raise Exception("NETCONF: Problem with configuring command. {}".format(data))
         else:
             return data
@@ -274,7 +279,7 @@ class NETCONF(Protocol):
 
         retVal = self.checkReply(data, None)
         if retVal == 1:
-            print("Error: during closing netconf session")
+            print("\033[31mError\033[0m: during closing netconf session")
             raise Exeption("NETCONF: Problem with closing session", data)
         
         #closes connection session
@@ -337,7 +342,7 @@ class SNMP(Protocol):
                     for name, val in varBinds:
                         return val.prettyPrint()
             else:
-                print("Error: Operation is not implemented")
+                print("\033[31mError\033[0m: Operation is not implemented")
                 raise Exception("Operation '{}' is not implemented".format(self.method_type))
 
     # \fn connects on the device

@@ -20,7 +20,6 @@ def makeNetconf(commands):
         child211 = etree.SubElement(child21,"cmd")
         child211.text = cmd
 
-#    print(etree.tostring(root,pretty_print=True,encoding="utf-8").decode("utf-8"))
     res = (etree.tostring(root,encoding="utf-8").decode("utf-8"))
     return res
 
