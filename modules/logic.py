@@ -40,7 +40,7 @@ def createDefName():
         with open(defName, encoding="utf-8", mode="w") as f:
             pass
     except Exception as e:
-        print("Can not create '{}' file.".format(defName))
+        print("Can not create '{}' file. Some error occured.".format(defName))
         return None
     return defName
 
@@ -84,7 +84,7 @@ class Orchestrate:
                 print("\033[31mError\033[0m: Config file has not been inserted.")
                 sys.exit(2)
             except AttributeError as e:
-                print("\033[31mError\033[0m: Unable to get compulsory config data")
+                print("\033[31mError\033[0m: Unable to get compulsory config data - config file")
                 sys.exit(2)
         else:
             configFile = arguments["configFile"]
@@ -96,7 +96,7 @@ class Orchestrate:
                 print("\033[31mError\033[0m: Device file has not been inserted.")
                 sys.exit(2)
             except AttributeError as e:
-                print("\033[31mError\033[0m: Unable to get compulsory config data")
+                print("\033[31mError\033[0m: Unable to get compulsory config data - device file")
                 sys.exit(2)
         else:
             deviceFile = arguments["deviceFile"]
@@ -105,7 +105,7 @@ class Orchestrate:
             try:
                 self.logFile = self.globalSettings.settingsData["log"]
             except AttributeError as e:
-                print("Log file has not been inserted")
+                print("Log file has not been inserted.")
                 print("Creating default log file...")
                 self.logFile = createDefName()
                 if not self.logFile:
@@ -113,7 +113,7 @@ class Orchestrate:
                     sys.exit(2)
                 print("Log file '{}' has been created.".format(self.logFile))
             except KeyError as e:
-                print("\033[31mError\033[0m: Unable to get compulsory config data")
+                print("\033[31mError\033[0m: Unable to get compulsory config data - log file")
                 sys.exit(2)
                     
         else:
@@ -149,7 +149,7 @@ class Orchestrate:
                 print("\033[31mError\033[0m: Community string has not been inserted.")
                 sys.exit(2)
             except AttributeError as e:
-                print("\033[31mError\033[0m: Unable to get compulsory config data")
+                print("\033[31mError\033[0m: Unable to get compulsory config data - community string")
                 sys.exit(2)
         else:
             self.protocol["community"] = arguments["community"]
@@ -160,7 +160,7 @@ class Orchestrate:
             except KeyError as e:
                 self.debug = None
             except AttributeError as e:
-                print("\033[31mError\033[0m: Unable to get compulsory config data")
+                print("\033[31mError\033[0m: Unable to get compulsory config data - debug value")
                 sys.exit(2)
         else:   
             self.debug = arguments["debug"]
@@ -209,13 +209,13 @@ class Orchestrate:
             methods = self.config.parse("")  #parse configuration file
         except Exception as e:
             print(e)
-            print("\033[31mError\033[0m: during parsing configuration file. Check the log file.")
+            print("\033[31mError\033[0m: During parsing configuration file. Check the log file.")
             self.write2log(str(e))
             sys.exit(1)
 
         #basic data type check
         if type(methods) != type(list()):
-            print("\033[31mError\033[0m: during parsing configuration file. Check the log file.")
+            print("\033[31mError\033[0m: During parsing configuration file. Check the log file.")
             self.write2log("Return type must be list not {}".format(type(methods)))
             sys.exit(1)
 
@@ -229,13 +229,13 @@ class Orchestrate:
                 #hosts format is {vendor: list(ip_addresses)}
                 hosts = self.device.parse(method[0])
             except Exception as e:
-                print("\033[31mError\033[0m: during parsing device file. Check the log file.")
+                print("\033[31mError\033[0m: During parsing device file. Check the log file.")
                 self.write2log(str(e))
                 sys.exit(1)
 
             #basic datatype check
             if type(hosts) != type(dict()):
-                print("\033[31mError\033[0m: during parsing device file. Check the log file.")
+                print("\033[31mError\033[0m: During parsing device file. Check the log file.")
                 self.write2log("Return type must be dict not {}".format(type(hosts)))
                 sys.exit(1)
                 
@@ -243,7 +243,7 @@ class Orchestrate:
             for vendor in hosts:
                 #basic datatype check
                 if type(hosts[vendor]) != type(list()):
-                    print("\033[31mError\033[0m: during parsing device file. Check the log file.")
+                    print("\033[31mError\033[0m: During parsing device file. Check the log file.")
                     self.write2log("Return type must be in format {vendor: list(ip_addresses)}")
                     sys.exit(1)
 
@@ -288,7 +288,7 @@ class Orchestrate:
         try:
             importObj = importlib.import_module(module)
         except ImportError as e:
-            print("\033[31mError\033[0m during importing '{}'".format(module))
+            print("\033[31mError\033[0m During importing '{}'".format(module))
             self.write2log("Name of manufactor module '{}' does not exist.".format(module))
             return None
         #import default class about vendor devices
@@ -441,7 +441,7 @@ class Orchestrate:
                 log.write("\n")
 
         except Exception as e:
-            print("\033[31mError\033[0m: unable to access to log file '{}'".format(self.logfile))
+            print("\033[31mError\033[0m: Unable to access to log file '{}'".format(self.logfile))
 
     # \fn does configuration on device
     # \param dev: list of configuration data
@@ -488,7 +488,7 @@ class Orchestrate:
             #changes connection settings according to local conf. and connect values
             tmp = self.makeChange(conn_method,config_method)
             if tmp[0] != 0:
-                print("\033[31mError\033[0m: Error during changing configuration method.")
+                print("\033[31mError\033[0m: During changing configuration method. Check log file.")
                 self.write2log("Unable to change connection and configuration method. Error in makeChange method.")
                 return tmp[1]
 
@@ -542,7 +542,7 @@ class Orchestrate:
         try:
             obj = getattr(importObj, method[1])
         except AttributeError as e:
-            print("\n\033[31mError\033[0m: Module 'device_module/{}/{}' has not class '{}'".format(
+            print("\n\033[31mError\033[0m: Module 'device_module/{}/{}' has not class '{}'. Check log file.".format(
                 dev[0], dev[1], method[1]))
             self.write2log("Module 'device_module/{}/{}' has not class '{}''".format(dev[0],dev[1],method[1]))
             print("\nClosing device connection...")
@@ -583,16 +583,16 @@ class Orchestrate:
                 deviceSet = inst(**method[-1])
             except TypeError as e:
                 arg = str(e).split()
-                print("Method '{}' has no argument {}".format(method[
+                print("Method '{}' has no argument {}.".format(method[
                     3], arg[-1]))
-                self.write2log("Method '{}' has no argument {}".format(method[
+                self.write2log("Method '{}' has no argument {}.".format(method[
                     3], arg[-1]))
                 print("Closing device connection.")
                 self.conn.disconnect()
                 return 1 
             except Exception as e:
                 raise
-                print("\033[31mError\033[0m: device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
+                print("\033[31mError\033[0m: Device module '{}.{}' unexpected error.".format(dev[0],dev[1]))
                 self.conn.disconnect()
                 return 2
         #configuring method
@@ -711,7 +711,6 @@ class Orchestrate:
             try:
                 self.conn.doCommand(deviceSet,self.debug)
             except Exception as e:
-                print("ERROR",e)
                 print("\033[31mError\033[0m: Unable to do some of commands. Check log.")
                 self.write2log(str(e))
                 return 1
@@ -726,8 +725,8 @@ class Orchestrate:
         try:
             importObj = importlib.import_module(module)
         except ImportError as e:
-            print("\033[31mError\033[0m: during importing defaut device module '{}'".format(module))
-            self.write2log("Device module '{}' does not exits".format(module))
+            print("\033[31mError\033[0m: during importing defaut device module '{}'.".format(module))
+            self.write2log("Device module '{}' does not exist.".format(module))
             return 1
         #imports default class to get default configuratin device data
         try:
