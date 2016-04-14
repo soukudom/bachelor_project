@@ -250,7 +250,6 @@ class ParseDevice(ParseFile):
     # \fn recersive parsing
     # \param info: loaded data from file
     def loop(self, info):
-        print("\n\nLOOP INPUT",type(info))
         it = info.items().__iter__()
         key,pom = it.__next__()
         return pom,key
