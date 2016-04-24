@@ -41,17 +41,17 @@ class vlan(c.vlan):
     def vlan(self,id="",name=""):
         self.result = super().vlan(id,name)
         self.result = makeNetconf(self.result)
-        return self.result 
+        return [self.result]
 
     def int_vlan(self,id="",description="",ip=""):
         self.result = super().int_vlan(id,description,ip)
         self.result = makeNetconf(self.result)
-        return self.result 
+        return [self.result]
 
     def delete_vlan(self,id):
         self.result = super().delete_vlan(id)
         self.result = makeNetconf(self.result)
-        return self.result
+        return [self.result]
 
 class interface(c.interface):
     def __init__(self):

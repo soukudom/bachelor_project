@@ -618,3 +618,7 @@ Bad format of manufactor name structure: 'None'
 Skipping device '10.10.110.233', because module name was not found. Could be SNMP mistake or network temporary disconnection.
 Bad format of manufactor name structure: 'None'
 Skipping device '10.10.110.233', because module name was not found. Could be SNMP mistake or network temporary disconnection.
+Bad format of manufactor name structure: 'None'
+Skipping device '10.10.110.233', because module name was not found. Could be SNMP mistake or network temporary disconnection.
+Bad format of manufactor name structure: 'None'
+Skipping device '10.10.110.233', because module name was not found. Could be SNMP mistake or network temporary disconnection.

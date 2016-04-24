@@ -40,10 +40,10 @@ class agregate(c.agregate):
     def channel(self,id=""):
         self.result = super().channel(id)
         self.result = makeNetconf(self.result)
-        return self.result
+        return [self.result]
 
     def delete_channel(self,id=""):
         self.result = super().delete_channel(id)
         self.result = makeNetconf(self.result)
-        return self.result
+        return [self.result]
 

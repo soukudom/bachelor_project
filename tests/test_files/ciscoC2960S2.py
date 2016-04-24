@@ -2,7 +2,7 @@
 import device_modules.cisco.ciscoC2950 as c
 from lxml import etree
 
-#missing compulsory argumetn , self.connection
+#missing compulsory argument , self.connection
 class DefaultConnection:
     def __init__(self):
         self.method = "NETCONF"
@@ -39,12 +39,12 @@ class agregate(c.agregate):
     def channel(self,id=""):
         self.result = super().channel(id)
         self.result = makeNetconf(self.result)
-        return self.result
+        return [self.result]
 
     def delete_channel(self,id=""):
         self.result = super().delete_channel(id)
         self.result = makeNetconf(self.result)
-        return self.result
+        return [self.result]
 
 
 class vlan(c.vlan):
@@ -55,16 +55,16 @@ class vlan(c.vlan):
     def vlan(self,id="",name=""):
         self.result = super().vlan(id,name)
         self.result = makeNetconf(self.result)
-        return self.result 
+        return [self.result]
 
     def int_vlan(self,id="",description="",ip=""):
         self.result = super().int_vlan(id,description,ip)
         self.result = makeNetconf(self.result)
-        return self.result 
+        return [self.result]
 
     def delete_vlan(self,id):
         self.result = super().delete_vlan(id)
         self.result = makeNetconf(self.result)
-        return self.result
+        return [self.result]
 
     

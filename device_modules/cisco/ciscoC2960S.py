@@ -39,12 +39,12 @@ class agregate(c.agregate):
     def channel(self,id=""):
         self.result = super().channel(id)
         self.result = makeNetconf(self.result)
-        return self.result
+        return [self.result]
 
     def delete_channel(self,id=""):
         self.result = super().delete_channel(id)
         self.result = makeNetconf(self.result)
-        return self.result
+        return [self.result]
 
 
 class vlan(c.vlan):
@@ -55,17 +55,17 @@ class vlan(c.vlan):
     def vlan(self,id="",name=""):
         self.result = super().vlan(id,name)
         self.result = makeNetconf(self.result)
-        return self.result 
+        return [self.result]
 
     def int_vlan(self,id="",description="",ip=""):
         self.result = super().int_vlan(id,description,ip)
         self.result = makeNetconf(self.result)
-        return self.result 
+        return [self.result]
 
     def delete_vlan(self,id):
         self.result = super().delete_vlan(id)
         self.result = makeNetconf(self.result)
-        return self.result
+        return [self.result]
 
 class interface(c.interface):
     def __init__(self):
@@ -78,25 +78,25 @@ class interface(c.interface):
         self.result = super().int(id,description,shutdown)
         changeInterfaceName(self.result)
         self.result = makeNetconf(self.result)
-        return self.result
+        return [self.result]
     
     def int_vlan(self,id="",mode="",allowed="", access=""):
         self.result = super().int_vlan(id,mode,allowed,access)
         changeInterfaceName(self.result)
         self.result = makeNetconf(self.result)
-        return self.result 
+        return [self.result]
     
     def int_agregate(self,id="",channel="",mode="",protocol=""):
         self.result = super().int_agregate(id,channel,mode,protocol)
         changeInterfaceName(self.result)
         self.result = makeNetconf(self.result)
-        return self.result 
+        return [self.result]
     
     def delete_int(self, id=""):
         self.result = super().delete_int(id)
         changeInterfaceName(self.result)
         self.result = makeNetconf(self.result)
-        return self.result 
+        return [self.result]
 
 class save():
     def __init__(self):
@@ -104,4 +104,4 @@ class save():
 
     def save_config(self,id=""):
         self.result = "<copy-config><target><startup/></target><source><running/></source></copy-config>"
-        return self.result
+        return [self.result]

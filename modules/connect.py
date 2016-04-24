@@ -128,6 +128,7 @@ class NETCONF(Protocol):
         self.ch = ""                            #connection channel
         self.trans = ""                         #connection transport
         self.message_id = 1                     #netconf message id number
+        self.result = []                        #result of protocol operation
 
     def checkReply(self, data, typ):
         control = {"hello": 0,
@@ -204,57 +205,56 @@ class NETCONF(Protocol):
     # \param commands: command string
     # \param debug: sets debug mode
     # \return received data or exception
-    def doCommand(self, command, debug=""):
+    def doCommand(self, commands, debug=""):
         sleep_time = 0 # temp variable for timeout checking
 
-        if type(command) != type(str()):
+        if type(commands) != type(list()):
             raise Exception("Bad datatype. Datatype str is needed.")
-        
-        #if type(command) != type(list()):
-        #    raise Exception("Bad datatype. Datatype str is needed.")
-        #for command in commands:
-            
-        #raises message id according to rfc
-        self.message_id += 1
-        data = ""  #variable which contains received data
-        #build message
-        root = etree.Element("rpc")
-        root.set("message-id", str(self.message_id))
-        root.set("xmlns", "urn:ietf:params:xml:ns:netconf:base:1.0")
-        #concatenates messages
-        inside = etree.fromstring(command)
-        root.append(inside)
 
-        message = etree.tostring(
-            root,
-            xml_declaration=True,
-            encoding="utf-8").decode("utf-8") + self.ending
+        for command in commands:            
+            #raises message id according to rfc
+            self.message_id += 1
+            data = ""  #variable which contains received data
+            #build message
+            root = etree.Element("rpc")
+            root.set("message-id", str(self.message_id))
+            root.set("xmlns", "urn:ietf:params:xml:ns:netconf:base:1.0")
+            #concatenates messages
+            inside = etree.fromstring(command)
+            root.append(inside)
 
-        #send created message
-        self.ch.send(message)
-        #debug message
-        if debug:
-            print("\033[34mSending:\033[0m",message)
-        #waiting for response
-        while not self.ch.recv_ready():
-            time.sleep(0.1)
-            sleep_time += 0.1
-            if sleep_time > self.timeout:
-                raise Exception("\033[31mError\033[0m: Timeout reached during device configuring.")
+            message = etree.tostring(
+                root,
+                xml_declaration=True,
+                encoding="utf-8").decode("utf-8") + self.ending
 
-        sleep_time = 0
-        while self.ch.recv_ready():
-            data += self.ch.recv(2048).decode("utf-8")
-        #debug message
-        if debug:
-            print("\033[31mReceiving:\033[0m",data)
-        retVal = self.checkReply(data, None)
+            #send created message
+            self.ch.send(message)
+            #debug message
+            if debug:
+                print("\033[34mSending:\033[0m",message)
+            #waiting for response
+            while not self.ch.recv_ready():
+                time.sleep(0.1)
+                sleep_time += 0.1
+                if sleep_time > self.timeout:
+                    raise Exception("\033[31mError\033[0m: Timeout reached during device configuring.")
 
-        if retVal == 1:
-            print("\033[31mError\033[0m: in netconf message. Check log.")
-            raise Exception("NETCONF: Problem with configuring command. {}".format(data))
-        else:
-            return data
+            sleep_time = 0
+            while self.ch.recv_ready():
+                data += self.ch.recv(2048).decode("utf-8")
+            #debug message
+            if debug:
+                print("\033[31mReceiving:\033[0m",data)
+            retVal = self.checkReply(data, None)
+
+            if retVal == 1:
+                print("\033[31mError\033[0m: in netconf message. Check log.")
+                raise Exception("NETCONF: Problem with configuring command. {}".format(data))
+            else:
+                self.result.append(data)
+
+        return self.result
 
 
     # \fn disconnects from the device
