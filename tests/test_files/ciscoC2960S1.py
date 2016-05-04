@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
+
+################################################
+# Author: Dominik Soukup, soukudom@fit.cvut.cz #
+################################################
+
 import device_modules.cisco.ciscoC2950 as c
 from lxml import etree
 
-#change protocol on class level, but aftert that default protocol will continue
+#changes protocol on class level, but aftert that default protocol will continue
 class DefaultConnection:
     def __init__(self):
         self.method = "NETCONF"

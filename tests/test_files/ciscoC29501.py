@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-#Author: Dominik Soukup: soukudom@fit.cvut.cz
+################################################
+# Author: Dominik Soukup, soukudom@fit.cvut.cz #
+################################################
 
 import modules.connect as connect
 
-#change connection manner of configuring, from auto to others
+#changes connection manner of configuring, from auto to others
 def connect2device(conn_method, protocol):
     conn = getattr(connect, conn_method)
     conn = conn(protocol)

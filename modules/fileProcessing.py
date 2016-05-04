@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-#Author: Dominik Soukup, soukudom@fit.cvut.cz
+################################################
+# Author: Dominik Soukup, soukudom@fit.cvut.cz #
+################################################
 
 import yaml
 import getpass
@@ -339,7 +341,7 @@ class ParseConfig(ParseFile):
     # \param value: abbreviated value
     # \return list of unpacked data
     def unpack(self,value):
-        ret = []  # navratova hodnota
+        ret = []  # return value
         #test the abbreviation
         try:
             value = value.strip()
@@ -350,7 +352,7 @@ class ParseConfig(ParseFile):
                 tmp = value.strip(")(").split(",")
                 for i in range(int(tmp[0]), int(tmp[1]), int(tmp[2])):
                     ret.append(i)
-                return ret  #, True
+                return ret  
 
             #name with range abbreviation
             elif re.search("\(.*?\)", str(value)):
@@ -366,7 +368,7 @@ class ParseConfig(ParseFile):
                 #string combining
                 for i in product(*buffer):
                     ret.append(''.join(i))
-                return ret  #, True
+                return ret
 
             #sequence abbreviation 
             elif "," in str(value):
@@ -374,14 +376,14 @@ class ParseConfig(ParseFile):
                 #delete whitespaces
                 for no,item in enumerate(ret):
                     ret[no] = item.strip()
-                return ret  #, False
+                return ret
                 
 
             #if nothing in satisfactory, original is returned
             else:
-                return value  #, False
+                return value  
         except AttributeError:
-            return value  #, False
+            return value  
 
     # \fn recursion parsing method 
     # \param data: values from configuration file
@@ -531,21 +533,3 @@ class ParseSettings(ParseFile):
             print("Bad YAML formating in '{}'".format(self.filename))
             raise Exception("Bad YAML formatting in '{}'".format(self.filename))
 
-        #ip address check
-        #address, mask = self.settingsData["network"].split("/")
-        ##print("testuju", type(address.strip()),"*")
-        #if not re.match("^([1-9][0-9]{0,2}\.){3}[0-9]{0,3}$", address.strip()):
-        #    print("bad network form")
-        #    sys.exit(1)
-        #try:
-        #    mask = int(mask)
-        #    if mask < 0 or mask > 32:
-        #        print("bad mask")
-        #        sys.exit(1)
-        #except:
-        #    print("Network mask form mistake")
-        #    sys.exit(1)
-        #
-        #self.settingsData["network"] = address.strip()
-        #self.settingsData["networkMask"] = mask
-        #print("naparsoval jsem ", self.settingsData)

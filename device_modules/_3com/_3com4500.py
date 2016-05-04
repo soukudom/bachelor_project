@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-#Author: Dominik Soukup
+################################################
+# Author: Dominik Soukup, soukudom@fit.cvut.cz #
+################################################
 
 import modules.connect as connect
 

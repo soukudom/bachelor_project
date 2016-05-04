@@ -1,43 +1,46 @@
----
-- vlan:
-    # vytvori vlan 
-    - vlan100:
-        description: guest
-    - vlan200:
-        description: admin
-
-    - vlan:
-        number: (10,50,10)
-        description: user(10,40,10)X(Z,V)
-        description50: management 
-        ip50: 192.168.1.1/24
-
-- interface:
-    - int1:
-        description: label
-        shutdown: no
-        vlan:
-            mode: trunk
-            allowed: 10,50,10
-            
-        agregate:
-            protocol: lacp
-            channel: 1
-            mode: negotiate|waiting|on
-            
-
-    - default:
-        shutdown: no
-        vlan:
-            mode: access
-            access: 20
-            
-    - mac:
-        address: 11:22:33:44:55:66  
-        vlan:
-            mode: trunk
-            allowed: 10,20
-        agregate:
-            protocol: lacp
-            channel: 1
-            mode: on
+################################################
+# Author: Dominik Soukup, soukudom@fit.cvut.cz #
+################################################
+#---
+#- vlan:
+#    # creates vlan 
+#    - vlan100:
+#        description: guest
+#    - vlan200:
+#        description: admin
+#
+#    - vlan:
+#        number: (10,50,10)
+#        description: user(10,40,10)X(Z,V)
+#        description50: management 
+#        ip50: 192.168.1.1/24
+#
+#- interface:
+#    - int1:
+#        description: label
+#        shutdown: no
+#        vlan:
+#            mode: trunk
+#            allowed: 10,50,10
+#            
+#        agregate:
+#            protocol: lacp
+#            channel: 1
+#            mode: negotiate|waiting|on
+#            
+#
+#    - default:
+#        shutdown: no
+#        vlan:
+#            mode: access
+#            access: 20
+#            
+#    - mac:
+#        address: 11:22:33:44:55:66  
+#        vlan:
+#            mode: trunk
+#            allowed: 10,20
+#        agregate:
+#            protocol: lacp
+#            channel: 1
+#            mode: on

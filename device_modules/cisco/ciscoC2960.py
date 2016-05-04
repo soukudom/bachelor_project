@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+################################################
+# Author: Dominik Soukup, soukudom@fit.cvut.cz #
+################################################
+
 import device_modules.cisco.ciscoC2950 as c
 from lxml import etree
 

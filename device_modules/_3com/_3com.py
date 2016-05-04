@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+
+################################################
+# Author: Dominik Soukup, soukudom@fit.cvut.cz #
+################################################
+
 from modules.connect import SNMP
 import re
 
@@ -8,7 +13,6 @@ class Device:
 
     def getDeviceName(self,protocol):
         value = ["sysDescr"]
-        #imanufactor = snmp()._snmpGet(ip_address, community,value)
         obj = SNMP(protocol)
         try:
             conn = obj.connect()

@@ -1,18 +1,22 @@
----
+################################################
+# Author: Dominik Soukup, soukudom@fit.cvut.cz #
+################################################
+
+#---
 #YAML global settings file
 #data are in key: value format
-
-community: sin       # community string
-
+#
+#community: sin       # community string
+#
 #network: 10.10.110.0/24    # network address and mask 
-
-#configFile: config2.yml    # path to the main configuration file
-configFile: config3.yml    # path to the main configuration file
-deviceFile: hosts2.yml     # path to the device configuration file 
-log: log.txt           # program log file
-processCount: 2            # number of processes
-timeout: 5                  # timeout for network configuration protocols       
-debug: False                # debug messages 
+#
+##configFile: config2.yml    # path to the main configuration file
+#configFile: config3.yml    # path to the main configuration file
+#deviceFile: hosts2.yml     # path to the device configuration file 
+#log: log.txt           # program log file
+#processCount: 2            # number of processes
+#timeout: 5                  # timeout for network configuration protocols       
+#debug: False                # debug messages 
 
 
 

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+################################################
+# Author: Dominik Soukup, soukudom@fit.cvut.cz #
+################################################
+
+
 echo "Press 'y' to run argument test"
 read line
 if [ $line = "y" ]

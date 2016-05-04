@@ -1,5 +1,7 @@
-
----
+################################################
+# Author: Dominik Soukup, soukudom@fit.cvut.cz #
+################################################
+#---
 #- group:
 #    - name: cisco:cli
 #    - interface:
@@ -11,13 +13,13 @@
 #                mode: trunk
 #                allowed: 10
 #            agregate:
- #               channel: 3
-  #              mode: auto
+#                channel: 3
+#                mode: auto
 #                protocol: pagp
 #            shutdown: no
 #    - vlan:
- #       - delete_vlan:
- #           id: 20,45,47,69,78,88,123,2,25,45,55,59,67,69,78,89,111,100
+#        - delete_vlan:
+#            id: 20,45,47,69,78,88,123,2,25,45,55,59,67,69,78,89,111,100
 #            name: xxxVlanx
 #        - int_vlan:
 #            id: 78
@@ -29,13 +31,13 @@
 #    - save:
 #        - save_config:
 #            id: 1
-
-- group:
-    - name: cisco:netconf
-    - interface:
-        - delete_int:
-            id: 6,7,8,9,10,11,12,13,14,15
-            #description: automat
-            #vlan:
-            #    mode: access
-            #    access: 10
+#
+#- group:
+#    - name: cisco:netconf
+#    - interface:
+#        - delete_int:
+#            id: 6,7,8,9,10,11,12,13,14,15
+#            description: automat
+#            vlan:
+#                mode: access
+#                access: 10

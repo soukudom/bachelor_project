@@ -1,7 +1,9 @@
 #!/usr/bin/env pytho3
 # -*- coding: utf-8 -*-
 
-#Author: Dominik Soukup, soukudom@fit.cvut.cz
+################################################
+# Author: Dominik Soukup, soukudom@fit.cvut.cz #
+################################################
 
 import paramiko
 import time
